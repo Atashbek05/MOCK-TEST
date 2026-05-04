@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mock Test</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #f4f4f4;
+  text-align: center;
+}
+
+.container {
+  max-width: 600px;
+  margin: 50px auto;
+}
+
+.question {
+  background: white;
+  padding: 20px;
+  margin: 20px 0;
+  border-radius: 12px;
+}
+
+button {
+  padding: 12px 25px;
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Mock Test</h2>
+
+<div class="question">
+  <p>1. 2 + 2 = ?</p>
+  <input type="radio" name="q1" value="3"> 3<br>
+  <input type="radio" name="q1" value="4"> 4<br>
+</div>
+
+<div class="question">
+  <p>2. Capital of UK?</p>
+  <input type="radio" name="q2" value="London"> London<br>
+  <input type="radio" name="q2" value="Paris"> Paris<br>
+</div>
+
+<button onclick="submitTest()">Submit</button>
+
+</div>
+
+<script>
+function submitTest() {
+  let score = 0;
+
+  let q1 = document.querySelector('input[name="q1"]:checked');
+  let q2 = document.querySelector('input[name="q2"]:checked');
+
+  if (!q1 || !q2) {
+    alert("Answer all questions");
+    return;
+  }
+
+  if (q1.value === "4") score++;
+  if (q2.value === "London") score++;
+
+  // перевод в IELTS стиль (пример)
+  let band = score == 2 ? 7 : 5;
+
+  localStorage.setItem("lastScore", band);
+
+  let results = JSON.parse(localStorage.getItem("results")) || [];
+  results.push(band);
+  localStorage.setItem("results", JSON.stringify(results));
+
+  window.location.href = "result.html";
+}
+</script>
+
+</body>
+</html>
