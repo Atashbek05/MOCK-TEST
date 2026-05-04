@@ -8,13 +8,21 @@
 body {
   margin: 0;
   font-family: Arial;
+  background: #f4f4f4;
+}
+
+/* CONTAINER */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  position: relative;
 }
 
 /* LOGO */
 .logo {
   position: absolute;
   top: 20px;
-  left: 20px;
+  left: 0;
   font-weight: bold;
   font-size: 20px;
 }
@@ -23,7 +31,7 @@ body {
 .top {
   position: absolute;
   top: 20px;
-  right: 20px;
+  right: 0;
 }
 
 .top button {
@@ -32,7 +40,7 @@ body {
   background: black;
   color: white;
   border: none;
-  border-radius: 25px; /* КРУГЛЫЕ */
+  border-radius: 25px;
   cursor: pointer;
   font-weight: bold;
 }
@@ -42,8 +50,8 @@ body {
   height: 500px;
   background: url("ielts.jpg") center/cover no-repeat;
   display: flex;
+  justify-content: center; /* ЦЕНТР */
   align-items: center;
-  padding-left: 60px;
 }
 
 /* TEXT BOX */
@@ -80,20 +88,24 @@ body {
 
 <body>
 
-<div class="logo">
-  IELTS MOCK TEST
-</div>
+<div class="container">
 
-<div class="top">
-  <button>Login</button>
-  <button>Register</button>
-</div>
-
-<div class="hero">
-  <div class="box">
-    <h1>"Success in IELTS comes from consistent practice."</h1>
-    <p>Start your journey and improve your band score today.</p>
+  <div class="logo">
+    IELTS MOCK TEST
   </div>
+
+  <div class="top">
+    <button>Login</button>
+    <button>Register</button>
+  </div>
+
+  <div class="hero">
+    <div class="box">
+      <h1>"Success in IELTS comes from consistent practice."</h1>
+      <p>Start your journey and improve your band score today.</p>
+    </div>
+  </div>
+
 </div>
 
 <div class="footer">
