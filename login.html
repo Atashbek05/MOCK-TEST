@@ -1,6 +1,118 @@
-<h2>Login</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login</title>
 
-<input placeholder="username"><br><br>
-<input type="password" placeholder="password"><br><br>
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #f4f4f4;
+}
 
-<button>Login</button>
+/* LOGO */
+.logo {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+/* TOP */
+.top {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+.top button {
+  margin-left: 10px;
+  padding: 10px 18px;
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* HERO */
+.hero {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* BOX */
+.box {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 320px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  text-align: center;
+}
+
+.box h2 {
+  margin-bottom: 20px;
+}
+
+.box input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+}
+
+.box button {
+  width: 100%;
+  padding: 12px;
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.footer {
+  position: fixed;
+  bottom: 10px;
+  right: 15px;
+  font-size: 12px;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="logo">IELTS MOCK TEST</div>
+
+<div class="top">
+  <button onclick="goRegister()">Register</button>
+</div>
+
+<div class="hero">
+  <div class="box">
+    <h2>Login</h2>
+
+    <input placeholder="Username">
+    <input type="password" placeholder="Password">
+
+    <button>Login</button>
+  </div>
+</div>
+
+<div class="footer">Created by Atabek</div>
+
+<script>
+function goRegister() {
+  window.location.href = "register.html";
+}
+</script>
+
+</body>
+</html>
