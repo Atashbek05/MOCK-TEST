@@ -95,8 +95,18 @@ body {
   </div>
 
   <div class="top">
-    <button>Login</button>
-    <button>Register</button>
+    <button onclick="goLogin()">Login</button>
+<button onclick="goRegister()">Register</button>
+
+<script>
+function goLogin() {
+  window.location.href = "login.html";
+}
+
+function goRegister() {
+  window.location.href = "register.html";
+}
+</script>
   </div>
 
   <div class="hero">
