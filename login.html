@@ -109,7 +109,7 @@ body {
     <input placeholder="Gmail">
     <input type="password" placeholder="Password">
 
-    <button>Login</button>
+    <button onclick="login()">Login</button>
   </div>
 </div>
 
@@ -120,6 +120,21 @@ function goRegister() {
   window.location.href = "register.html";
 }
 </script>
+<script>
+function login() {
+  let username = document.querySelector("input").value;
 
+  if (username === "") {
+    alert("Enter username");
+    return;
+  }
+
+  // сохраняем пользователя
+  localStorage.setItem("currentUser", username);
+
+  // переход
+  window.location.href = "dashboard.html";
+}
+</script>
 </body>
 </html>
