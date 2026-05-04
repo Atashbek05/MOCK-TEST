@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #f4f4f4;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.logout {
+  padding: 10px 18px;
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+/* MAIN */
+.container {
+  max-width: 900px;
+  margin: 50px auto;
+  text-align: center;
+}
+
+h1 {
+  margin-bottom: 20px;
+}
+
+/* BUTTON */
+.start {
+  padding: 15px 30px;
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* RESULTS */
+.results {
+  margin-top: 40px;
+}
+
+.result-box {
+  background: white;
+  padding: 15px;
+  margin: 10px auto;
+  border-radius: 12px;
+  width: 200px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* FOOTER */
+.footer {
+  position: fixed;
+  bottom: 10px;
+  right: 15px;
+  font-size: 12px;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <div class="logo">IELTS MOCK TEST</div>
+  <button class="logout" onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+
+  <h1 id="welcome"></h1>
+
+  <button class="start" onclick="startTest()">Start Mock Test</button>
+
+  <div class="results">
+    <h3>Your Results</h3>
+    <div id="list"></div>
+  </div>
+
+</div>
+
+<div class="footer">Created by Atabek</div>
+
+<script>
+// USER
+const user = localStorage.getItem("currentUser");
+document.getElementById("welcome").innerText = "Hello, " + user;
+
+// START TEST
+function startTest() {
+  window.location.href = "test.html";
+}
+
+// LOGOUT
+function logout() {
+  localStorage.removeItem("currentUser");
+  window.location.href = "login.html";
+}
+
+// LOAD RESULTS
+let results = JSON.parse(localStorage.getItem("results")) || [];
+
+const list = document.getElementById("list");
+
+results.forEach(score => {
+  let div = document.createElement("div");
+  div.className = "result-box";
+  div.innerText = "Score: " + score;
+  list.appendChild(div);
+});
+</script>
+
+</body>
+</html>
