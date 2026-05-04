@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Result</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #f4f4f4;
+  text-align: center;
+}
+
+.box {
+  background: white;
+  padding: 30px;
+  margin: 100px auto;
+  width: 300px;
+  border-radius: 12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>Your Result</h2>
+  <h1 id="score"></h1>
+
+  <button onclick="back()">Back to Dashboard</button>
+</div>
+
+<script>
+let score = localStorage.getItem("lastScore");
+
+document.getElementById("score").innerText =
+  "Band: " + score;
+
+function back() {
+  window.location.href = "dashboard.html";
+}
+</script>
+
+</body>
+</html>
