@@ -1,40 +1,142 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <title>Result</title>
 
 <style>
 body {
+  margin: 0;
   font-family: Arial;
   background: #f4f4f4;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+/* MAIN */
+.container {
+  max-width: 800px;
+  margin: 60px auto;
   text-align: center;
 }
 
-.box {
+/* CARD */
+.card {
   background: white;
   padding: 30px;
-  margin: 100px auto;
-  width: 300px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+/* SCORES */
+.scores {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.score-box {
+  background: #f7f7f7;
+  padding: 15px;
   border-radius: 12px;
+  width: 120px;
+}
+
+.overall {
+  margin-top: 30px;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+/* BUTTON */
+button {
+  margin-top: 20px;
+  padding: 12px 25px;
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+/* FOOTER */
+.footer {
+  position: fixed;
+  bottom: 10px;
+  right: 15px;
+  font-size: 12px;
+  font-weight: bold;
 }
 </style>
 </head>
 
 <body>
 
-<div class="box">
-  <h2>Your Result</h2>
-  <h1 id="score"></h1>
-
-  <button onclick="back()">Back to Dashboard</button>
+<div class="header">
+  <div class="logo">IELTS MOCK TEST</div>
 </div>
 
+<div class="container">
+
+  <div class="card">
+    <h2>Your IELTS Result</h2>
+
+    <div class="scores">
+      <div class="score-box">
+        <p>Reading</p>
+        <h3 id="reading"></h3>
+      </div>
+
+      <div class="score-box">
+        <p>Listening</p>
+        <h3 id="listening"></h3>
+      </div>
+
+      <div class="score-box">
+        <p>Writing</p>
+        <h3 id="writing"></h3>
+      </div>
+    </div>
+
+    <div class="overall" id="overall"></div>
+
+    <button onclick="back()">Back to Dashboard</button>
+  </div>
+
+</div>
+
+<div class="footer">Created by Atabek</div>
+
 <script>
-let score = localStorage.getItem("lastScore");
+let r = +localStorage.getItem("readingScore") || 0;
+let l = +localStorage.getItem("listeningScore") || 0;
+let w = +localStorage.getItem("writingScore") || 0;
 
-document.getElementById("score").innerText =
-  "Band: " + score;
+// считаем overall
+let overall = ((r + l + w) / 3).toFixed(1);
 
+// вывод
+document.getElementById("reading").innerText = r;
+document.getElementById("listening").innerText = l;
+document.getElementById("writing").innerText = w;
+document.getElementById("overall").innerText = "Overall: " + overall;
+
+// сохранить в историю
+let results = JSON.parse(localStorage.getItem("results")) || [];
+results.push(overall);
+localStorage.setItem("results", JSON.stringify(results));
+
+// кнопка назад
 function back() {
   window.location.href = "dashboard.html";
 }
