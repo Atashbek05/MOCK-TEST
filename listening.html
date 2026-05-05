@@ -79,8 +79,9 @@ function submitTest() {
   let results = JSON.parse(localStorage.getItem("results")) || [];
   results.push(band);
   localStorage.setItem("results", JSON.stringify(results));
-
+  localStorage.setItem("listeningScore", band);
   window.location.href = "writing.html";
+  
 }
 </script>
 
