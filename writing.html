@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mock Test</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #f4f4f4;
+  text-align: center;
+}
+
+.container {
+  max-width: 600px;
+  margin: 50px auto;
+}
+
+.question {
+  background: white;
+  padding: 20px;
+  margin: 20px 0;
+  border-radius: 12px;
+}
+
+button {
+  padding: 12px 25px;
+  background: black;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h2>Writing Test</h2>
+
+  <div class="question">
+    <p>Describe a situation when you solved a problem.</p>
+
+    <textarea id="writing" placeholder="Write your answer here..." 
+      style="width:100%; height:150px; padding:10px; border-radius:10px;">
+    </textarea>
+  </div>
+
+  <button onclick="submitWriting()">Submit</button>
+
+</div>
+
+<script>
+function submitWriting() {
+  let text = document.getElementById("writing").value;
+
+  if (text.trim() === "") {
+    alert("Write something");
+    return;
+  }
+
+  // пока фейковая оценка
+  let score = 6;
+
+  localStorage.setItem("writingScore", score);
+
+  window.location.href = "result.html";
+}
+</script>
+</body>
+</html>
