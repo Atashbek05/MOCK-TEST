@@ -80,7 +80,9 @@ h1 {
 </head>
 
 <body>
-
+<div class="results">
+  <h3>Progress</h3>
+<canvas id="chart" width="400" height="200"></canvas>
 <div class="header">
   <div class="logo">IELTS MOCK TEST</div>
   <button class="logout" onclick="logout()">Logout</button>
@@ -129,6 +131,24 @@ results.forEach(score => {
   list.appendChild(div);
 });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let results = JSON.parse(localStorage.getItem("results")) || [];
 
+let ctx = document.getElementById("chart").getContext("2d");
+
+new Chart(ctx, {
+  type: "line",
+  data: {
+    labels: results.map((_, i) => "Test " + (i + 1)),
+    datasets: [{
+      label: "Your Score",
+      data: results,
+      borderWidth: 2,
+      tension: 0.3
+    }]
+  }
+});
+</script>
 </body>
 </html>
