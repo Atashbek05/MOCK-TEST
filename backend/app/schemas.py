@@ -1,17 +1,18 @@
 from datetime import datetime
+from typing import List
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserRegister(BaseModel):
-    name: str = Field(min_length=2, max_length=100)
+    name: str = Field(..., min_length=2, max_length=100)
     email: EmailStr
-    password: str = Field(min_length=6, max_length=128)
+    password: str = Field(..., min_length=6, max_length=128)
 
 
 class UserLogin(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=6, max_length=128)
+    password: str = Field(..., min_length=6, max_length=128)
 
 
 class Token(BaseModel):
@@ -24,7 +25,8 @@ class UserOut(BaseModel):
     name: str
     email: EmailStr
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
 
 
 class ResultOut(BaseModel):
@@ -35,10 +37,11 @@ class ResultOut(BaseModel):
     overall: float
     created_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    class Config:
+        orm_mode = True
 
 
 class DashboardOut(BaseModel):
     user: UserOut
     level: str
-    latest_results: list[ResultOut]
+    latest_results: List[ResultOut]
