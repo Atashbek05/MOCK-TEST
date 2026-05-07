@@ -102,33 +102,54 @@ h1 {
 <div class="footer">Created by Atabek</div>
 
 <script>
-// USER
-const user = localStorage.getItem("currentUser");
-document.getElementById("welcome").innerText = "Hello, " + user;
+const API_BASE = "https://YOUR-BACKEND-URL.onrender.com"; // <-- замени
 
-// START TEST
-function startTest() {
-  window.location.href = "test.html";
-}
-
-// LOGOUT
 function logout() {
-  localStorage.removeItem("currentUser");
+  localStorage.removeItem("token");
   window.location.href = "login.html";
 }
 
-// LOAD RESULTS
-let results = JSON.parse(localStorage.getItem("results")) || [];
+function startTest() {
+  window.location.href = "reading.html";
+}
 
-const list = document.getElementById("list");
+async function loadDashboard() {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    window.location.href = "login.html";
+    return;
+  }
 
-results.forEach(score => {
-  let div = document.createElement("div");
-  div.className = "result-box";
-  div.innerText = "Score: " + score;
-  list.appendChild(div);
-});
+  const meRes = await fetch(`${API_BASE}/me`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  if (!meRes.ok) {
+    localStorage.removeItem("token");
+    window.location.href = "login.html";
+    return;
+  }
+
+  const me = await meRes.json();
+  document.getElementById("welcome").innerText = `Hello, ${me.name}`;
+
+  const dashRes = await fetch(`${API_BASE}/dashboard`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  const dash = await dashRes.json();
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  (dash.latest_results || []).forEach(r => {
+    const div = document.createElement("div");
+    div.className = "result-box";
+    div.innerText = `Overall: ${r.overall} | R:${r.reading_score} L:${r.listening_score} W:${r.writing_score}`;
+    list.appendChild(div);
+  });
+}
+
+loadDashboard();
 </script>
-
 </body>
 </html>
