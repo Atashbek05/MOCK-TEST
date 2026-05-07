@@ -13,7 +13,7 @@ security = HTTPBearer()
 origins = [
     "http://127.0.0.1:5500",
     "http://localhost:5500",
-    "https://mock-test-1-vz7c.onrender.com",
+    "https://mock-test-3-t0pr.onrender.com",
 ]
 
 app.add_middleware(
