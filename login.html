@@ -5,13 +5,16 @@
 <title>Login</title>
 
 <style>
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   font-family: Arial;
   background: #f4f4f4;
 }
 
-/* LOGO */
 .logo {
   position: absolute;
   top: 20px;
@@ -20,7 +23,6 @@ body {
   font-size: 20px;
 }
 
-/* TOP */
 .top {
   position: absolute;
   top: 20px;
@@ -38,7 +40,6 @@ body {
   font-weight: bold;
 }
 
-/* HERO */
 .hero {
   height: 100vh;
   display: flex;
@@ -46,7 +47,6 @@ body {
   align-items: center;
 }
 
-/* BOX */
 .box {
   background: white;
   padding: 30px;
@@ -64,11 +64,12 @@ body {
   width: 100%;
   padding: 12px;
   margin: 10px 0;
-  border-radius: 25px;   /* ВОТ ГЛАВНОЕ */
+  border-radius: 25px;
   border: 1px solid #ccc;
   outline: none;
   font-size: 14px;
 }
+
 .box input:focus {
   border: 1px solid black;
 }
@@ -109,37 +110,13 @@ body {
     <input id="email" placeholder="Email">
     <input id="password" type="password" placeholder="Password">
     <button onclick="login()">Login</button>
-
-    <button onclick="login()">Login</button>
   </div>
 </div>
 
 <div class="footer">Created by Atabek</div>
 
+<script src="api.js"></script>
 <script>
-function goRegister() {
-  window.location.href = "register.html";
-}
-</script>
-<script>
-function login() {
-  let username = document.querySelector("input").value;
-
-  if (username === "") {
-    alert("Enter username");
-    return;
-  }
-
-  // сохраняем пользователя
-  localStorage.setItem("currentUser", username);
-
-  // переход
-  window.location.href = "dashboard.html";
-}
-</script>
-<script>
-const API_BASE = "https://YOUR-BACKEND-URL.onrender.com"; // <-- замени
-
 function goRegister() {
   window.location.href = "register.html";
 }

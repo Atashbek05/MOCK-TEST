@@ -11,7 +11,6 @@ body {
   background: #f4f4f4;
 }
 
-/* HEADER */
 .header {
   display: flex;
   justify-content: space-between;
@@ -32,7 +31,6 @@ body {
   cursor: pointer;
 }
 
-/* MAIN */
 .container {
   max-width: 900px;
   margin: 50px auto;
@@ -43,7 +41,6 @@ h1 {
   margin-bottom: 20px;
 }
 
-/* BUTTON */
 .start {
   padding: 15px 30px;
   background: black;
@@ -54,7 +51,6 @@ h1 {
   cursor: pointer;
 }
 
-/* RESULTS */
 .results {
   margin-top: 40px;
 }
@@ -68,7 +64,6 @@ h1 {
   box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
-/* FOOTER */
 .footer {
   position: fixed;
   bottom: 10px;
@@ -101,9 +96,8 @@ h1 {
 
 <div class="footer">Created by Atabek</div>
 
+<script src="api.js"></script>
 <script>
-const API_BASE = "https://mock-test-3-t0pr.onrender.com"; // <-- замени
-
 function logout() {
   localStorage.removeItem("token");
   window.location.href = "login.html";
@@ -137,11 +131,21 @@ async function loadDashboard() {
     headers: { Authorization: `Bearer ${token}` }
   });
 
+  if (!dashRes.ok) {
+    document.getElementById("list").innerText = "Could not load results.";
+    return;
+  }
+
   const dash = await dashRes.json();
   const list = document.getElementById("list");
   list.innerHTML = "";
 
-  (dash.latest_results || []).forEach(r => {
+  if (!dash.latest_results || dash.latest_results.length === 0) {
+    list.innerText = "No results yet.";
+    return;
+  }
+
+  dash.latest_results.forEach(r => {
     const div = document.createElement("div");
     div.className = "result-box";
     div.innerText = `Overall: ${r.overall} | R:${r.reading_score} L:${r.listening_score} W:${r.writing_score}`;

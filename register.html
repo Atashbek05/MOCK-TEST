@@ -5,13 +5,16 @@
 <title>Register</title>
 
 <style>
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   font-family: Arial;
   background: #f4f4f4;
 }
 
-/* LOGO */
 .logo {
   position: absolute;
   top: 20px;
@@ -20,7 +23,6 @@ body {
   font-size: 20px;
 }
 
-/* TOP */
 .top {
   position: absolute;
   top: 20px;
@@ -37,7 +39,6 @@ body {
   font-weight: bold;
 }
 
-/* HERO */
 .hero {
   height: 100vh;
   display: flex;
@@ -45,7 +46,6 @@ body {
   align-items: center;
 }
 
-/* BOX */
 .box {
   background: white;
   padding: 30px;
@@ -110,34 +110,13 @@ body {
     <input id="email" placeholder="Email">
     <input id="password" type="password" placeholder="Password">
     <button onclick="register()">Register</button>
-    <button onclick="register()">Register</button>
   </div>
 </div>
 
 <div class="footer">Created by Atabek</div>
 
+<script src="api.js"></script>
 <script>
-function goLogin() {
-  window.location.href = "login.html";
-}
-</script>
-<script>
-function register() {
-  let username = document.querySelector("input").value;
-
-  if (username === "") {
-    alert("Enter username");
-    return;
-  }
-
-  localStorage.setItem("currentUser", username);
-
-  window.location.href = "dashboard.html";
-}
-</script>
-<script>
-const API_BASE = "https://YOUR-BACKEND-URL.onrender.com"; // <-- замени
-
 function goLogin() {
   window.location.href = "login.html";
 }

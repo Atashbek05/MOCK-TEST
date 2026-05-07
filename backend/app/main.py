@@ -88,6 +88,25 @@ def me(current_user: models.User = Depends(get_current_user)):
     return current_user
 
 
+@app.post("/results", response_model=schemas.ResultOut, status_code=status.HTTP_201_CREATED)
+def create_result(
+    payload: schemas.ResultCreate,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    result = models.Result(
+        user_id=current_user.id,
+        reading_score=payload.reading_score,
+        listening_score=payload.listening_score,
+        writing_score=payload.writing_score,
+        overall=payload.overall,
+    )
+    db.add(result)
+    db.commit()
+    db.refresh(result)
+    return result
+
+
 @app.get("/dashboard", response_model=schemas.DashboardOut)
 def dashboard(
     current_user: models.User = Depends(get_current_user),

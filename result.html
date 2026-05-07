@@ -11,7 +11,6 @@ body {
   background: #f4f4f4;
 }
 
-/* HEADER */
 .header {
   display: flex;
   justify-content: space-between;
@@ -23,14 +22,12 @@ body {
   font-size: 20px;
 }
 
-/* MAIN */
 .container {
   max-width: 800px;
   margin: 60px auto;
   text-align: center;
 }
 
-/* CARD */
 .card {
   background: white;
   padding: 30px;
@@ -38,7 +35,6 @@ body {
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
-/* SCORES */
 .scores {
   display: flex;
   justify-content: space-around;
@@ -58,7 +54,6 @@ body {
   font-weight: bold;
 }
 
-/* BUTTON */
 button {
   margin-top: 20px;
   padding: 12px 25px;
@@ -69,7 +64,6 @@ button {
   cursor: pointer;
 }
 
-/* FOOTER */
 .footer {
   position: fixed;
   bottom: 10px;
@@ -117,26 +111,43 @@ button {
 
 <div class="footer">Created by Atabek</div>
 
+<script src="api.js"></script>
 <script>
-let r = +localStorage.getItem("readingScore") || 0;
-let l = +localStorage.getItem("listeningScore") || 0;
-let w = +localStorage.getItem("writingScore") || 0;
+const token = localStorage.getItem("token");
+if (!token) {
+  window.location.href = "login.html";
+}
 
-// считаем overall
-let overall = ((r + l + w) / 3).toFixed(1);
+const r = +localStorage.getItem("readingScore") || 0;
+const l = +localStorage.getItem("listeningScore") || 0;
+const w = +localStorage.getItem("writingScore") || 0;
 
-// вывод
+const overall = +((r + l + w) / 3).toFixed(1);
+
 document.getElementById("reading").innerText = r;
 document.getElementById("listening").innerText = l;
 document.getElementById("writing").innerText = w;
 document.getElementById("overall").innerText = "Overall: " + overall;
 
-// сохранить в историю
-let results = JSON.parse(localStorage.getItem("results")) || [];
-results.push(overall);
-localStorage.setItem("results", JSON.stringify(results));
+async function saveResult() {
+  if (!token) return;
+  await fetch(`${API_BASE}/results`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      reading_score: r,
+      listening_score: l,
+      writing_score: w,
+      overall: overall
+    })
+  });
+}
 
-// кнопка назад
+saveResult();
+
 function back() {
   window.location.href = "dashboard.html";
 }

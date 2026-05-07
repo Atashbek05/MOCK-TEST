@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -48,7 +48,7 @@ class Result(Base):
     listening_score: Mapped[float] = mapped_column(Float, default=0.0)
     writing_score: Mapped[float] = mapped_column(Float, default=0.0)
     overall: Mapped[float] = mapped_column(Float, default=0.0)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="results")
 

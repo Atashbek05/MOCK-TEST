@@ -29,6 +29,13 @@ class UserOut(BaseModel):
         orm_mode = True
 
 
+class ResultCreate(BaseModel):
+    reading_score: float = Field(..., ge=0, le=9)
+    listening_score: float = Field(..., ge=0, le=9)
+    writing_score: float = Field(..., ge=0, le=9)
+    overall: float = Field(..., ge=0, le=9)
+
+
 class ResultOut(BaseModel):
     id: int
     reading_score: float
