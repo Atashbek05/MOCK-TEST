@@ -1,5 +1,6 @@
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -8,6 +9,20 @@ from .security import create_access_token, decode_access_token, hash_password, v
 
 app = FastAPI(title="IELTS Mock Test API", version="0.1.0")
 security = HTTPBearer()
+
+origins = [
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+    "https://mock-test-1-vz7c.onrender.com",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 Base.metadata.create_all(bind=engine)
 
