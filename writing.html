@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Writing Test – IELTS Mock</title>
 
 <style>
@@ -357,10 +360,10 @@ textarea:focus { border-color: #222; }
 </div>
 
 <script src="api.js"></script>
+<script src="auth.js"></script>
 <script>
-// ── Route protection ──────────────────────────────────────────────────────────
-const token = localStorage.getItem("token");
-if (!token) window.location.href = "login.html";
+// ── Auth ──────────────────────────────────────────────────────────────────────
+const token = requireAuth();
 
 // ── Timer — 40 minutes ────────────────────────────────────────────────────────
 let secondsLeft   = 40 * 60;

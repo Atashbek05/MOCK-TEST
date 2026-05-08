@@ -2,137 +2,323 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Register</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Register – IELTS Mock</title>
 
 <style>
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  margin: 0;
-  font-family: Arial;
-  background: #f4f4f4;
-}
-
-.logo {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  font-weight: bold;
-  font-size: 20px;
-}
-
-.top {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-}
-
-.top button {
-  padding: 10px 18px;
-  background: black;
-  color: white;
-  border: none;
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.hero {
-  height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  background: #f1f5f9;
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+}
+
+/* ── Top bar ─────────────────────────────────────────────────────────────────── */
+.top-bar {
+  padding: 16px 28px;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
 }
 
-.box {
+.logo {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+  text-decoration: none;
+  letter-spacing: -0.2px;
+}
+
+.logo .accent { color: #2563eb; }
+
+.nav-btn {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  text-decoration: none;
+  padding: 8px 18px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
   background: white;
-  padding: 30px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.nav-btn:hover { color: #0f172a; border-color: #cbd5e1; background: #f8fafc; }
+
+/* ── Page center ─────────────────────────────────────────────────────────────── */
+.page-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* ── Card ────────────────────────────────────────────────────────────────────── */
+.card {
+  background: white;
+  border-radius: 20px;
+  padding: 38px 34px 32px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.04), 0 16px 48px rgba(0,0,0,0.09);
+}
+
+.card-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+
+.card-sub {
+  font-size: 14px;
+  color: #94a3b8;
+  margin-bottom: 30px;
+}
+
+/* ── Field (label + input + error) ──────────────────────────────────────────── */
+.field { margin-bottom: 18px; }
+
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 7px;
+}
+
+.field-wrap { position: relative; }
+
+/* The actual input */
+.field-input {
+  width: 100%;
+  padding: 13px 16px;
+  font-family: inherit;
+  font-size: 15px;
+  color: #0f172a;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
   border-radius: 12px;
-  width: 320px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.field-input::placeholder { color: #94a3b8; }
+
+/* Blue glow on focus */
+.field-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+  background: white;
+}
+
+/* Red glow + shake on error */
+.field-input.is-error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+  animation: shake 0.32s ease;
+}
+
+/* Extra right padding when password toggle is present */
+.has-toggle { padding-right: 60px; }
+
+/* ── Password show/hide toggle ───────────────────────────────────────────────── */
+.pw-toggle {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: #94a3b8;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+  line-height: 1;
+}
+
+.pw-toggle:hover { color: #374151; background: #f1f5f9; }
+
+/* ── Error text under field ──────────────────────────────────────────────────── */
+.field-error {
+  display: none;
+  font-size: 12px;
+  font-weight: 500;
+  color: #ef4444;
+  margin-top: 6px;
+  margin-left: 2px;
+}
+
+.field-error.show { display: block; }
+
+/* ── Server / API error box ──────────────────────────────────────────────────── */
+.server-error {
+  display: none;
+  background: #fef2f2;
+  border: 1.5px solid #fecaca;
+  border-radius: 10px;
+  padding: 11px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #dc2626;
+  margin-bottom: 16px;
   text-align: center;
 }
 
-.box h2 {
-  margin-bottom: 20px;
-}
+.server-error.show { display: block; }
 
-.box input {
+/* ── Submit button ───────────────────────────────────────────────────────────── */
+.btn-submit {
   width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  border-radius: 25px;
-  border: 1px solid #ccc;
-  outline: none;
-  font-size: 14px;
-}
-
-.box input:focus {
-  border: 1px solid black;
-}
-
-.box input.error {
-  border: 1px solid #e53935;
-}
-
-.error-msg {
-  display: none;
-  color: #e53935;
-  font-size: 12px;
-  margin: -6px 0 4px 12px;
-  text-align: left;
-}
-
-.error-msg.show {
-  display: block;
-}
-
-.box button {
-  width: 100%;
-  padding: 12px;
-  background: black;
+  padding: 14px;
+  background: #2563eb;
   color: white;
   border: none;
-  border-radius: 25px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
   cursor: pointer;
-  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  transition: background 0.2s, transform 0.15s;
+  margin-top: 4px;
 }
 
-.footer {
-  position: fixed;
-  bottom: 10px;
-  right: 15px;
-  font-size: 12px;
-  font-weight: bold;
+.btn-submit:hover:not(:disabled) { background: #1d4ed8; transform: translateY(-1px); }
+.btn-submit:active:not(:disabled) { transform: none; }
+.btn-submit:disabled { opacity: 0.68; cursor: not-allowed; }
+
+/* Spinner shown inside button while loading */
+.spinner {
+  display: none;
+  width: 16px;
+  height: 16px;
+  border: 2.5px solid rgba(255,255,255,0.35);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+  flex-shrink: 0;
 }
+
+.btn-submit.loading .spinner { display: block; }
+
+/* ── Switch link ─────────────────────────────────────────────────────────────── */
+.switch-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.switch-link a { color: #2563eb; font-weight: 600; text-decoration: none; }
+.switch-link a:hover { text-decoration: underline; }
+
+/* ── Footer ──────────────────────────────────────────────────────────────────── */
+.footer { text-align: center; padding: 14px; font-size: 12px; color: #cbd5e1; font-weight: 600; }
+
+/* ── Animations ──────────────────────────────────────────────────────────────── */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60%  { transform: translateX(-6px); }
+  40%, 80%  { transform: translateX(6px); }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 
 <body>
 
-<div class="logo">IELTS MOCK TEST</div>
-
-<div class="top">
-  <button onclick="goLogin()">Login</button>
+<!-- Top bar -->
+<div class="top-bar">
+  <a class="logo" href="login.html">IELTS <span class="accent">MOCK</span></a>
+  <a class="nav-btn" href="login.html">← Sign in</a>
 </div>
 
-<div class="hero">
-  <div class="box">
-    <h2>Register</h2>
+<!-- Card -->
+<div class="page-center">
+  <div class="card">
 
-    <input id="name" placeholder="Name">
-    <small class="error-msg" id="err-name">Please enter your name</small>
+    <h1 class="card-title">Create account</h1>
+    <p class="card-sub">Join IELTS Mock and start practicing today</p>
 
-    <input id="email" placeholder="Email">
-    <small class="error-msg" id="err-email">Please enter a valid email (e.g. name@gmail.com)</small>
+    <!-- Name field -->
+    <div class="field">
+      <label class="field-label" for="name">Full name</label>
+      <div class="field-wrap">
+        <input
+          class="field-input"
+          id="name"
+          type="text"
+          placeholder="Your name"
+          autocomplete="name"
+          tabindex="1"
+        >
+      </div>
+      <div class="field-error" id="err-name"></div>
+    </div>
 
-    <input id="password" type="password" placeholder="Password">
-    <small class="error-msg" id="err-password">Please enter a password</small>
+    <!-- Email field -->
+    <div class="field">
+      <label class="field-label" for="email">Email address</label>
+      <div class="field-wrap">
+        <input
+          class="field-input"
+          id="email"
+          type="email"
+          placeholder="name@gmail.com"
+          autocomplete="email"
+          tabindex="2"
+        >
+      </div>
+      <div class="field-error" id="err-email"></div>
+    </div>
 
-    <small class="error-msg" id="err-server"></small>
-    <button onclick="register()">Register</button>
+    <!-- Password field -->
+    <div class="field">
+      <label class="field-label" for="password">Password</label>
+      <div class="field-wrap">
+        <input
+          class="field-input has-toggle"
+          id="password"
+          type="password"
+          placeholder="Create a password"
+          autocomplete="new-password"
+          tabindex="3"
+        >
+        <!-- tabindex="-1" so Tab skips the toggle and goes straight to Submit -->
+        <button class="pw-toggle" id="pw-btn" type="button" tabindex="-1">Show</button>
+      </div>
+      <div class="field-error" id="err-password"></div>
+    </div>
+
+    <!-- Server error (only shown on API failure) -->
+    <div class="server-error" id="err-server"></div>
+
+    <!-- Submit -->
+    <button class="btn-submit" id="submit-btn" tabindex="4">
+      <span class="spinner"></span>
+      <span class="btn-label">Create account</span>
+    </button>
+
+    <p class="switch-link">
+      Already have an account? <a href="login.html">Sign in</a>
+    </p>
+
   </div>
 </div>
 
@@ -140,73 +326,187 @@ body {
 
 <script src="api.js"></script>
 <script>
-function goLogin() {
-  window.location.href = "login.html";
-}
 
-function showError(id, inputId, message) {
-  const el = document.getElementById(id);
-  el.textContent = message;
-  el.classList.add("show");
-  if (inputId) document.getElementById(inputId).classList.add("error");
-}
-
-function clearError(id, inputId) {
-  document.getElementById(id).classList.remove("show");
-  if (inputId) document.getElementById(inputId).classList.remove("error");
-}
+// ═══════════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════════
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+// Show red border + shake animation + error text under the field
+function showFieldError(inputId, msgId, message) {
+  const input = document.getElementById(inputId);
+  const msg   = document.getElementById(msgId);
+
+  // Remove then re-add → restarts the shake animation every time
+  input.classList.remove("is-error");
+  void input.offsetWidth; // force browser reflow so animation restarts
+  input.classList.add("is-error");
+
+  msg.textContent = "⚠ " + message;
+  msg.classList.add("show");
+}
+
+// Remove red state from one field
+function clearFieldError(inputId, msgId) {
+  if (inputId) document.getElementById(inputId).classList.remove("is-error");
+  if (msgId)   document.getElementById(msgId).classList.remove("show");
+}
+
+// Clear ALL field errors + server error before each submit attempt
+function clearAll() {
+  clearFieldError("name",     "err-name");
+  clearFieldError("email",    "err-email");
+  clearFieldError("password", "err-password");
+  document.getElementById("err-server").classList.remove("show");
+}
+
+// Show / hide loading spinner and disable the button while waiting
+function setLoading(on) {
+  const btn = document.getElementById("submit-btn");
+  btn.disabled = on;
+  btn.classList.toggle("loading", on);
+  btn.querySelector(".btn-label").textContent = on ? "Creating account…" : "Create account";
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PASSWORD SHOW / HIDE TOGGLE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+document.getElementById("pw-btn").addEventListener("click", function () {
+  const inp    = document.getElementById("password");
+  const isHide = inp.type === "password";
+
+  inp.type         = isHide ? "text" : "password";
+  this.textContent = isHide ? "Hide" : "Show";
+
+  inp.focus(); // keep keyboard focus on the input after clicking
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// REGISTER FUNCTION  (same logic as before, + loading state + try/catch)
+// ═══════════════════════════════════════════════════════════════════════════════
+
 async function register() {
-  const name = document.getElementById("name").value.trim();
-  const email = document.getElementById("email").value.trim();
+  const name     = document.getElementById("name").value.trim();
+  const email    = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
 
-  clearError("err-name", "name");
-  clearError("err-email", "email");
-  clearError("err-password", "password");
-  clearError("err-server", null);
+  clearAll(); // wipe previous errors before validating fresh
 
   let hasError = false;
 
   if (!name) {
-    showError("err-name", "name", "Please enter your name");
+    showFieldError("name", "err-name", "Please enter your name");
     hasError = true;
   }
 
   if (!email) {
-    showError("err-email", "email", "Please enter your email");
+    showFieldError("email", "err-email", "Please enter your email");
     hasError = true;
   } else if (!isValidEmail(email)) {
-    showError("err-email", "email", "Please enter a valid email (e.g. name@gmail.com)");
+    showFieldError("email", "err-email", "Invalid email — e.g. name@gmail.com");
     hasError = true;
   }
 
   if (!password) {
-    showError("err-password", "password", "Please enter a password");
+    showFieldError("password", "err-password", "Please enter a password");
     hasError = true;
   }
 
-  if (hasError) return;
-
-  const res = await fetch(`${API_BASE}/register`, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ name, email, password })
-  });
-
-  const data = await res.json();
-  if (!res.ok) {
-    showError("err-server", null, data.detail || "Registration failed. Please try again.");
+  if (hasError) {
+    // Focus the first field that has an error
+    if (!name)                    document.getElementById("name").focus();
+    else if (!email || !isValidEmail(email)) document.getElementById("email").focus();
+    else                          document.getElementById("password").focus();
     return;
   }
 
-  localStorage.setItem("token", data.access_token);
-  window.location.href = "dashboard.html";
+  setLoading(true); // show spinner, disable button
+
+  try {
+    const res  = await fetch(`${API_BASE}/register`, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ name, email, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      const box    = document.getElementById("err-server");
+      box.textContent = data.detail || "Registration failed. Please try again.";
+      box.classList.add("show");
+      setLoading(false);
+      return;
+    }
+
+    localStorage.setItem("token", data.access_token);
+    window.location.href = "dashboard.html";
+
+  } catch (err) {
+    const box    = document.getElementById("err-server");
+    box.textContent = "Server is not responding. Please try again.";
+    box.classList.add("show");
+    setLoading(false);
+    console.error(err);
+  }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// KEYBOARD NAVIGATION
+// Flow: Name → Email → Password → Submit
+// Tab is handled automatically by the browser (tabindex 1 → 2 → 3 → 4).
+// Enter moves to the next field, or submits from the last field.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+document.getElementById("name").addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    document.getElementById("email").focus(); // jump to email
+  }
+});
+
+document.getElementById("email").addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    document.getElementById("password").focus(); // jump to password
+  }
+});
+
+document.getElementById("password").addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    register(); // submit from last field
+  }
+});
+
+// Submit button click
+document.getElementById("submit-btn").addEventListener("click", register);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// REAL-TIME ERROR CLEARING
+// Red border and message disappear as soon as the user starts typing.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+document.getElementById("name").addEventListener("input", function () {
+  clearFieldError("name", "err-name");
+});
+
+document.getElementById("email").addEventListener("input", function () {
+  clearFieldError("email", "err-email");
+  document.getElementById("err-server").classList.remove("show");
+});
+
+document.getElementById("password").addEventListener("input", function () {
+  clearFieldError("password", "err-password");
+});
+
+// ── Auto-focus the first field when the page loads ────────────────────────────
+document.getElementById("name").focus();
+
 </script>
 </body>
 </html>

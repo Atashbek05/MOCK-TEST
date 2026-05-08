@@ -2,285 +2,549 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Dashboard – IELTS Mock</title>
 
 <style>
+/* ── Reset & Base ──────────────────────────────────────────────────────────── */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: Arial, sans-serif;
-  background: #f3f4f6;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  background: #f1f5f9;
   min-height: 100vh;
+  color: #0f172a;
 }
 
-/* ── Header ── */
+/* ── Header ────────────────────────────────────────────────────────────────── */
 .header {
-  background: white;
-  padding: 16px 32px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 32px;
+  height: 62px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
-.logo { font-weight: bold; font-size: 17px; color: #111827; }
-
-.btn-logout {
-  padding: 8px 20px;
-  background: transparent;
-  color: #374151;
-  border: 1.5px solid #d1d5db;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.18s;
-}
-
-.btn-logout:hover { background: #111827; color: white; border-color: #111827; }
-
-/* ── Page container ── */
-.container {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 36px 20px 80px;
-}
-
-/* ── Welcome row ── */
-.welcome-row {
+.header-left {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 28px;
-  flex-wrap: wrap;
+  gap: 28px;
 }
 
-.welcome-row h1 { font-size: 28px; color: #111827; font-weight: 700; }
+.logo {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+  text-decoration: none;
+  letter-spacing: -0.2px;
+}
 
-.level-badge {
-  padding: 4px 14px;
-  border-radius: 20px;
+.logo .accent { color: #2563eb; }
+
+.nav-links {
+  display: flex;
+  gap: 2px;
+}
+
+.nav-link {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  text-decoration: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav-link:hover { background: #f1f5f9; color: #0f172a; }
+.nav-link.active { background: #eff6ff; color: #2563eb; font-weight: 600; }
+
+.header-right { display: flex; align-items: center; gap: 14px; }
+
+.header-name {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
+  color: #374151;
   display: none;
 }
 
-.badge-Advanced            { background: #dcfce7; color: #166534; }
-.badge-Upper-Intermediate  { background: #dbeafe; color: #1e40af; }
-.badge-Intermediate        { background: #fef3c7; color: #92400e; }
-.badge-Beginner            { background: #fee2e2; color: #991b1b; }
-
-/* ── CTA hero card ── */
-.cta-card {
-  background: white;
-  border-radius: 14px;
-  padding: 24px 28px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 20px;
+.btn-logout {
+  padding: 7px 16px;
+  background: transparent;
+  color: #64748b;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.15s;
 }
 
-.cta-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
-  background: #eff6ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
-  flex-shrink: 0;
+.btn-logout:hover {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
 }
 
-.cta-text { flex: 1; }
-.cta-text h3 { font-size: 17px; color: #111827; font-weight: 700; margin-bottom: 4px; }
-.cta-text p  { font-size: 13px; color: #6b7280; line-height: 1.5; }
+/* ── Main Container ─────────────────────────────────────────────────────────── */
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 28px 20px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
 
-.cta-right { text-align: center; flex-shrink: 0; }
-
-.btn-take-test {
-  padding: 12px 26px;
-  background: #2563eb;
+/* ── Hero ───────────────────────────────────────────────────────────────────── */
+.hero {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 55%, #3b82f6 100%);
+  border-radius: 20px;
+  padding: 36px 40px 40px;
   color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative circles */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -80px;
+  right: -50px;
+  width: 300px;
+  height: 300px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -100px;
+  right: 120px;
+  width: 240px;
+  height: 240px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.hero-body { position: relative; z-index: 1; }
+
+/* Level badge inside hero */
+.level-badge {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  width: fit-content;
+}
+
+.badge-Advanced            { background: rgba(74,222,128,0.18);  color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+.badge-Upper-Intermediate  { background: rgba(147,197,253,0.18); color: #93c5fd; border: 1px solid rgba(147,197,253,0.3); }
+.badge-Intermediate        { background: rgba(251,191,36,0.18);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+.badge-Beginner            { background: rgba(252,165,165,0.18); color: #fca5a5; border: 1px solid rgba(252,165,165,0.3); }
+
+.hero-title {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  font-size: 15px;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 26px;
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.btn-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 26px;
+  background: white;
+  color: #1d4ed8;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.18s;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
   white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
-.btn-take-test:hover { background: #1d4ed8; }
-
-.cta-duration {
-  font-size: 12px;
-  color: #9ca3af;
-  margin-top: 6px;
+.btn-start:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.24);
 }
 
-/* ── Stats grid ── */
+.btn-start .arrow { font-style: normal; transition: transform 0.2s; }
+.btn-start:hover .arrow { transform: translateX(4px); }
+
+.hero-meta {
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
+}
+
+/* ── Stats Grid ─────────────────────────────────────────────────────────────── */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 32px;
+  gap: 14px;
 }
 
 .stat-card {
   background: white;
-  border-radius: 12px;
-  padding: 24px 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-  text-align: center;
+  border-radius: 16px;
+  padding: 22px 22px 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.stat-card .stat-number {
-  font-size: 36px;
-  font-weight: 700;
-  color: #111827;
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+/* Coloured top bar */
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 16px 16px 0 0;
+}
+
+.stat-card:nth-child(1)::before { background: linear-gradient(90deg, #94a3b8, #cbd5e1); }
+.stat-card:nth-child(2)::before { background: linear-gradient(90deg, #2563eb, #60a5fa); }
+.stat-card:nth-child(3)::before { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+
+.stat-icon { font-size: 20px; margin-bottom: 12px; }
+
+.stat-number {
+  font-size: 40px;
+  font-weight: 800;
+  color: #0f172a;
   line-height: 1;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+  letter-spacing: -1.5px;
 }
 
-.stat-card .stat-label {
+.stat-label {
   font-size: 11px;
-  color: #9ca3af;
+  color: #94a3b8;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  font-weight: 600;
+  letter-spacing: 0.8px;
 }
 
-/* ── Section labels ── */
-.section-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
+/* ── Block Header (label + link) ─────────────────────────────────────────────  */
+.block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 14px;
 }
 
-/* ── History cards ── */
-.history-list {
+.block-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.link-all {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2563eb;
+  text-decoration: none;
+  transition: gap 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.link-all:hover { gap: 8px; }
+
+/* ── Latest Score Card ──────────────────────────────────────────────────────── */
+.score-card {
+  background: white;
+  border-radius: 16px;
+  padding: 26px 28px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+}
+
+.score-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.score-card-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.score-date {
+  font-size: 13px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.score-layout {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+/* Band circle */
+.band-circle {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 4px solid;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 32px;
-}
-
-.history-card {
-  background: white;
-  border-radius: 12px;
-  padding: 16px 22px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-  display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.h-left { display: flex; flex-direction: column; gap: 4px; }
-.h-date { font-size: 13px; color: #9ca3af; }
-.h-detail { font-size: 14px; color: #6b7280; }
-.h-detail b { color: #111827; }
+.band-number { font-size: 30px; font-weight: 800; line-height: 1; }
+.band-label  { font-size: 9px;  font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; opacity: 0.65; }
 
-.h-band { font-size: 28px; font-weight: 700; }
-.c-ex { color: #16a34a; }
-.c-gd { color: #2563eb; }
-.c-md { color: #d97706; }
-.c-lw { color: #dc2626; }
+.circle-excellent { color: #16a34a; border-color: #4ade80; background: #f0fdf4; }
+.circle-good      { color: #2563eb; border-color: #60a5fa; background: #eff6ff; }
+.circle-moderate  { color: #d97706; border-color: #fbbf24; background: #fffbeb; }
+.circle-low       { color: #dc2626; border-color: #f87171; background: #fef2f2; }
 
-/* ── Empty state ── */
-.empty-card {
-  background: white;
-  border-radius: 12px;
-  padding: 50px 20px;
-  text-align: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-}
+/* Section bars */
+.section-bars { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 14px; }
 
-.empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.3; }
-.empty-card p { font-size: 15px; color: #6b7280; font-weight: 600; margin-bottom: 4px; }
-.empty-card small { font-size: 13px; color: #9ca3af; }
+.bar-row { display: flex; align-items: center; gap: 10px; }
 
-/* ── About the test card ── */
-.about-card {
-  background: white;
-  border-radius: 12px;
-  padding: 24px 28px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-}
+.bar-icon { font-size: 15px; width: 22px; flex-shrink: 0; }
+.bar-name { font-size: 13px; font-weight: 600; color: #475569; width: 70px; flex-shrink: 0; }
 
-.sections-row {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-}
-
-.section-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.bar-track {
   flex: 1;
-  min-width: 100px;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
-.section-icon {
-  width: 48px;
-  height: 48px;
+.bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bar-score {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  width: 34px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Section Cards Grid ──────────────────────────────────────────────────────── */
+.sections-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.section-card {
+  background: white;
+  border-radius: 16px;
+  padding: 22px 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  transition: transform 0.22s, box-shadow 0.22s;
+}
+
+.section-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.1);
+}
+
+.s-icon-wrap {
+  width: 46px;
+  height: 46px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 22px;
-  flex-shrink: 0;
+  margin-bottom: 14px;
 }
 
-.icon-reading  { background: #eff6ff; }
-.icon-listening { background: #f0fdf4; }
-.icon-writing  { background: #fff7ed; }
-.icon-speaking { background: #faf5ff; }
+.s-reading   { background: #eff6ff; }
+.s-listening { background: #f0fdf4; }
+.s-writing   { background: #fff7ed; }
+.s-speaking  { background: #faf5ff; }
 
-.section-info h4 { font-size: 14px; font-weight: 700; color: #111827; margin-bottom: 2px; }
-.section-info p  { font-size: 12px; color: #9ca3af; line-height: 1.4; }
-
-.section-arrow {
-  color: #d1d5db;
-  font-size: 18px;
-  font-weight: bold;
-  flex-shrink: 0;
-  padding: 0 4px;
+.s-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
 }
 
-.info-box {
-  background: #eff6ff;
-  border-radius: 10px;
-  padding: 14px 18px;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 13px;
-  color: #1e40af;
-  line-height: 1.5;
+.s-meta {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.7;
 }
 
-.info-box span { font-size: 16px; flex-shrink: 0; }
-
-/* ── Skeleton ── */
-.skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.2s infinite;
+.s-coming {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  background: #f1f5f9;
+  padding: 2px 8px;
   border-radius: 6px;
-  height: 14px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+/* ── Recent Activity Cards ───────────────────────────────────────────────────── */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-card {
+  background: white;
+  border-radius: 14px;
+  padding: 18px 22px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transition: box-shadow 0.2s;
+}
+
+.history-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+
+.h-left { flex: 1; min-width: 0; }
+
+.h-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.h-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.h-date { font-size: 13px; color: #64748b; font-weight: 500; }
+
+.h-dur {
+  font-size: 12px;
+  color: #94a3b8;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 1px 8px;
+  border-radius: 6px;
+}
+
+.h-scores { display: flex; gap: 16px; flex-wrap: wrap; }
+
+.h-score {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+}
+
+.h-score .icon { font-size: 13px; }
+.h-score .lbl  { color: #94a3b8; }
+.h-score .val  { font-weight: 700; color: #0f172a; }
+
+.h-band {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  flex-shrink: 0;
+  min-width: 60px;
+  text-align: right;
+}
+
+.c-ex { color: #16a34a; }
+.c-gd { color: #2563eb; }
+.c-md { color: #d97706; }
+.c-lw { color: #dc2626; }
+
+/* ── Empty State ─────────────────────────────────────────────────────────────── */
+.empty-card {
+  background: white;
+  border-radius: 16px;
+  padding: 60px 24px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.empty-icon { font-size: 38px; margin-bottom: 14px; opacity: 0.2; }
+.empty-card p { font-size: 15px; color: #64748b; font-weight: 600; margin-bottom: 5px; }
+.empty-card small { font-size: 13px; color: #94a3b8; }
+
+/* ── Skeleton Loader ─────────────────────────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 8px;
 }
 
 @keyframes shimmer {
@@ -288,164 +552,208 @@ body {
   100% { background-position: -200% 0; }
 }
 
-/* ── Footer ── */
+/* ── Footer ──────────────────────────────────────────────────────────────────── */
 .footer {
   text-align: center;
   padding: 20px 0;
   font-size: 12px;
-  color: #d1d5db;
+  color: #cbd5e1;
   font-weight: 600;
 }
 
-/* ── Responsive ── */
-@media (max-width: 640px) {
-  .cta-card     { flex-direction: column; align-items: flex-start; }
-  .cta-right    { width: 100%; }
-  .btn-take-test { width: 100%; justify-content: center; }
-  .stats-grid   { grid-template-columns: 1fr; }
-  .sections-row { flex-direction: column; gap: 16px; }
-  .section-arrow { display: none; }
-  .history-card { flex-direction: column; align-items: flex-start; gap: 8px; }
+/* ── Responsive ──────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .header { padding: 0 16px; }
+  .nav-links { display: none; }
+  .header-name { display: none !important; }
+  .hero { padding: 28px 24px 30px; }
+  .hero-title { font-size: 24px; }
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .stats-grid .stat-card:nth-child(3) {
+    grid-column: span 2;
+  }
+  .sections-grid { grid-template-columns: repeat(2, 1fr); }
+  .score-layout { flex-direction: column; align-items: flex-start; gap: 20px; }
+  .history-card { flex-direction: column; align-items: flex-start; }
+  .h-band { align-self: flex-end; }
+}
+
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .stats-grid .stat-card:nth-child(3) { grid-column: auto; }
+  .hero-actions { flex-direction: column; align-items: flex-start; }
+  .btn-start { width: 100%; justify-content: center; }
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  <div class="logo">IELTS MOCK TEST</div>
-  <div style="display:flex; gap:10px; align-items:center;">
-    <a href="history.html" style="text-decoration:none; font-size:14px; font-weight:600; color:#6b7280; padding:8px 16px; border-radius:20px; border:1.5px solid #e5e7eb; transition:all 0.18s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">History</a>
-    <button class="btn-logout" onclick="logout()">Logout</button>
+<!-- ══════════════════════════════════════ HEADER ══════════════════════════════ -->
+<header class="header">
+  <div class="header-left">
+    <a class="logo" href="dashboard.html">IELTS <span class="accent">MOCK</span></a>
+    <nav class="nav-links">
+      <a class="nav-link active" href="dashboard.html">Dashboard</a>
+      <a class="nav-link" href="history.html">History</a>
+    </nav>
   </div>
-</div>
-
-<div class="container">
-
-  <!-- Welcome + Level -->
-  <div class="welcome-row">
-    <h1 id="welcome-msg">Loading...</h1>
-    <span class="level-badge" id="level-badge"></span>
+  <div class="header-right">
+    <span class="header-name" id="header-name"></span>
+    <button class="btn-logout" onclick="logout()">Sign out</button>
   </div>
+</header>
 
-  <!-- Main CTA card -->
-  <div class="cta-card">
-    <div class="cta-icon">📋</div>
-    <div class="cta-text">
-      <h3>Take a Full IELTS Mock Test</h3>
-      <p>Simulate the real IELTS exam environment.<br>You will complete all 4 sections in order.</p>
+<!-- ══════════════════════════════════════ MAIN ════════════════════════════════ -->
+<main class="container">
+
+  <!-- ── Hero ─────────────────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-body">
+      <div class="level-badge" id="level-badge"></div>
+      <h1 class="hero-title" id="welcome-msg">Welcome back!</h1>
+      <p class="hero-subtitle">Ready for your next IELTS practice session?</p>
+      <div class="hero-actions">
+        <button class="btn-start" onclick="startFullTest()">
+          Start Full IELTS Mock Test
+          <span class="arrow">→</span>
+        </button>
+        <span class="hero-meta">~2h 45min &nbsp;·&nbsp; Reading · Listening · Writing</span>
+      </div>
     </div>
-    <div class="cta-right">
-      <button class="btn-take-test" onclick="startFullTest()">
-        Take IELTS Mock Test &rarr;
-      </button>
-      <p class="cta-duration">Duration: ~2 hours 45 minutes</p>
-    </div>
-  </div>
+  </section>
 
-  <!-- Stats -->
+  <!-- ── Stats ─────────────────────────────────────────────────────────────── -->
   <div class="stats-grid">
     <div class="stat-card">
+      <div class="stat-icon">📝</div>
       <div class="stat-number" id="stat-total">0</div>
-      <div class="stat-label">Total Mock Tests</div>
+      <div class="stat-label">Tests Taken</div>
     </div>
     <div class="stat-card">
+      <div class="stat-icon">🎯</div>
       <div class="stat-number" id="stat-latest">–</div>
-      <div class="stat-label">Latest Overall Band</div>
+      <div class="stat-label">Latest Band</div>
     </div>
     <div class="stat-card">
+      <div class="stat-icon">📈</div>
       <div class="stat-number" id="stat-avg">–</div>
-      <div class="stat-label">Average Overall Band</div>
+      <div class="stat-label">Average Band</div>
     </div>
   </div>
 
-  <!-- Recent Results -->
-  <div class="section-label">Recent Mock Tests</div>
-  <div class="history-list" id="history-list">
-    <!-- Skeleton while loading -->
-    <div class="history-card">
-      <div>
-        <div class="skeleton" style="width:120px; margin-bottom:8px;"></div>
-        <div class="skeleton" style="width:220px;"></div>
+  <!-- ── Latest Score Breakdown (hidden until data loads) ─────────────────── -->
+  <div id="score-section" style="display:none;">
+    <div class="block-header">
+      <span class="block-title">Latest Score Breakdown</span>
+    </div>
+    <div class="score-card">
+      <div class="score-card-header">
+        <h3>Most Recent Mock Test</h3>
+        <span class="score-date" id="latest-date"></span>
       </div>
-      <div class="skeleton" style="width:50px; height:32px;"></div>
+      <div class="score-layout">
+        <!-- Overall band circle -->
+        <div class="band-circle" id="band-circle">
+          <div class="band-number" id="circle-band">–</div>
+          <div class="band-label">Overall</div>
+        </div>
+        <!-- Section progress bars -->
+        <div class="section-bars">
+          <div class="bar-row">
+            <span class="bar-icon">📖</span>
+            <span class="bar-name">Reading</span>
+            <div class="bar-track">
+              <div class="bar-fill" id="bar-reading" style="width:0%;"></div>
+            </div>
+            <span class="bar-score" id="score-reading">–</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-icon">🎧</span>
+            <span class="bar-name">Listening</span>
+            <div class="bar-track">
+              <div class="bar-fill" id="bar-listening" style="width:0%;"></div>
+            </div>
+            <span class="bar-score" id="score-listening">–</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-icon">✏️</span>
+            <span class="bar-name">Writing</span>
+            <div class="bar-track">
+              <div class="bar-fill" id="bar-writing" style="width:0%;"></div>
+            </div>
+            <span class="bar-score" id="score-writing">–</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- About the Test -->
-  <div class="section-label">About the Test</div>
-  <div class="about-card">
-    <div class="sections-row">
-      <div class="section-item">
-        <div class="section-icon icon-reading">📖</div>
-        <div class="section-info">
-          <h4>1. Reading</h4>
-          <p>60 minutes<br>40 questions</p>
-        </div>
-      </div>
-
-      <div class="section-arrow">&rsaquo;</div>
-
-      <div class="section-item">
-        <div class="section-icon icon-listening">🎧</div>
-        <div class="section-info">
-          <h4>2. Listening</h4>
-          <p>30 minutes<br>40 questions</p>
-        </div>
-      </div>
-
-      <div class="section-arrow">&rsaquo;</div>
-
-      <div class="section-item">
-        <div class="section-icon icon-writing">✏️</div>
-        <div class="section-info">
-          <h4>3. Writing</h4>
-          <p>60 minutes<br>2 tasks</p>
-        </div>
-      </div>
-
-      <div class="section-arrow">&rsaquo;</div>
-
-      <div class="section-item">
-        <div class="section-icon icon-speaking">💬</div>
-        <div class="section-info">
-          <h4>4. Speaking</h4>
-          <p>11–14 minutes<br>3 parts</p>
-        </div>
-      </div>
+  <!-- ── What's Included ───────────────────────────────────────────────────── -->
+  <div>
+    <div class="block-header">
+      <span class="block-title">What's Included</span>
     </div>
-
-    <div class="info-box">
-      <span>ℹ️</span>
-      <span>The test will be taken in the above order. Make sure you have enough time and a quiet environment.</span>
+    <div class="sections-grid">
+      <div class="section-card">
+        <div class="s-icon-wrap s-reading">📖</div>
+        <div class="s-name">Reading</div>
+        <div class="s-meta">60 minutes<br>40 questions<br>3 academic passages</div>
+      </div>
+      <div class="section-card">
+        <div class="s-icon-wrap s-listening">🎧</div>
+        <div class="s-name">Listening</div>
+        <div class="s-meta">30 minutes<br>40 questions<br>4 audio sections</div>
+      </div>
+      <div class="section-card">
+        <div class="s-icon-wrap s-writing">✏️</div>
+        <div class="s-name">Writing</div>
+        <div class="s-meta">60 minutes<br>2 tasks<br>AI-powered feedback</div>
+      </div>
+      <div class="section-card">
+        <div class="s-icon-wrap s-speaking">💬</div>
+        <div class="s-name">Speaking</div>
+        <div class="s-meta">11–14 minutes<br>3 parts<br><span class="s-coming">Coming soon</span></div>
+      </div>
     </div>
   </div>
 
-</div>
+  <!-- ── Recent Activity ───────────────────────────────────────────────────── -->
+  <div>
+    <div class="block-header">
+      <span class="block-title">Recent Activity</span>
+      <a class="link-all" href="history.html">View all →</a>
+    </div>
+    <div class="history-list" id="history-list">
+      <!-- Skeleton while loading -->
+      <div class="history-card">
+        <div style="flex:1; display:flex; flex-direction:column; gap:10px;">
+          <div class="skeleton" style="height:14px; width:180px;"></div>
+          <div class="skeleton" style="height:12px; width:260px;"></div>
+        </div>
+        <div class="skeleton" style="width:52px; height:38px; border-radius:8px;"></div>
+      </div>
+    </div>
+  </div>
 
-<div class="footer">Created by Atabek</div>
+</main>
 
+<footer class="footer">Created by Atabek</footer>
+
+<!-- ══════════════════════════════════════ SCRIPTS ═════════════════════════════ -->
 <script src="api.js"></script>
+<script src="auth.js"></script>
 <script>
 // ── Auth ──────────────────────────────────────────────────────────────────────
-const token = localStorage.getItem("token");
-if (!token) window.location.href = "login.html";
+const token = requireAuth();
 
-// ── Logout ────────────────────────────────────────────────────────────────────
-function logout() {
-  ["token","testSession","examStartTime",
-   "readingScore","readingCorrect","readingTotal",
-   "listeningScore","writingBand","writingWordCount","writingFeedback"]
-    .forEach(k => localStorage.removeItem(k));
-  window.location.href = "login.html";
-}
-
-// ── Start full test — clear old data, set session marker ──────────────────────
+// ── Start Full Test ───────────────────────────────────────────────────────────
 function startFullTest() {
   ["readingScore","readingCorrect","readingTotal","examStartTime",
    "listeningScore","writingBand","writingWordCount","writingFeedback"]
     .forEach(k => localStorage.removeItem(k));
-
   localStorage.setItem("testSession", Date.now().toString());
   window.location.href = "reading.html";
 }
@@ -470,7 +778,44 @@ function bandToLevel(b) {
   return "Beginner";
 }
 
-// ── Render history (uses ExamSession records) ─────────────────────────────────
+function bandColor(b) {
+  if (b >= 7.5) return "#4ade80";
+  if (b >= 6.0) return "#60a5fa";
+  if (b >= 5.0) return "#fbbf24";
+  return "#f87171";
+}
+
+function circleClass(b) {
+  if (b >= 7.5) return "band-circle circle-excellent";
+  if (b >= 6.0) return "band-circle circle-good";
+  if (b >= 5.0) return "band-circle circle-moderate";
+  return "band-circle circle-low";
+}
+
+// ── Render Latest Score Card ──────────────────────────────────────────────────
+function renderScoreCard(s) {
+  document.getElementById("score-section").style.display = "block";
+  document.getElementById("latest-date").textContent = formatDate(s.created_at);
+
+  const overall = +s.overall_band;
+  document.getElementById("circle-band").textContent = overall.toFixed(1);
+  document.getElementById("band-circle").className   = circleClass(overall);
+
+  // Animate bars after a brief delay so the transition is visible
+  setTimeout(function () {
+    [
+      { id: "reading",   val: +s.reading_band   },
+      { id: "listening", val: +s.listening_band  },
+      { id: "writing",   val: +s.writing_band    }
+    ].forEach(function ({ id, val }) {
+      document.getElementById("score-" + id).textContent      = val.toFixed(1);
+      document.getElementById("bar-" + id).style.width        = ((val / 9) * 100) + "%";
+      document.getElementById("bar-" + id).style.background   = bandColor(val);
+    });
+  }, 120);
+}
+
+// ── Render Recent Activity ────────────────────────────────────────────────────
 function renderHistory(sessions) {
   const el = document.getElementById("history-list");
 
@@ -479,29 +824,47 @@ function renderHistory(sessions) {
       <div class="empty-card">
         <div class="empty-icon">📋</div>
         <p>No mock tests yet.</p>
-        <small>Take your first IELTS Mock Test to see your results here!</small>
+        <small>Take your first IELTS Mock Test to see your results here.</small>
       </div>`;
     return;
   }
 
-  el.innerHTML = sessions.slice(0, 5).map(s => {
-    const dur = s.duration_minutes > 0 ? ` &nbsp;·&nbsp; ${s.duration_minutes} min` : "";
+  el.innerHTML = sessions.slice(0, 5).map(function (s, i) {
+    const num = sessions.length - i;
+    const dur = s.duration_minutes > 0
+      ? `<span class="h-dur">⏱ ${s.duration_minutes} min</span>` : "";
     return `
     <div class="history-card">
       <div class="h-left">
-        <div class="h-date">${formatDate(s.created_at)}${dur}</div>
-        <div class="h-detail">
-          Reading: <b>${(+s.reading_band).toFixed(1)}</b> &nbsp;|&nbsp;
-          Listening: <b>${(+s.listening_band).toFixed(1)}</b> &nbsp;|&nbsp;
-          Writing: <b>${(+s.writing_band).toFixed(1)}</b>
+        <div class="h-top">
+          <span class="h-num">#${num}</span>
+          <span class="h-date">${formatDate(s.created_at)}</span>
+          ${dur}
+        </div>
+        <div class="h-scores">
+          <div class="h-score">
+            <span class="icon">📖</span>
+            <span class="lbl">R</span>
+            <span class="val">${(+s.reading_band).toFixed(1)}</span>
+          </div>
+          <div class="h-score">
+            <span class="icon">🎧</span>
+            <span class="lbl">L</span>
+            <span class="val">${(+s.listening_band).toFixed(1)}</span>
+          </div>
+          <div class="h-score">
+            <span class="icon">✏️</span>
+            <span class="lbl">W</span>
+            <span class="val">${(+s.writing_band).toFixed(1)}</span>
+          </div>
         </div>
       </div>
-      <div class="h-band ${bandClass(s.overall_band)}">${(+s.overall_band).toFixed(1)}</div>
+      <div class="h-band ${bandClass(+s.overall_band)}">${(+s.overall_band).toFixed(1)}</div>
     </div>`;
   }).join("");
 }
 
-// ── Load dashboard data ───────────────────────────────────────────────────────
+// ── Load Dashboard Data ───────────────────────────────────────────────────────
 async function loadDashboard() {
   try {
     const [meRes, histRes] = await Promise.all([
@@ -510,31 +873,37 @@ async function loadDashboard() {
     ]);
 
     if (meRes.status === 401 || histRes.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "login.html";
+      logout();
       return;
     }
 
     const me       = await meRes.json();
     const sessions = histRes.ok ? await histRes.json() : [];
 
-    document.getElementById("welcome-msg").textContent = `Hello, ${me.name}!`;
+    // Greeting
+    document.getElementById("welcome-msg").textContent = `Hello, ${me.name}! 👋`;
+    const headerName = document.getElementById("header-name");
+    headerName.textContent = me.name;
+    headerName.style.display = "inline";
 
     // Stats
     document.getElementById("stat-total").textContent = sessions.length;
 
     if (sessions.length > 0) {
       const latest = +sessions[0].overall_band;
-      const avg    = sessions.reduce((s, r) => s + +r.overall_band, 0) / sessions.length;
+      const avg    = sessions.reduce((sum, r) => sum + +r.overall_band, 0) / sessions.length;
+
       document.getElementById("stat-latest").textContent = latest.toFixed(1);
       document.getElementById("stat-avg").textContent    = avg.toFixed(1);
 
-      // Level badge from latest
+      // Level badge in hero
       const level = bandToLevel(latest);
       const badge = document.getElementById("level-badge");
-      badge.textContent   = level;
-      badge.className     = `level-badge badge-${level.replace(/\s+/g, "-")}`;
-      badge.style.display = "inline-block";
+      badge.textContent = "● " + level;
+      badge.className   = `level-badge badge-${level.replace(/\s+/g, "-")}`;
+      badge.style.display = "inline-flex";
+
+      renderScoreCard(sessions[0]);
     }
 
     renderHistory(sessions);
@@ -542,7 +911,10 @@ async function loadDashboard() {
   } catch (err) {
     console.error(err);
     document.getElementById("history-list").innerHTML =
-      `<div class="empty-card"><p>Failed to load. Please refresh.</p></div>`;
+      `<div class="empty-card">
+         <p>Failed to load data.</p>
+         <small>Please check your connection and refresh the page.</small>
+       </div>`;
   }
 }
 

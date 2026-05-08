@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Reading Test – IELTS Mock</title>
 
 <style>
@@ -342,12 +345,10 @@ body {
 </div>
 
 <script src="api.js"></script>
+<script src="auth.js"></script>
 <script>
-// Redirect to login if not authenticated
-const token = localStorage.getItem("token");
-if (!token) {
-  window.location.href = "login.html";
-}
+// ── Auth ──────────────────────────────────────────────────────────────────────
+const token = requireAuth();
 
 let testId = null;
 let totalQuestions = 0;

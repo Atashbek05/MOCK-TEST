@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Your Result – IELTS Mock</title>
 
 <style>
@@ -240,10 +243,10 @@ body {
 <div class="footer">Created by Atabek</div>
 
 <script src="api.js"></script>
+<script src="auth.js"></script>
 <script>
-// ── Route protection ──────────────────────────────────────────────────────────
-const token = localStorage.getItem("token");
-if (!token) window.location.href = "login.html";
+// ── Auth ──────────────────────────────────────────────────────────────────────
+const token = requireAuth();
 
 // ── Read data saved by reading.html after submit-test ────────────────────────
 const band    = +localStorage.getItem("readingScore")   || 0;

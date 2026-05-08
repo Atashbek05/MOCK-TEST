@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Test History – IELTS Mock</title>
 
 <style>
@@ -270,10 +273,10 @@ body { font-family: Arial, sans-serif; background: #f3f4f6; min-height: 100vh; }
 <div class="footer">Created by Atabek</div>
 
 <script src="api.js"></script>
+<script src="auth.js"></script>
 <script>
 // ── Auth ──────────────────────────────────────────────────────────────────────
-const token = localStorage.getItem("token");
-if (!token) window.location.href = "login.html";
+const token = requireAuth();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatDate(iso) {
@@ -317,8 +320,7 @@ async function loadHistory() {
     });
 
     if (res.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "login.html";
+      logout();
       return;
     }
 
