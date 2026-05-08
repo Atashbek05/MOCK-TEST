@@ -362,17 +362,62 @@ Return ONLY valid JSON with no extra text or code blocks:
 }}"""
 
 
+def _get_mock_feedback(word_count: int) -> dict:
+    """Rule-based IELTS feedback used when no AI API key is configured."""
+    if word_count >= 350:
+        band = 6.5
+    elif word_count >= 280:
+        band = 6.0
+    elif word_count >= 230:
+        band = 5.5
+    elif word_count >= 180:
+        band = 5.0
+    else:
+        band = 4.5
+
+    return {
+        "band_score": band,
+        "task_achievement": {
+            "score": band,
+            "feedback": "Your essay addresses the task. Ensure all parts of the question are fully covered with well-developed arguments and relevant examples."
+        },
+        "coherence_cohesion": {
+            "score": band,
+            "feedback": "Your essay shows basic organisation. Use a wider variety of cohesive devices to improve the flow between paragraphs and ideas."
+        },
+        "lexical_resource": {
+            "score": band,
+            "feedback": "You demonstrate adequate vocabulary for the task. Try to use more precise academic vocabulary and avoid unnecessary repetition."
+        },
+        "grammatical_range": {
+            "score": band,
+            "feedback": "Your grammar shows reasonable control. Work on using a wider range of sentence structures to demonstrate grammatical range."
+        },
+        "strengths": [
+            "Essay attempts to address the given question",
+            "Shows basic paragraph structure with introduction and conclusion",
+            "Demonstrates understanding of the topic"
+        ],
+        "improvements": [
+            "Develop arguments with more specific examples and evidence",
+            "Use a wider range of vocabulary and academic expressions",
+            "Vary sentence structures to demonstrate greater grammatical range"
+        ],
+        "overall_feedback": (
+            f"Your essay of {word_count} words shows a working knowledge of English. "
+            "Regular practice and focused study on academic writing conventions will "
+            "help you achieve a higher band score. AI-powered feedback will be available soon."
+        )
+    }
+
+
 def _get_ai_feedback(essay: str, word_count: int) -> dict:
-    """Send essay to Claude and return structured IELTS feedback as a dict."""
+    """Return structured IELTS feedback. Uses Claude when API key is set, otherwise rule-based."""
     api_key = os.getenv("ANTHROPIC_API_KEY")
     if not api_key:
-        raise HTTPException(
-            status_code=503,
-            detail="AI feedback is not configured. Set the ANTHROPIC_API_KEY environment variable."
-        )
+        return _get_mock_feedback(word_count)
 
     client = anthropic.Anthropic(api_key=api_key)
-
     prompt = _WRITING_PROMPT.format(essay=essay, word_count=word_count)
 
     try:
@@ -427,5 +472,41 @@ def writing_history(
         .filter(models.WritingResult.user_id == current_user.id)
         .order_by(models.WritingResult.created_at.desc())
         .limit(5)
+        .all()
+    )
+
+
+# ── Exam Session endpoints ─────────────────────────────────────────────────────
+
+@app.post("/exam-session", response_model=schemas.ExamSessionOut, status_code=status.HTTP_201_CREATED)
+def create_exam_session(
+    payload: schemas.ExamSessionCreate,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    session = models.ExamSession(
+        user_id=current_user.id,
+        reading_band=payload.reading_band,
+        listening_band=payload.listening_band,
+        writing_band=payload.writing_band,
+        overall_band=payload.overall_band,
+        duration_minutes=payload.duration_minutes,
+    )
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+    return session
+
+
+@app.get("/exam-history", response_model=List[schemas.ExamSessionOut])
+def exam_history(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return (
+        db.query(models.ExamSession)
+        .filter(models.ExamSession.user_id == current_user.id)
+        .order_by(models.ExamSession.created_at.desc())
+        .limit(20)
         .all()
     )

@@ -17,6 +17,7 @@ class User(Base):
     results = relationship("Result", back_populates="user", cascade="all, delete-orphan")
     attempts = relationship("Attempt", back_populates="user", cascade="all, delete-orphan")
     writing_results = relationship("WritingResult", back_populates="user", cascade="all, delete-orphan")
+    exam_sessions = relationship("ExamSession", back_populates="user", cascade="all, delete-orphan")
 
 
 class Test(Base):
@@ -83,3 +84,18 @@ class WritingResult(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="writing_results")
+
+
+class ExamSession(Base):
+    __tablename__ = "exam_sessions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    reading_band: Mapped[float] = mapped_column(Float, default=0.0)
+    listening_band: Mapped[float] = mapped_column(Float, default=0.0)
+    writing_band: Mapped[float] = mapped_column(Float, default=0.0)
+    overall_band: Mapped[float] = mapped_column(Float, default=0.0)
+    duration_minutes: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = relationship("User", back_populates="exam_sessions")

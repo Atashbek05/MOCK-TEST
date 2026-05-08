@@ -114,3 +114,26 @@ class WritingHistoryItemOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+# ── Exam Session schemas ──────────────────────────────────────────────────────
+
+class ExamSessionCreate(BaseModel):
+    reading_band: float = Field(..., ge=0, le=9)
+    listening_band: float = Field(..., ge=0, le=9)
+    writing_band: float = Field(..., ge=0, le=9)
+    overall_band: float = Field(..., ge=0, le=9)
+    duration_minutes: int = Field(0, ge=0)
+
+
+class ExamSessionOut(BaseModel):
+    id: int
+    reading_band: float
+    listening_band: float
+    writing_band: float
+    overall_band: float
+    duration_minutes: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True

@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(Test-Path \"d:\\\\MOCK-TEST\\\\writing.html\")"
+      "Bash(Test-Path \"d:\\\\MOCK-TEST\\\\writing.html\")",
+      "Bash(Get-ChildItem -Path \"d:\\\\MOCK-TEST\" -Recurse -File)",
+      "Bash(Select-Object FullName)"
     ]
   }
 }

@@ -314,7 +314,10 @@ body {
 
 <div class="header">
   <div class="logo">IELTS MOCK TEST</div>
-  <button class="btn-logout" onclick="logout()">Logout</button>
+  <div style="display:flex; gap:10px; align-items:center;">
+    <a href="history.html" style="text-decoration:none; font-size:14px; font-weight:600; color:#6b7280; padding:8px 16px; border-radius:20px; border:1.5px solid #e5e7eb; transition:all 0.18s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">History</a>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
 </div>
 
 <div class="container">
@@ -430,7 +433,8 @@ if (!token) window.location.href = "login.html";
 
 // ── Logout ────────────────────────────────────────────────────────────────────
 function logout() {
-  ["token","testSession","readingScore","readingCorrect","readingTotal",
+  ["token","testSession","examStartTime",
+   "readingScore","readingCorrect","readingTotal",
    "listeningScore","writingBand","writingWordCount","writingFeedback"]
     .forEach(k => localStorage.removeItem(k));
   window.location.href = "login.html";
@@ -438,7 +442,7 @@ function logout() {
 
 // ── Start full test — clear old data, set session marker ──────────────────────
 function startFullTest() {
-  ["readingScore","readingCorrect","readingTotal",
+  ["readingScore","readingCorrect","readingTotal","examStartTime",
    "listeningScore","writingBand","writingWordCount","writingFeedback"]
     .forEach(k => localStorage.removeItem(k));
 
@@ -459,76 +463,81 @@ function bandClass(b) {
   return "c-lw";
 }
 
-// ── Render history ────────────────────────────────────────────────────────────
-function renderHistory(results) {
+function bandToLevel(b) {
+  if (b >= 7.5) return "Advanced";
+  if (b >= 6.0) return "Upper-Intermediate";
+  if (b >= 5.0) return "Intermediate";
+  return "Beginner";
+}
+
+// ── Render history (uses ExamSession records) ─────────────────────────────────
+function renderHistory(sessions) {
   const el = document.getElementById("history-list");
 
-  if (!results || results.length === 0) {
+  if (!sessions || sessions.length === 0) {
     el.innerHTML = `
       <div class="empty-card">
         <div class="empty-icon">📋</div>
         <p>No mock tests yet.</p>
-        <small>Take your first IELTS Mock Test!</small>
+        <small>Take your first IELTS Mock Test to see your results here!</small>
       </div>`;
     return;
   }
 
-  el.innerHTML = results.map(r => `
+  el.innerHTML = sessions.slice(0, 5).map(s => {
+    const dur = s.duration_minutes > 0 ? ` &nbsp;·&nbsp; ${s.duration_minutes} min` : "";
+    return `
     <div class="history-card">
       <div class="h-left">
-        <div class="h-date">${formatDate(r.created_at)}</div>
+        <div class="h-date">${formatDate(s.created_at)}${dur}</div>
         <div class="h-detail">
-          Reading: <b>${r.reading_score.toFixed(1)}</b> &nbsp;|&nbsp;
-          Listening: <b>${r.listening_score.toFixed(1)}</b> &nbsp;|&nbsp;
-          Writing: <b>${r.writing_score.toFixed(1)}</b>
+          Reading: <b>${(+s.reading_band).toFixed(1)}</b> &nbsp;|&nbsp;
+          Listening: <b>${(+s.listening_band).toFixed(1)}</b> &nbsp;|&nbsp;
+          Writing: <b>${(+s.writing_band).toFixed(1)}</b>
         </div>
       </div>
-      <div class="h-band ${bandClass(r.overall)}">${r.overall.toFixed(1)}</div>
-    </div>`).join("");
+      <div class="h-band ${bandClass(s.overall_band)}">${(+s.overall_band).toFixed(1)}</div>
+    </div>`;
+  }).join("");
 }
 
 // ── Load dashboard data ───────────────────────────────────────────────────────
 async function loadDashboard() {
   try {
-    const meRes = await fetch(`${API_BASE}/me`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const [meRes, histRes] = await Promise.all([
+      fetch(`${API_BASE}/me`,           { headers: { Authorization: `Bearer ${token}` } }),
+      fetch(`${API_BASE}/exam-history`, { headers: { Authorization: `Bearer ${token}` } })
+    ]);
 
-    if (!meRes.ok) {
+    if (meRes.status === 401 || histRes.status === 401) {
       localStorage.removeItem("token");
       window.location.href = "login.html";
       return;
     }
 
-    const me = await meRes.json();
+    const me       = await meRes.json();
+    const sessions = histRes.ok ? await histRes.json() : [];
+
     document.getElementById("welcome-msg").textContent = `Hello, ${me.name}!`;
 
-    const dashRes = await fetch(`${API_BASE}/dashboard`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (!dashRes.ok) { renderHistory([]); return; }
-
-    const dash    = await dashRes.json();
-    const results = dash.latest_results || [];
-
-    // Level badge
-    const badge = document.getElementById("level-badge");
-    badge.textContent  = dash.level;
-    badge.className    = `level-badge badge-${dash.level.replace(/\s+/g, "-")}`;
-    badge.style.display = "inline-block";
-
     // Stats
-    document.getElementById("stat-total").textContent = results.length;
+    document.getElementById("stat-total").textContent = sessions.length;
 
-    if (results.length > 0) {
-      const latest = results[0].overall;
-      const avg    = results.reduce((s, r) => s + r.overall, 0) / results.length;
+    if (sessions.length > 0) {
+      const latest = +sessions[0].overall_band;
+      const avg    = sessions.reduce((s, r) => s + +r.overall_band, 0) / sessions.length;
       document.getElementById("stat-latest").textContent = latest.toFixed(1);
       document.getElementById("stat-avg").textContent    = avg.toFixed(1);
+
+      // Level badge from latest
+      const level = bandToLevel(latest);
+      const badge = document.getElementById("level-badge");
+      badge.textContent   = level;
+      badge.className     = `level-badge badge-${level.replace(/\s+/g, "-")}`;
+      badge.style.display = "inline-block";
     }
 
-    renderHistory(results);
+    renderHistory(sessions);
 
   } catch (err) {
     console.error(err);

@@ -331,22 +331,28 @@ function render() {
 
 // ── Save full result to backend ───────────────────────────────────────────────
 async function saveResult() {
+  const startTime = +localStorage.getItem("examStartTime") || 0;
+  const durationMinutes = startTime
+    ? Math.round((Date.now() - startTime) / 60000)
+    : 0;
+
   try {
-    await fetch(`${API_BASE}/results`, {
+    await fetch(`${API_BASE}/exam-session`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`
       },
       body: JSON.stringify({
-        reading_score:   reading,
-        listening_score: listening,
-        writing_score:   writing,
-        overall:         overall
+        reading_band:    reading,
+        listening_band:  listening,
+        writing_band:    writing,
+        overall_band:    overall,
+        duration_minutes: durationMinutes
       })
     });
   } catch (err) {
-    console.error("Could not save result:", err);
+    console.error("Could not save exam session:", err);
   }
 }
 

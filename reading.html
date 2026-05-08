@@ -398,6 +398,9 @@ async function loadTest() {
     testId = data.id;
     totalQuestions = data.questions.length;
 
+    // Mark exam start time for duration calculation on final result page
+    localStorage.setItem("examStartTime", Date.now());
+
     renderPassage(data.passage);
     renderQuestions(data.questions);
 
