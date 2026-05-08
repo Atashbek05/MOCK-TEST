@@ -73,6 +73,22 @@ body {
   border: 1px solid black;
 }
 
+.box input.error {
+  border: 1px solid #e53935;
+}
+
+.error-msg {
+  display: none;
+  color: #e53935;
+  font-size: 12px;
+  margin: -6px 0 4px 12px;
+  text-align: left;
+}
+
+.error-msg.show {
+  display: block;
+}
+
 .box button {
   width: 100%;
   padding: 12px;
@@ -107,8 +123,15 @@ body {
     <h2>Register</h2>
 
     <input id="name" placeholder="Name">
+    <small class="error-msg" id="err-name">Please enter your name</small>
+
     <input id="email" placeholder="Email">
+    <small class="error-msg" id="err-email">Please enter a valid email (e.g. name@gmail.com)</small>
+
     <input id="password" type="password" placeholder="Password">
+    <small class="error-msg" id="err-password">Please enter a password</small>
+
+    <small class="error-msg" id="err-server"></small>
     <button onclick="register()">Register</button>
   </div>
 </div>
@@ -121,15 +144,53 @@ function goLogin() {
   window.location.href = "login.html";
 }
 
+function showError(id, inputId, message) {
+  const el = document.getElementById(id);
+  el.textContent = message;
+  el.classList.add("show");
+  if (inputId) document.getElementById(inputId).classList.add("error");
+}
+
+function clearError(id, inputId) {
+  document.getElementById(id).classList.remove("show");
+  if (inputId) document.getElementById(inputId).classList.remove("error");
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 async function register() {
   const name = document.getElementById("name").value.trim();
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
 
-  if (!name || !email || !password) {
-    alert("Fill all fields");
-    return;
+  clearError("err-name", "name");
+  clearError("err-email", "email");
+  clearError("err-password", "password");
+  clearError("err-server", null);
+
+  let hasError = false;
+
+  if (!name) {
+    showError("err-name", "name", "Please enter your name");
+    hasError = true;
   }
+
+  if (!email) {
+    showError("err-email", "email", "Please enter your email");
+    hasError = true;
+  } else if (!isValidEmail(email)) {
+    showError("err-email", "email", "Please enter a valid email (e.g. name@gmail.com)");
+    hasError = true;
+  }
+
+  if (!password) {
+    showError("err-password", "password", "Please enter a password");
+    hasError = true;
+  }
+
+  if (hasError) return;
 
   const res = await fetch(`${API_BASE}/register`, {
     method: "POST",
@@ -139,7 +200,7 @@ async function register() {
 
   const data = await res.json();
   if (!res.ok) {
-    alert(data.detail || "Register failed");
+    showError("err-server", null, data.detail || "Registration failed. Please try again.");
     return;
   }
 

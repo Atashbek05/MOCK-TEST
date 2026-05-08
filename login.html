@@ -74,6 +74,22 @@ body {
   border: 1px solid black;
 }
 
+.box input.error {
+  border: 1px solid #e53935;
+}
+
+.error-msg {
+  display: none;
+  color: #e53935;
+  font-size: 12px;
+  margin: -6px 0 4px 12px;
+  text-align: left;
+}
+
+.error-msg.show {
+  display: block;
+}
+
 .box button {
   width: 100%;
   padding: 12px;
@@ -108,7 +124,12 @@ body {
     <h2>Login</h2>
 
     <input id="email" placeholder="Email">
+    <small class="error-msg" id="err-email">Please enter your email</small>
+
     <input id="password" type="password" placeholder="Password">
+    <small class="error-msg" id="err-password">Please enter your password</small>
+
+    <small class="error-msg" id="err-server"></small>
     <button onclick="login()">Login</button>
   </div>
 </div>
@@ -121,14 +142,46 @@ function goRegister() {
   window.location.href = "register.html";
 }
 
+function showError(id, inputId, message) {
+  const el = document.getElementById(id);
+  el.textContent = message;
+  el.classList.add("show");
+  if (inputId) document.getElementById(inputId).classList.add("error");
+}
+
+function clearError(id, inputId) {
+  document.getElementById(id).classList.remove("show");
+  if (inputId) document.getElementById(inputId).classList.remove("error");
+}
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 async function login() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
 
-  if (!email || !password) {
-    alert("Fill all fields");
-    return;
+  clearError("err-email", "email");
+  clearError("err-password", "password");
+  clearError("err-server", null);
+
+  let hasError = false;
+
+  if (!email) {
+    showError("err-email", "email", "Please enter your email");
+    hasError = true;
+  } else if (!isValidEmail(email)) {
+    showError("err-email", "email", "Please enter a valid email (e.g. name@gmail.com)");
+    hasError = true;
   }
+
+  if (!password) {
+    showError("err-password", "password", "Please enter your password");
+    hasError = true;
+  }
+
+  if (hasError) return;
 
   try {
     const res = await fetch(`${API_BASE}/login`, {
@@ -139,14 +192,14 @@ async function login() {
 
     const data = await res.json();
     if (!res.ok) {
-      alert(data.detail || "Login failed");
+      showError("err-server", null, data.detail || "Wrong email or password");
       return;
     }
 
     localStorage.setItem("token", data.access_token);
     window.location.href = "dashboard.html";
   } catch (err) {
-    alert("Server is not responding. Please try again in a moment.");
+    showError("err-server", null, "Server is not responding. Please try again.");
     console.error(err);
   }
 }
