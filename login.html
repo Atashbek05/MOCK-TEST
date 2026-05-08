@@ -317,6 +317,18 @@ if (localStorage.getItem("token")) {
   window.location.replace("dashboard.html");
 }
 
+// ── Back-button trap ──────────────────────────────────────────────────────────
+// Проблема: после logout в истории браузера остаются страницы
+// (dashboard, reading и т.д.). Кнопка "Назад" может на них вернуть.
+//
+// Решение: pushState добавляет текущий URL в историю ещё раз.
+// Когда пользователь нажимает "Назад" — срабатывает popstate,
+// и мы снова пушим login.html. Кнопка "Назад" как будто "залипает" на login.
+window.history.pushState(null, '', window.location.href);
+window.addEventListener('popstate', function () {
+  window.history.pushState(null, '', window.location.href);
+});
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════════════════════════════

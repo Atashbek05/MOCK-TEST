@@ -41,11 +41,11 @@ function logout() {
 }
 
 // ── 4. Back-Button / bfcache Protection ──────────────────────────────────────
-// When the user presses Back, the browser often restores the page from its
-// back/forward cache (bfcache) without re-running the top-level script.
-// This "pageshow" listener fires in that case and re-checks the token.
-window.addEventListener("pageshow", function (event) {
-  if (event.persisted && !localStorage.getItem("token")) {
+// Срабатывает при КАЖДОМ показе страницы — как при обычной загрузке,
+// так и при восстановлении из bfcache (кнопка "Назад").
+// Убрали event.persisted — теперь проверка идёт всегда, без исключений.
+window.addEventListener("pageshow", function () {
+  if (!localStorage.getItem("token")) {
     window.location.replace("login.html");
   }
 });
