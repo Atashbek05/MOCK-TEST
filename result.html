@@ -2,73 +2,184 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Result</title>
+<title>Your Result – IELTS Mock</title>
 
 <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
-  margin: 0;
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   background: #f4f4f4;
+  min-height: 100vh;
 }
 
 .header {
+  background: white;
+  padding: 16px 30px;
   display: flex;
   justify-content: space-between;
-  padding: 20px;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-.logo {
-  font-weight: bold;
-  font-size: 20px;
-}
+.logo { font-weight: bold; font-size: 18px; }
 
 .container {
-  max-width: 800px;
-  margin: 60px auto;
+  max-width: 640px;
+  margin: 50px auto;
+  padding: 0 20px 60px;
+}
+
+/* ── Main card ── */
+.result-card {
+  background: white;
+  border-radius: 20px;
+  padding: 40px 36px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
   text-align: center;
 }
 
-.card {
-  background: white;
-  padding: 30px;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+.result-card h2 {
+  font-size: 22px;
+  color: #222;
+  margin-bottom: 4px;
 }
 
-.scores {
+.subtitle {
+  font-size: 14px;
+  color: #bbb;
+  margin-bottom: 30px;
+}
+
+/* ── Band circle ── */
+.band-circle {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  margin: 0 auto 10px;
   display: flex;
-  justify-content: space-around;
-  margin-top: 20px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 5px solid;
 }
 
-.score-box {
-  background: #f7f7f7;
-  padding: 15px;
-  border-radius: 12px;
-  width: 120px;
-}
-
-.overall {
-  margin-top: 30px;
-  font-size: 28px;
+.band-number {
+  font-size: 52px;
   font-weight: bold;
+  line-height: 1;
 }
 
-button {
-  margin-top: 20px;
-  padding: 12px 25px;
-  background: black;
-  color: white;
+.band-tag {
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-top: 4px;
+}
+
+/* Band colour themes */
+.theme-excellent { color: #2e7d32; border-color: #4caf50; background: #f1f8e9; }
+.theme-good      { color: #1565c0; border-color: #1976d2; background: #e3f2fd; }
+.theme-moderate  { color: #e65100; border-color: #ff9800; background: #fff3e0; }
+.theme-low       { color: #c62828; border-color: #e53935; background: #ffebee; }
+
+/* ── Score fraction line ── */
+.score-line {
+  font-size: 15px;
+  color: #888;
+  margin-bottom: 26px;
+}
+
+.score-line b { color: #222; font-size: 17px; }
+
+/* ── Three stat boxes ── */
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.stat-box {
+  background: #f7f7f7;
+  border-radius: 12px;
+  padding: 14px 18px;
+  min-width: 90px;
+}
+
+.stat-val {
+  font-size: 24px;
+  font-weight: bold;
+  color: #222;
+}
+
+.stat-val.red { color: #e53935; }
+
+.stat-name {
+  font-size: 11px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-top: 3px;
+}
+
+/* ── Feedback box ── */
+.feedback {
+  background: #f7f7f7;
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.7;
+  text-align: left;
+  margin-bottom: 28px;
+}
+
+.feedback b { color: #222; }
+
+/* ── Progress bar ── */
+.accuracy-bar-wrap {
+  background: #e0e0e0;
+  border-radius: 20px;
+  height: 7px;
+  margin-bottom: 28px;
+  overflow: hidden;
+}
+
+.accuracy-bar-fill {
+  height: 100%;
+  border-radius: 20px;
+  transition: width 0.6s ease;
+}
+
+/* ── Buttons ── */
+.btn-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn {
+  padding: 13px 30px;
   border: none;
   border-radius: 25px;
   cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
+  transition: opacity 0.2s;
 }
 
+.btn:hover { opacity: 0.82; }
+.btn-primary   { background: black; color: white; }
+.btn-secondary { background: #efefef; color: #333; }
+
+/* ── Footer ── */
 .footer {
-  position: fixed;
-  bottom: 10px;
-  right: 15px;
+  text-align: center;
+  padding: 20px 0;
   font-size: 12px;
+  color: #bbb;
   font-weight: bold;
 }
 </style>
@@ -81,74 +192,146 @@ button {
 </div>
 
 <div class="container">
+  <div class="result-card">
+    <h2>Reading Test Complete</h2>
+    <p class="subtitle">Here are your results</p>
 
-  <div class="card">
-    <h2>Your IELTS Result</h2>
+    <!-- Band score circle -->
+    <div class="band-circle" id="band-circle">
+      <div class="band-number" id="band-number">–</div>
+      <div class="band-tag">IELTS Band</div>
+    </div>
 
-    <div class="scores">
-      <div class="score-box">
-        <p>Reading</p>
-        <h3 id="reading"></h3>
+    <!-- e.g. "8 out of 10 correct" -->
+    <p class="score-line" id="score-line"></p>
+
+    <!-- Accuracy progress bar -->
+    <div class="accuracy-bar-wrap">
+      <div class="accuracy-bar-fill" id="acc-bar"></div>
+    </div>
+
+    <!-- Correct / Wrong / Accuracy -->
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-val" id="s-correct">–</div>
+        <div class="stat-name">Correct</div>
       </div>
-
-      <div class="score-box">
-        <p>Listening</p>
-        <h3 id="listening"></h3>
+      <div class="stat-box">
+        <div class="stat-val red" id="s-wrong">–</div>
+        <div class="stat-name">Incorrect</div>
       </div>
-
-      <div class="score-box">
-        <p>Writing</p>
-        <h3 id="writing"></h3>
+      <div class="stat-box">
+        <div class="stat-val" id="s-pct">–</div>
+        <div class="stat-name">Accuracy</div>
       </div>
     </div>
 
-    <div class="overall" id="overall"></div>
+    <!-- Personalised feedback -->
+    <div class="feedback" id="feedback"></div>
 
-    <button onclick="back()">Back to Dashboard</button>
+    <!-- Action buttons -->
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="tryAgain()">Try Again</button>
+      <button class="btn btn-primary"   onclick="goToDashboard()">Dashboard</button>
+    </div>
   </div>
-
 </div>
 
 <div class="footer">Created by Atabek</div>
 
 <script src="api.js"></script>
 <script>
+// ── Route protection ──────────────────────────────────────────────────────────
 const token = localStorage.getItem("token");
-if (!token) {
-  window.location.href = "login.html";
+if (!token) window.location.href = "login.html";
+
+// ── Read data saved by reading.html after submit-test ────────────────────────
+const band    = +localStorage.getItem("readingScore")   || 0;
+const correct = +localStorage.getItem("readingCorrect") || 0;
+const total   = +localStorage.getItem("readingTotal")   || 0;
+const wrong   = total - correct;
+const pct     = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+// ── Pick colour theme based on IELTS band ────────────────────────────────────
+function getTheme(b) {
+  if (b >= 7.5) return "theme-excellent";
+  if (b >= 6.0) return "theme-good";
+  if (b >= 5.0) return "theme-moderate";
+  return "theme-low";
 }
 
-const r = +localStorage.getItem("readingScore") || 0;
-const l = +localStorage.getItem("listeningScore") || 0;
-const w = +localStorage.getItem("writingScore") || 0;
+// ── Pick bar colour (same logic) ─────────────────────────────────────────────
+function getBarColor(b) {
+  if (b >= 7.5) return "#4caf50";
+  if (b >= 6.0) return "#1976d2";
+  if (b >= 5.0) return "#ff9800";
+  return "#e53935";
+}
 
-const overall = +((r + l + w) / 3).toFixed(1);
+// ── Personalised feedback text ───────────────────────────────────────────────
+function getFeedback(b) {
+  if (b >= 8.5) return "<b>Outstanding!</b> You have near-native English reading skills. Excellent comprehension and accuracy.";
+  if (b >= 7.5) return "<b>Excellent!</b> You demonstrate very strong reading skills. Most top universities accept Band 7.5+.";
+  if (b >= 7.0) return "<b>Very Good.</b> You have a solid command of English. A few more sessions could push you to 7.5.";
+  if (b >= 6.5) return "<b>Good.</b> Competent performance. Focus on reading speed and understanding complex academic texts.";
+  if (b >= 6.0) return "<b>Fairly Good.</b> You understand the main points but miss some details. Practice with academic passages daily.";
+  if (b >= 5.5) return "<b>Moderate.</b> You get the general idea but lose marks on specifics. Try reading news articles and annotating key points.";
+  if (b >= 5.0) return "<b>Keep Practicing.</b> You have a foundation to build on. Focus on vocabulary building and skimming techniques.";
+  return "<b>Needs Improvement.</b> Regular reading practice will help significantly. Start with simpler texts and build up steadily.";
+}
 
-document.getElementById("reading").innerText = r;
-document.getElementById("listening").innerText = l;
-document.getElementById("writing").innerText = w;
-document.getElementById("overall").innerText = "Overall: " + overall;
+// ── Render everything ────────────────────────────────────────────────────────
+const circle = document.getElementById("band-circle");
+circle.classList.add(getTheme(band));
 
+document.getElementById("band-number").textContent = band.toFixed(1);
+document.getElementById("score-line").innerHTML =
+  `<b>${correct}</b> out of <b>${total}</b> questions answered correctly`;
+
+document.getElementById("s-correct").textContent = correct;
+document.getElementById("s-wrong").textContent   = wrong;
+document.getElementById("s-pct").textContent     = pct + "%";
+
+const bar = document.getElementById("acc-bar");
+bar.style.width = "0%";
+bar.style.background = getBarColor(band);
+// Animate bar on load
+setTimeout(() => { bar.style.width = pct + "%"; }, 100);
+
+document.getElementById("feedback").innerHTML = getFeedback(band);
+
+// ── Save result to backend ────────────────────────────────────────────────────
 async function saveResult() {
-  if (!token) return;
-  await fetch(`${API_BASE}/results`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({
-      reading_score: r,
-      listening_score: l,
-      writing_score: w,
-      overall: overall
-    })
-  });
+  try {
+    await fetch(`${API_BASE}/results`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        reading_score:   band,
+        listening_score: 0,
+        writing_score:   0,
+        overall:         band   // overall = reading band until all modules are built
+      })
+    });
+  } catch (err) {
+    console.error("Could not save result:", err);
+  }
 }
 
 saveResult();
 
-function back() {
+// ── Navigation ────────────────────────────────────────────────────────────────
+function tryAgain() {
+  localStorage.removeItem("readingScore");
+  localStorage.removeItem("readingCorrect");
+  localStorage.removeItem("readingTotal");
+  window.location.href = "reading.html";
+}
+
+function goToDashboard() {
   window.location.href = "dashboard.html";
 }
 </script>

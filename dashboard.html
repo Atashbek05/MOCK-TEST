@@ -2,74 +2,232 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard</title>
+<title>Dashboard – IELTS Mock</title>
 
 <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
-  margin: 0;
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   background: #f4f4f4;
+  min-height: 100vh;
 }
 
+/* ── Header ── */
 .header {
+  background: white;
+  padding: 16px 30px;
   display: flex;
   justify-content: space-between;
-  padding: 20px;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-.logo {
-  font-weight: bold;
-  font-size: 20px;
-}
+.logo { font-weight: bold; font-size: 18px; }
 
-.logout {
-  padding: 10px 18px;
-  background: black;
-  color: white;
-  border: none;
+.btn-logout {
+  padding: 9px 22px;
+  background: transparent;
+  color: #333;
+  border: 1.5px solid #ddd;
   border-radius: 25px;
   cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.2s;
 }
 
+.btn-logout:hover { background: black; color: white; border-color: black; }
+
+/* ── Page container ── */
 .container {
   max-width: 900px;
-  margin: 50px auto;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+/* ── Welcome row ── */
+.welcome-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.welcome-row h1 {
+  font-size: 26px;
+  color: #222;
+}
+
+/* Level badge — colour changes with class */
+.level-badge {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  display: none;
+}
+
+.badge-Advanced           { background: #e8f5e9; color: #2e7d32; }
+.badge-Upper-Intermediate { background: #e3f2fd; color: #1565c0; }
+.badge-Intermediate       { background: #fff3e0; color: #e65100; }
+.badge-Beginner           { background: #fce4ec; color: #c62828; }
+
+/* ── Stats grid ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 14px;
+  padding: 22px 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
   text-align: center;
 }
 
-h1 {
-  margin-bottom: 20px;
+.stat-card .stat-number {
+  font-size: 36px;
+  font-weight: bold;
+  color: #222;
+  line-height: 1;
 }
 
-.start {
-  padding: 15px 30px;
+.stat-card .stat-label {
+  font-size: 12px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 7px;
+}
+
+/* ── Start button section ── */
+.start-section {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.btn-start {
+  padding: 16px 50px;
   background: black;
   color: white;
   border: none;
   border-radius: 30px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.results {
-  margin-top: 40px;
-}
-
-.result-box {
-  background: white;
-  padding: 15px;
-  margin: 10px auto;
-  border-radius: 12px;
-  width: 200px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-.footer {
-  position: fixed;
-  bottom: 10px;
-  right: 15px;
-  font-size: 12px;
+  font-size: 17px;
   font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-start:hover { opacity: 0.82; }
+
+/* ── Section heading ── */
+.section-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 14px;
+}
+
+/* ── History cards ── */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 22px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.h-left { display: flex; flex-direction: column; gap: 4px; }
+
+.h-date {
+  font-size: 13px;
+  color: #aaa;
+}
+
+.h-detail {
+  font-size: 14px;
+  color: #555;
+}
+
+.h-detail b { color: #222; }
+
+.h-band {
+  font-size: 28px;
+  font-weight: bold;
+  color: #222;
+}
+
+/* Band colour on the number */
+.band-ex { color: #2e7d32; }
+.band-gd { color: #1565c0; }
+.band-md { color: #e65100; }
+.band-lw { color: #e53935; }
+
+/* ── Empty state ── */
+.empty-state {
+  background: white;
+  border-radius: 12px;
+  padding: 44px 20px;
+  text-align: center;
+  color: #bbb;
+  font-size: 15px;
+  line-height: 1.8;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+}
+
+/* ── Skeleton loading animation ── */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+  border-radius: 8px;
+  height: 16px;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-card {
+  background: white;
+  border-radius: 12px;
+  padding: 18px 22px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ── Footer ── */
+.footer {
+  text-align: center;
+  padding: 20px 0;
+  font-size: 12px;
+  color: #bbb;
+  font-weight: bold;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .welcome-row h1 { font-size: 22px; }
+  .history-card { flex-direction: column; align-items: flex-start; gap: 8px; }
 }
 </style>
 </head>
@@ -78,18 +236,56 @@ h1 {
 
 <div class="header">
   <div class="logo">IELTS MOCK TEST</div>
-  <button class="logout" onclick="logout()">Logout</button>
+  <button class="btn-logout" onclick="logout()">Logout</button>
 </div>
 
 <div class="container">
 
-  <h1 id="welcome"></h1>
+  <!-- Welcome + level badge -->
+  <div class="welcome-row">
+    <h1 id="welcome-msg">Loading...</h1>
+    <span class="level-badge" id="level-badge"></span>
+  </div>
 
-  <button class="start" onclick="startTest()">Start Mock Test</button>
+  <!-- Stats: attempts / latest band / average -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number" id="stat-attempts">–</div>
+      <div class="stat-label">Attempts</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="stat-latest">–</div>
+      <div class="stat-label">Latest Band</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="stat-avg">–</div>
+      <div class="stat-label">Average Band</div>
+    </div>
+  </div>
 
-  <div class="results">
-    <h3>Your Results</h3>
-    <div id="list"></div>
+  <!-- Start test CTA -->
+  <div class="start-section">
+    <button class="btn-start" onclick="startTest()">Start Reading Test</button>
+  </div>
+
+  <!-- Recent results -->
+  <div class="section-title">Recent Results</div>
+  <div class="history-list" id="history-list">
+    <!-- Skeleton shown while loading -->
+    <div class="skeleton-card">
+      <div>
+        <div class="skeleton" style="width:140px; margin-bottom:10px;"></div>
+        <div class="skeleton" style="width:200px;"></div>
+      </div>
+      <div class="skeleton" style="width:50px; height:36px;"></div>
+    </div>
+    <div class="skeleton-card">
+      <div>
+        <div class="skeleton" style="width:140px; margin-bottom:10px;"></div>
+        <div class="skeleton" style="width:200px;"></div>
+      </div>
+      <div class="skeleton" style="width:50px; height:36px;"></div>
+    </div>
   </div>
 
 </div>
@@ -98,62 +294,132 @@ h1 {
 
 <script src="api.js"></script>
 <script>
+// ── Logout ────────────────────────────────────────────────────────────────────
 function logout() {
   localStorage.removeItem("token");
+  localStorage.removeItem("readingScore");
+  localStorage.removeItem("readingCorrect");
+  localStorage.removeItem("readingTotal");
   window.location.href = "login.html";
 }
 
+// ── Start test — clear old scores first ───────────────────────────────────────
 function startTest() {
+  localStorage.removeItem("readingScore");
+  localStorage.removeItem("readingCorrect");
+  localStorage.removeItem("readingTotal");
   window.location.href = "reading.html";
 }
 
+// ── Format ISO date → "Jan 15, 2024" ─────────────────────────────────────────
+function formatDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
+
+// ── Pick colour class for band number ────────────────────────────────────────
+function bandColorClass(b) {
+  if (b >= 7.5) return "band-ex";
+  if (b >= 6.0) return "band-gd";
+  if (b >= 5.0) return "band-md";
+  return "band-lw";
+}
+
+// ── Render history list ───────────────────────────────────────────────────────
+function renderHistory(results) {
+  const container = document.getElementById("history-list");
+
+  if (!results || results.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        No attempts yet.<br>
+        Take your first Reading Test to see your progress here!
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = results.map(r => `
+    <div class="history-card">
+      <div class="h-left">
+        <div class="h-date">${formatDate(r.created_at)}</div>
+        <div class="h-detail">Reading: <b>${r.reading_score.toFixed(1)}</b></div>
+      </div>
+      <div class="h-band ${bandColorClass(r.reading_score)}">
+        ${r.reading_score.toFixed(1)}
+      </div>
+    </div>
+  `).join("");
+}
+
+// ── Load dashboard data ───────────────────────────────────────────────────────
 async function loadDashboard() {
   const token = localStorage.getItem("token");
+
+  // Route protection — if no token, go to login
   if (!token) {
     window.location.href = "login.html";
     return;
   }
 
-  const meRes = await fetch(`${API_BASE}/me`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  try {
+    // 1. Verify token + get user name
+    const meRes = await fetch(`${API_BASE}/me`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
 
-  if (!meRes.ok) {
-    localStorage.removeItem("token");
-    window.location.href = "login.html";
-    return;
+    if (!meRes.ok) {
+      // Token invalid or expired → force re-login
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+      return;
+    }
+
+    const me = await meRes.json();
+    document.getElementById("welcome-msg").textContent = `Hello, ${me.name}!`;
+
+    // 2. Load results + level
+    const dashRes = await fetch(`${API_BASE}/dashboard`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!dashRes.ok) {
+      renderHistory([]);
+      return;
+    }
+
+    const dash = await dashRes.json();
+    const results = dash.latest_results || [];
+
+    // Level badge
+    const badge = document.getElementById("level-badge");
+    badge.textContent = dash.level;
+    const safeClass = dash.level.replace(/\s+/g, "-");
+    badge.className = `level-badge badge-${safeClass}`;
+    badge.style.display = "inline-block";
+
+    // Stat: total attempts
+    document.getElementById("stat-attempts").textContent = results.length;
+
+    // Stat: latest band & average
+    if (results.length > 0) {
+      const latest = results[0].reading_score;
+      const avg    = results.reduce((sum, r) => sum + r.reading_score, 0) / results.length;
+
+      document.getElementById("stat-latest").textContent = latest.toFixed(1);
+      document.getElementById("stat-avg").textContent    = avg.toFixed(1);
+    }
+
+    renderHistory(results);
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById("history-list").innerHTML =
+      `<div class="empty-state">Failed to load. Please refresh the page.</div>`;
   }
-
-  const me = await meRes.json();
-  document.getElementById("welcome").innerText = `Hello, ${me.name}`;
-
-  const dashRes = await fetch(`${API_BASE}/dashboard`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
-  if (!dashRes.ok) {
-    document.getElementById("list").innerText = "Could not load results.";
-    return;
-  }
-
-  const dash = await dashRes.json();
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-
-  if (!dash.latest_results || dash.latest_results.length === 0) {
-    list.innerText = "No results yet.";
-    return;
-  }
-
-  dash.latest_results.forEach(r => {
-    const div = document.createElement("div");
-    div.className = "result-box";
-    div.innerText = `Overall: ${r.overall} | R:${r.reading_score} L:${r.listening_score} W:${r.writing_score}`;
-    list.appendChild(div);
-  });
 }
 
 loadDashboard();
 </script>
+
 </body>
 </html>
