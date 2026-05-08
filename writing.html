@@ -448,7 +448,7 @@ async function submitEssay() {
     });
 
     if (res.status === 401) {
-      window.location.href = "login.html";
+      logout();
       return;
     }
 
