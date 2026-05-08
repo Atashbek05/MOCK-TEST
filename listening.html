@@ -2,87 +2,471 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Mock Test</title>
+<title>Listening Test – IELTS Mock</title>
 
 <style>
-body {
-  font-family: Arial;
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body { font-family: Arial, sans-serif; background: #f4f4f4; }
+
+/* ── Header ── */
+.header {
+  background: white;
+  padding: 14px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.logo { font-weight: bold; font-size: 18px; }
+
+.timer {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
   background: #f4f4f4;
+  padding: 6px 18px;
+  border-radius: 20px;
+}
+
+.timer.warning { color: #e53935; animation: pulse 1s infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+.header-label { font-size: 13px; color: #999; }
+
+/* ── Section stepper ── */
+.section-stepper {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.step { display: flex; align-items: center; gap: 6px; color: #9ca3af; font-weight: 600; }
+.step.done   { color: #16a34a; }
+.step.active { color: #2563eb; }
+
+.step-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.step.done .step-dot::before           { content: "✓"; }
+.step.active .step-dot::before         { content: "●"; font-size: 8px; }
+.step:not(.done):not(.active) .step-dot::before { content: attr(data-n); }
+
+.step-arrow { color: #d1d5db; font-size: 14px; }
+
+/* ── Layout ── */
+.layout {
+  display: flex;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
+/* ── Transcript panel (left) ── */
+.passage-panel {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  height: calc(100vh - 140px);
+  overflow-y: auto;
+  position: sticky;
+  top: 116px;
+}
+
+.panel-label {
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #aaa;
+  margin-bottom: 8px;
+}
+
+.audio-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #eff6ff;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #1d4ed8;
+  margin-bottom: 18px;
+}
+
+.passage-panel p {
+  line-height: 1.85;
+  font-size: 15px;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+/* ── Questions panel (right) ── */
+.questions-panel { flex: 1; }
+
+.question-card {
+  background: white;
+  border-radius: 12px;
+  padding: 22px 24px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  border-left: 3px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.question-card.answered { border-left-color: #4caf50; }
+
+.question-num {
+  font-size: 11px;
+  color: #aaa;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.question-card > p {
+  font-size: 15px;
+  color: #222;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  border: 1.5px solid #eee;
+  transition: all 0.15s;
+}
+
+.option:hover { background: #fafafa; border-color: #ccc; }
+.option.selected { background: #f0f0f0; border-color: #333; }
+
+.option input[type="radio"] {
+  margin-top: 3px;
+  accent-color: black;
+  flex-shrink: 0;
+}
+
+.option label { cursor: pointer; font-size: 14px; color: #444; line-height: 1.45; }
+
+/* ── Submit area ── */
+.submit-area {
+  padding: 16px 0 50px;
   text-align: center;
 }
 
-.container {
-  max-width: 600px;
-  margin: 50px auto;
+.progress-bar-wrap {
+  background: #e0e0e0;
+  border-radius: 20px;
+  height: 6px;
+  margin-bottom: 14px;
+  overflow: hidden;
 }
 
-.question {
-  background: white;
-  padding: 20px;
-  margin: 20px 0;
-  border-radius: 12px;
+.progress-bar-fill {
+  background: #4caf50;
+  height: 100%;
+  border-radius: 20px;
+  transition: width 0.3s;
+  width: 0%;
 }
 
-button {
-  padding: 12px 25px;
+.progress-text { font-size: 13px; color: #888; margin-bottom: 16px; }
+.progress-text span { font-weight: bold; color: #333; }
+
+.btn-submit {
+  padding: 14px 44px;
   background: black;
   color: white;
   border: none;
   border-radius: 25px;
   cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: opacity 0.2s;
+}
+
+.btn-submit:hover    { opacity: 0.85; }
+.btn-submit:disabled { background: #aaa; cursor: not-allowed; opacity: 1; }
+
+@media (max-width: 768px) {
+  .layout { flex-direction: column; }
+  .passage-panel { position: static; height: auto; max-height: 260px; top: 0; }
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-
-<h2>Listening Test</h2>
-
-<div class="question">
-  <p>1. 2 + 2 = ?</p>
-  <input type="radio" name="q1" value="3"> 3<br>
-  <input type="radio" name="q1" value="4"> 4<br>
+<!-- Header -->
+<div class="header">
+  <div class="logo">IELTS MOCK TEST</div>
+  <div id="timer" class="timer">30:00</div>
+  <div class="header-label">Listening Test</div>
 </div>
 
-<div class="question">
-  <p>2. Capital of UK?</p>
-  <input type="radio" name="q2" value="London"> London<br>
-  <input type="radio" name="q2" value="Paris"> Paris<br>
+<!-- Section progress: Reading done, Listening active -->
+<div class="section-stepper">
+  <div class="step done">
+    <div class="step-dot" data-n="1"></div> Reading
+  </div>
+  <div class="step-arrow">›</div>
+  <div class="step active">
+    <div class="step-dot" data-n="2"></div> Listening
+  </div>
+  <div class="step-arrow">›</div>
+  <div class="step">
+    <div class="step-dot" data-n="3"></div> Writing
+  </div>
 </div>
 
-<button onclick="submitTest()">Submit</button>
+<div class="layout">
+
+  <!-- Left: transcript -->
+  <div class="passage-panel">
+    <div class="panel-label">Listening Transcript</div>
+    <div class="audio-note">
+      🎧 &nbsp;In the real exam, you would listen to this recording. Read the transcript carefully.
+    </div>
+
+    <p>Good morning, everyone. Welcome to Greenfield University's Open Day. My name is Dr. James Miller, and I'll be your guide today.</p>
+
+    <p>Our campus is located in the heart of the city, with excellent transport connections. The main library is open from 8 AM to midnight, Monday through Saturday. We have over 200,000 books and 50,000 digital resources available to all students.</p>
+
+    <p>Our sports centre, which opened just last year, has a 50-metre swimming pool, three tennis courts, and a fully equipped gym. Students can access the sports centre free of charge on weekdays, but a small fee is charged at weekends.</p>
+
+    <p>The student union is located in the central building and is open daily from 9 AM to 11 PM. It provides various services including a café, printing facilities, and a welfare office.</p>
+
+    <p>Tuition fees for undergraduate programmes start at £9,250 per year. International students should note that fees are between £15,000 and £25,000 annually, depending on the course. We offer a range of scholarships, including the Excellence Award, which covers 50% of tuition fees for outstanding students.</p>
+
+    <p>Accommodation on campus is guaranteed for all first-year students. The newest hall of residence, Riverside Hall, offers single rooms with en-suite facilities at £160 per week. Applications for accommodation should be completed by the 31st of July.</p>
+
+    <p>Thank you for listening. We will now move on to a tour of the campus.</p>
+  </div>
+
+  <!-- Right: questions -->
+  <div class="questions-panel">
+    <div id="questions-list"></div>
+
+    <div class="submit-area">
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+      <div class="progress-text">
+        Answered: <span id="answered-count">0</span> / <span id="total-count">10</span>
+      </div>
+      <button class="btn-submit" id="submit-btn" onclick="submitTest()">
+        Submit &amp; Continue to Writing
+      </button>
+    </div>
+  </div>
 
 </div>
 
+<script src="api.js"></script>
 <script>
-function submitTest() {
-  let score = 0;
+// ── Route protection — must come from reading section ────────────────────────
+const token = localStorage.getItem("token");
+if (!token) window.location.href = "login.html";
 
-  let q1 = document.querySelector('input[name="q1"]:checked');
-  let q2 = document.querySelector('input[name="q2"]:checked');
+// ── Timer (30 minutes) ────────────────────────────────────────────────────────
+let secondsLeft   = 30 * 60;
+let timerInterval = null;
 
-  if (!q1 || !q2) {
-    alert("Answer all questions");
-    return;
+function startTimer() {
+  timerInterval = setInterval(() => {
+    secondsLeft--;
+    const m  = Math.floor(secondsLeft / 60);
+    const s  = secondsLeft % 60;
+    const el = document.getElementById("timer");
+    el.textContent = `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+    if (secondsLeft <= 300) el.classList.add("warning");
+    if (secondsLeft <= 0) { clearInterval(timerInterval); submitTest(); }
+  }, 1000);
+}
+
+// ── Questions data (hardcoded — based on the transcript above) ────────────────
+const QUESTIONS = [
+  {
+    id: 1, text: "What is the name of the university guide?",
+    options: ["Dr. John Smith", "Dr. James Miller", "Dr. Sarah Johnson", "Dr. Peter Brown"],
+    correct: 1   // index 0-based
+  },
+  {
+    id: 2, text: "Until what time is the main library open?",
+    options: ["10 PM", "11 PM", "Midnight", "1 AM"],
+    correct: 2
+  },
+  {
+    id: 3, text: "How many digital resources does the library have?",
+    options: ["20,000", "50,000", "100,000", "200,000"],
+    correct: 1
+  },
+  {
+    id: 4, text: "When was the sports centre opened?",
+    options: ["5 years ago", "Last decade", "Last year", "This year"],
+    correct: 2
+  },
+  {
+    id: 5, text: "How long is the swimming pool?",
+    options: ["25 metres", "33 metres", "50 metres", "100 metres"],
+    correct: 2
+  },
+  {
+    id: 6, text: "When can students use the sports centre for free?",
+    options: ["Weekends only", "Weekdays only", "Every day", "Never"],
+    correct: 1
+  },
+  {
+    id: 7, text: "Where is the student union located?",
+    options: ["Near the library", "In the sports centre", "In the central building", "Next to the car park"],
+    correct: 2
+  },
+  {
+    id: 8, text: "What is the minimum annual tuition fee for international students?",
+    options: ["£9,250", "£12,000", "£15,000", "£25,000"],
+    correct: 2
+  },
+  {
+    id: 9, text: "What percentage of tuition fees does the Excellence Award cover?",
+    options: ["25%", "50%", "75%", "100%"],
+    correct: 1
+  },
+  {
+    id: 10, text: "What is the weekly fee for a room in Riverside Hall?",
+    options: ["£120", "£140", "£160", "£180"],
+    correct: 2
+  }
+];
+
+const LETTERS = ["A", "B", "C", "D"];
+
+// ── Calculate IELTS band from raw score ──────────────────────────────────────
+function calculateBand(correct, total) {
+  if (total === 0) return 0;
+  const r = correct / total;
+  if (r >= 1.0) return 9.0;
+  if (r >= 0.9) return 8.5;
+  if (r >= 0.8) return 7.5;
+  if (r >= 0.7) return 7.0;
+  if (r >= 0.6) return 6.5;
+  if (r >= 0.5) return 6.0;
+  if (r >= 0.4) return 5.5;
+  if (r >= 0.3) return 5.0;
+  if (r >= 0.2) return 4.0;
+  if (r >= 0.1) return 3.5;
+  return 3.0;
+}
+
+// ── Render questions ──────────────────────────────────────────────────────────
+function renderQuestions() {
+  const container = document.getElementById("questions-list");
+
+  container.innerHTML = QUESTIONS.map((q, idx) => `
+    <div class="question-card" id="card-${q.id}">
+      <div class="question-num">Question ${idx + 1} of ${QUESTIONS.length}</div>
+      <p>${q.text}</p>
+      ${q.options.map((opt, i) => `
+        <div class="option" id="opt-${q.id}-${i}" onclick="selectOption(${q.id}, ${i})">
+          <input type="radio" name="q${q.id}" value="${i}" id="r${q.id}-${i}">
+          <label for="r${q.id}-${i}"><strong>${LETTERS[i]}.</strong> ${opt}</label>
+        </div>
+      `).join("")}
+    </div>
+  `).join("");
+}
+
+// ── Option selection ──────────────────────────────────────────────────────────
+function selectOption(qId, optIndex) {
+  // Clear all highlights for this question
+  for (let i = 0; i < 4; i++) {
+    const opt = document.getElementById(`opt-${qId}-${i}`);
+    if (opt) opt.classList.remove("selected");
   }
 
-  if (q1.value === "4") score++;
-  if (q2.value === "London") score++;
+  document.getElementById(`opt-${qId}-${optIndex}`).classList.add("selected");
+  document.getElementById(`r${qId}-${optIndex}`).checked = true;
+  document.getElementById(`card-${qId}`).classList.add("answered");
 
-  // перевод в IELTS стиль (пример)
-  let band = score == 2 ? 7 : 5;
-
-  localStorage.setItem("lastScore", band);
-
-  let results = JSON.parse(localStorage.getItem("results")) || [];
-  results.push(band);
-  localStorage.setItem("results", JSON.stringify(results));
-  localStorage.setItem("listeningScore", band);
-  window.location.href = "writing.html";
-  
+  updateProgress();
 }
+
+function updateProgress() {
+  let count = 0;
+  QUESTIONS.forEach(q => {
+    if (document.querySelector(`input[name="q${q.id}"]:checked`)) count++;
+  });
+
+  document.getElementById("answered-count").textContent = count;
+  const pct = (count / QUESTIONS.length) * 100;
+  document.getElementById("progress-fill").style.width = pct + "%";
+}
+
+// ── Submit ────────────────────────────────────────────────────────────────────
+function submitTest() {
+  clearInterval(timerInterval);
+
+  let unanswered = 0;
+  let correct    = 0;
+
+  QUESTIONS.forEach(q => {
+    const checked = document.querySelector(`input[name="q${q.id}"]:checked`);
+    if (!checked) {
+      unanswered++;
+    } else if (parseInt(checked.value) === q.correct) {
+      correct++;
+    }
+  });
+
+  if (unanswered > 0) {
+    const go = confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`);
+    if (!go) { startTimer(); return; }
+  }
+
+  const band = calculateBand(correct, QUESTIONS.length);
+
+  // Save for final result page
+  localStorage.setItem("listeningScore",   band);
+  localStorage.setItem("listeningCorrect", correct);
+  localStorage.setItem("listeningTotal",   QUESTIONS.length);
+
+  window.location.href = "writing.html";
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+renderQuestions();
+startTimer();
 </script>
 
 </body>

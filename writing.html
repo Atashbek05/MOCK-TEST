@@ -240,6 +240,40 @@ textarea:focus { border-color: #222; }
 }
 
 .error-banner.show { display: block; }
+
+/* ── Section stepper ── */
+.section-stepper {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.step { display: flex; align-items: center; gap: 6px; color: #9ca3af; font-weight: 600; }
+.step.done   { color: #16a34a; }
+.step.active { color: #2563eb; }
+
+.step-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.step.done .step-dot::before           { content: "✓"; }
+.step.active .step-dot::before         { content: "●"; font-size: 8px; }
+.step:not(.done):not(.active) .step-dot::before { content: attr(data-n); }
+
+.step-arrow { color: #d1d5db; font-size: 14px; }
 </style>
 </head>
 
@@ -251,6 +285,21 @@ textarea:focus { border-color: #222; }
   <div class="header-right">
     <div id="timer" class="timer">40:00</div>
     <div class="header-label">Writing Task 2</div>
+  </div>
+</div>
+
+<!-- Section progress: Reading ✓, Listening ✓, Writing active -->
+<div class="section-stepper">
+  <div class="step done">
+    <div class="step-dot" data-n="1"></div> Reading
+  </div>
+  <div class="step-arrow">›</div>
+  <div class="step done">
+    <div class="step-dot" data-n="2"></div> Listening
+  </div>
+  <div class="step-arrow">›</div>
+  <div class="step active">
+    <div class="step-dot" data-n="3"></div> Writing
   </div>
 </div>
 
@@ -413,7 +462,7 @@ async function submitEssay() {
     localStorage.setItem("writingWordCount", data.word_count);
     localStorage.setItem("writingFeedback",  data.feedback);  // JSON string
 
-    window.location.href = "writing-result.html";
+    window.location.href = "final-result.html";
 
   } catch (err) {
     showError("Cannot connect to server. Please check your connection.");

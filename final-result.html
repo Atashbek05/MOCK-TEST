@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>IELTS Result – Mock Test</title>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body { font-family: Arial, sans-serif; background: #f3f4f6; min-height: 100vh; }
+
+.header {
+  background: white;
+  padding: 16px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.logo { font-weight: bold; font-size: 18px; }
+
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ── Congrats banner ── */
+.congrats-card {
+  background: white;
+  border-radius: 16px;
+  padding: 36px 30px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+.congrats-card h2 {
+  font-size: 22px;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.congrats-card .subtitle {
+  font-size: 14px;
+  color: #9ca3af;
+  margin-bottom: 30px;
+}
+
+/* Overall band circle */
+.band-circle {
+  width: 156px;
+  height: 156px;
+  border-radius: 50%;
+  border: 5px solid;
+  margin: 0 auto 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.band-number { font-size: 54px; font-weight: 700; line-height: 1; }
+.band-tag    { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 4px; }
+
+.theme-excellent { color: #16a34a; border-color: #4ade80; background: #f0fdf4; }
+.theme-good      { color: #2563eb; border-color: #60a5fa; background: #eff6ff; }
+.theme-moderate  { color: #d97706; border-color: #fbbf24; background: #fffbeb; }
+.theme-low       { color: #dc2626; border-color: #f87171; background: #fef2f2; }
+
+.overall-label {
+  font-size: 13px;
+  color: #9ca3af;
+  margin-bottom: 28px;
+}
+
+/* ── 3 section scores ── */
+.section-scores {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.score-box {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 18px 14px;
+  text-align: center;
+}
+
+.score-box .s-icon  { font-size: 24px; margin-bottom: 6px; }
+.score-box .s-name  { font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+.score-box .s-band  { font-size: 30px; font-weight: 700; color: #111827; line-height: 1; }
+
+/* ── Feedback message ── */
+.feedback-card {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 18px 22px;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.7;
+  text-align: left;
+}
+
+.feedback-card b { color: #111827; }
+
+/* ── Performance bar per section ── */
+.performance-card {
+  background: white;
+  border-radius: 14px;
+  padding: 24px 26px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+
+.perf-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 18px;
+}
+
+.perf-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.perf-row:last-child { margin-bottom: 0; }
+
+.perf-icon  { font-size: 20px; width: 28px; flex-shrink: 0; }
+.perf-name  { width: 80px; font-size: 14px; font-weight: 600; color: #374151; flex-shrink: 0; }
+
+.perf-bar-wrap {
+  flex: 1;
+  background: #e5e7eb;
+  border-radius: 20px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.perf-bar-fill {
+  height: 100%;
+  border-radius: 20px;
+  transition: width 0.6s ease;
+}
+
+.perf-score { width: 40px; text-align: right; font-size: 15px; font-weight: 700; color: #111827; flex-shrink: 0; }
+
+/* ── Buttons ── */
+.btn-row { display: flex; gap: 12px; justify-content: center; }
+
+.btn {
+  padding: 13px 32px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  transition: opacity 0.2s;
+}
+
+.btn:hover { opacity: 0.82; }
+.btn-primary   { background: #2563eb; color: white; }
+.btn-secondary { background: #f3f4f6; color: #374151; }
+
+/* ── Footer ── */
+.footer { text-align: center; padding: 20px 0; font-size: 12px; color: #d1d5db; font-weight: 600; }
+
+@media (max-width: 580px) {
+  .section-scores { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <div class="logo">IELTS MOCK TEST</div>
+</div>
+
+<div id="app-content">
+  <!-- Filled by JavaScript -->
+</div>
+
+<div class="footer">Created by Atabek</div>
+
+<script src="api.js"></script>
+<script>
+// ── Auth ──────────────────────────────────────────────────────────────────────
+const token = localStorage.getItem("token");
+if (!token) window.location.href = "login.html";
+
+// ── Read all section scores from localStorage ─────────────────────────────────
+const reading   = +localStorage.getItem("readingScore")  || 0;
+const listening = +localStorage.getItem("listeningScore") || 0;
+const writing   = +localStorage.getItem("writingBand")    || 0;
+
+// Overall = average of 3 sections, rounded to nearest 0.5
+function roundToHalf(n) { return Math.round(n * 2) / 2; }
+const overall = roundToHalf((reading + listening + writing) / 3);
+
+// ── Theme (colour scheme) based on band ──────────────────────────────────────
+function getTheme(b) {
+  if (b >= 7.5) return "theme-excellent";
+  if (b >= 6.0) return "theme-good";
+  if (b >= 5.0) return "theme-moderate";
+  return "theme-low";
+}
+
+// ── Bar colour ────────────────────────────────────────────────────────────────
+function barColor(b) {
+  if (b >= 7.5) return "#4ade80";
+  if (b >= 6.0) return "#60a5fa";
+  if (b >= 5.0) return "#fbbf24";
+  return "#f87171";
+}
+
+// ── Overall feedback by band ─────────────────────────────────────────────────
+function getOverallFeedback(b) {
+  if (b >= 8.5) return "<b>Outstanding performance!</b> Your English is at a near-native level. Excellent results across all sections.";
+  if (b >= 7.5) return "<b>Excellent result!</b> You demonstrate a very strong command of English. You would meet the requirements for most top universities.";
+  if (b >= 7.0) return "<b>Very Good.</b> You have good English skills. Focus on the weaker sections to push your overall band higher.";
+  if (b >= 6.5) return "<b>Good.</b> A competent performance. With targeted practice on your weaker areas, a Band 7.0 is very achievable.";
+  if (b >= 6.0) return "<b>Fairly Good.</b> You understand the main ideas across sections. Regular practice will help improve your accuracy.";
+  if (b >= 5.5) return "<b>Moderate.</b> You have a working knowledge of English. Consistent daily practice will significantly improve your score.";
+  if (b >= 5.0) return "<b>Keep Practicing.</b> You have a foundation to build on. Focus on your weakest section first for the quickest improvement.";
+  return "<b>Needs Improvement.</b> Regular study and practice across all sections will help you reach your target band.";
+}
+
+// ── Render the page ───────────────────────────────────────────────────────────
+function render() {
+  const html = `
+    <div class="container">
+
+      <!-- Overall result card -->
+      <div class="congrats-card">
+        <h2>🎉 IELTS Mock Test Complete!</h2>
+        <p class="subtitle">Here is your full performance breakdown</p>
+
+        <!-- Overall band circle -->
+        <div class="band-circle ${getTheme(overall)}">
+          <div class="band-number">${overall.toFixed(1)}</div>
+          <div class="band-tag">Overall Band</div>
+        </div>
+
+        <p class="overall-label">Average of Reading, Listening &amp; Writing</p>
+
+        <!-- 3 section scores -->
+        <div class="section-scores">
+          <div class="score-box">
+            <div class="s-icon">📖</div>
+            <div class="s-name">Reading</div>
+            <div class="s-band">${reading.toFixed(1)}</div>
+          </div>
+          <div class="score-box">
+            <div class="s-icon">🎧</div>
+            <div class="s-name">Listening</div>
+            <div class="s-band">${listening.toFixed(1)}</div>
+          </div>
+          <div class="score-box">
+            <div class="s-icon">✏️</div>
+            <div class="s-name">Writing</div>
+            <div class="s-band">${writing.toFixed(1)}</div>
+          </div>
+        </div>
+
+        <!-- Personalised feedback -->
+        <div class="feedback-card">${getOverallFeedback(overall)}</div>
+      </div>
+
+      <!-- Performance bars -->
+      <div class="performance-card">
+        <div class="perf-title">Section Performance</div>
+
+        <div class="perf-row">
+          <div class="perf-icon">📖</div>
+          <div class="perf-name">Reading</div>
+          <div class="perf-bar-wrap">
+            <div class="perf-bar-fill" id="bar-reading"
+                 style="width:0%; background:${barColor(reading)};"></div>
+          </div>
+          <div class="perf-score">${reading.toFixed(1)}</div>
+        </div>
+
+        <div class="perf-row">
+          <div class="perf-icon">🎧</div>
+          <div class="perf-name">Listening</div>
+          <div class="perf-bar-wrap">
+            <div class="perf-bar-fill" id="bar-listening"
+                 style="width:0%; background:${barColor(listening)};"></div>
+          </div>
+          <div class="perf-score">${listening.toFixed(1)}</div>
+        </div>
+
+        <div class="perf-row">
+          <div class="perf-icon">✏️</div>
+          <div class="perf-name">Writing</div>
+          <div class="perf-bar-wrap">
+            <div class="perf-bar-fill" id="bar-writing"
+                 style="width:0%; background:${barColor(writing)};"></div>
+          </div>
+          <div class="perf-score">${writing.toFixed(1)}</div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="retakeTest()">Retake Test</button>
+        <button class="btn btn-primary"   onclick="goToDashboard()">Back to Dashboard</button>
+      </div>
+
+    </div>`;
+
+  document.getElementById("app-content").innerHTML = html;
+
+  // Animate bars after DOM is ready
+  setTimeout(() => {
+    document.getElementById("bar-reading").style.width   = ((reading   / 9) * 100) + "%";
+    document.getElementById("bar-listening").style.width = ((listening / 9) * 100) + "%";
+    document.getElementById("bar-writing").style.width   = ((writing   / 9) * 100) + "%";
+  }, 120);
+}
+
+// ── Save full result to backend ───────────────────────────────────────────────
+async function saveResult() {
+  try {
+    await fetch(`${API_BASE}/results`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        reading_score:   reading,
+        listening_score: listening,
+        writing_score:   writing,
+        overall:         overall
+      })
+    });
+  } catch (err) {
+    console.error("Could not save result:", err);
+  }
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function retakeTest() {
+  ["testSession","readingScore","readingCorrect","readingTotal",
+   "listeningScore","listeningCorrect","listeningTotal",
+   "writingBand","writingWordCount","writingFeedback"]
+    .forEach(k => localStorage.removeItem(k));
+  window.location.href = "reading.html";
+}
+
+function goToDashboard() {
+  window.location.href = "dashboard.html";
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+render();
+saveResult();
+</script>
+
+</body>
+</html>
