@@ -125,6 +125,36 @@ body {
 
 .btn-start:hover { opacity: 0.82; }
 
+/* Two test buttons side by side */
+.start-buttons {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-start-writing {
+  padding: 16px 50px;
+  background: white;
+  color: #222;
+  border: 2px solid #222;
+  border-radius: 30px;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-start-writing:hover { background: #222; color: white; }
+
+/* Writing mini stats row */
+.writing-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
 /* ── Section heading ── */
 .section-title {
   font-size: 13px;
@@ -263,15 +293,17 @@ body {
     </div>
   </div>
 
-  <!-- Start test CTA -->
+  <!-- Start test CTAs — Reading + Writing -->
   <div class="start-section">
-    <button class="btn-start" onclick="startTest()">Start Reading Test</button>
+    <div class="start-buttons">
+      <button class="btn-start"         onclick="startReading()">Start Reading Test</button>
+      <button class="btn-start-writing" onclick="startWriting()">Start Writing Test</button>
+    </div>
   </div>
 
-  <!-- Recent results -->
-  <div class="section-title">Recent Results</div>
-  <div class="history-list" id="history-list">
-    <!-- Skeleton shown while loading -->
+  <!-- Reading history -->
+  <div class="section-title">Reading History</div>
+  <div class="history-list" id="reading-history">
     <div class="skeleton-card">
       <div>
         <div class="skeleton" style="width:140px; margin-bottom:10px;"></div>
@@ -279,6 +311,34 @@ body {
       </div>
       <div class="skeleton" style="width:50px; height:36px;"></div>
     </div>
+    <div class="skeleton-card">
+      <div>
+        <div class="skeleton" style="width:140px; margin-bottom:10px;"></div>
+        <div class="skeleton" style="width:200px;"></div>
+      </div>
+      <div class="skeleton" style="width:50px; height:36px;"></div>
+    </div>
+  </div>
+
+  <!-- Writing stats mini row -->
+  <div class="section-title" style="margin-top:32px;">Writing</div>
+  <div class="writing-stats-row">
+    <div class="stat-card">
+      <div class="stat-number" id="stat-w-attempts">–</div>
+      <div class="stat-label">Attempts</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="stat-w-latest">–</div>
+      <div class="stat-label">Latest Band</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="stat-w-avg">–</div>
+      <div class="stat-label">Average Band</div>
+    </div>
+  </div>
+
+  <!-- Writing history -->
+  <div class="history-list" id="writing-history">
     <div class="skeleton-card">
       <div>
         <div class="skeleton" style="width:140px; margin-bottom:10px;"></div>
@@ -300,15 +360,25 @@ function logout() {
   localStorage.removeItem("readingScore");
   localStorage.removeItem("readingCorrect");
   localStorage.removeItem("readingTotal");
+  localStorage.removeItem("writingBand");
+  localStorage.removeItem("writingWordCount");
+  localStorage.removeItem("writingFeedback");
   window.location.href = "login.html";
 }
 
-// ── Start test — clear old scores first ───────────────────────────────────────
-function startTest() {
+// ── Navigation helpers ────────────────────────────────────────────────────────
+function startReading() {
   localStorage.removeItem("readingScore");
   localStorage.removeItem("readingCorrect");
   localStorage.removeItem("readingTotal");
   window.location.href = "reading.html";
+}
+
+function startWriting() {
+  localStorage.removeItem("writingBand");
+  localStorage.removeItem("writingWordCount");
+  localStorage.removeItem("writingFeedback");
+  window.location.href = "writing.html";
 }
 
 // ── Format ISO date → "Jan 15, 2024" ─────────────────────────────────────────
@@ -325,15 +395,14 @@ function bandColorClass(b) {
   return "band-lw";
 }
 
-// ── Render history list ───────────────────────────────────────────────────────
-function renderHistory(results) {
-  const container = document.getElementById("history-list");
+// ── Render reading history ────────────────────────────────────────────────────
+function renderReadingHistory(results) {
+  const container = document.getElementById("reading-history");
 
   if (!results || results.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
-        No attempts yet.<br>
-        Take your first Reading Test to see your progress here!
+        No reading attempts yet.<br>Take your first Reading Test!
       </div>`;
     return;
   }
@@ -346,6 +415,38 @@ function renderHistory(results) {
       </div>
       <div class="h-band ${bandColorClass(r.reading_score)}">
         ${r.reading_score.toFixed(1)}
+      </div>
+    </div>
+  `).join("");
+}
+
+// ── Render writing history ────────────────────────────────────────────────────
+function renderWritingHistory(results) {
+  const container = document.getElementById("writing-history");
+
+  if (!results || results.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        No writing attempts yet.<br>Take your first Writing Test!
+      </div>`;
+    return;
+  }
+
+  // Update writing stats
+  document.getElementById("stat-w-attempts").textContent = results.length;
+  const latestBand = results[0].band_score;
+  const avgBand    = results.reduce((s, r) => s + r.band_score, 0) / results.length;
+  document.getElementById("stat-w-latest").textContent = latestBand.toFixed(1);
+  document.getElementById("stat-w-avg").textContent    = avgBand.toFixed(1);
+
+  container.innerHTML = results.map(r => `
+    <div class="history-card">
+      <div class="h-left">
+        <div class="h-date">${formatDate(r.created_at)}</div>
+        <div class="h-detail">Writing: <b>${r.band_score.toFixed(1)}</b> — ${r.word_count} words</div>
+      </div>
+      <div class="h-band ${bandColorClass(r.band_score)}">
+        ${r.band_score.toFixed(1)}
       </div>
     </div>
   `).join("");
@@ -409,12 +510,26 @@ async function loadDashboard() {
       document.getElementById("stat-avg").textContent    = avg.toFixed(1);
     }
 
-    renderHistory(results);
+    renderReadingHistory(results);
+
+    // 3. Load writing history in parallel
+    const writingRes = await fetch(`${API_BASE}/writing-history`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (writingRes.ok) {
+      const writingData = await writingRes.json();
+      renderWritingHistory(writingData);
+    } else {
+      renderWritingHistory([]);
+    }
 
   } catch (err) {
     console.error(err);
-    document.getElementById("history-list").innerHTML =
+    document.getElementById("reading-history").innerHTML =
       `<div class="empty-state">Failed to load. Please refresh the page.</div>`;
+    document.getElementById("writing-history").innerHTML =
+      `<div class="empty-state">Failed to load writing history.</div>`;
   }
 }
 

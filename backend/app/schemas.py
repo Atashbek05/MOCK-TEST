@@ -87,3 +87,30 @@ class SubmitResultOut(BaseModel):
     correct: int
     total: int
     band: float
+
+
+# ── Writing module schemas ────────────────────────────────────────────────────
+
+class SubmitWritingIn(BaseModel):
+    essay: str = Field(..., min_length=50, max_length=6000)
+
+
+class WritingSubmitOut(BaseModel):
+    id: int
+    band_score: float
+    word_count: int
+    feedback: str       # JSON string — frontend will JSON.parse() this
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class WritingHistoryItemOut(BaseModel):
+    id: int
+    band_score: float
+    word_count: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True

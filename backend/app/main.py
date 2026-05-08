@@ -1,7 +1,12 @@
+import json
+import os
+
+import anthropic
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from typing import List
 
 from . import models, schemas
 from .database import Base, SessionLocal, engine, get_db
@@ -314,3 +319,113 @@ def submit_test(
     band = _calculate_band(correct, total)
 
     return schemas.SubmitResultOut(correct=correct, total=total, band=band)
+
+
+# ── Writing Module ─────────────────────────────────────────────────────────────
+
+# The prompt sent to Claude for IELTS evaluation
+_WRITING_PROMPT = """You are an experienced IELTS examiner. Evaluate this IELTS Writing Task 2 essay.
+
+ESSAY (word count: {word_count}):
+{essay}
+
+Return ONLY valid JSON with no extra text or code blocks:
+{{
+  "band_score": <float 0-9 in 0.5 steps>,
+  "task_achievement": {{
+    "score": <float 0-9>,
+    "feedback": "<specific feedback on task response and argument>"
+  }},
+  "coherence_cohesion": {{
+    "score": <float 0-9>,
+    "feedback": "<specific feedback on structure, paragraphing, and linking words>"
+  }},
+  "lexical_resource": {{
+    "score": <float 0-9>,
+    "feedback": "<specific feedback on vocabulary range and accuracy>"
+  }},
+  "grammatical_range": {{
+    "score": <float 0-9>,
+    "feedback": "<specific feedback on grammar accuracy and sentence variety>"
+  }},
+  "strengths": [
+    "<specific strength 1>",
+    "<specific strength 2>",
+    "<specific strength 3>"
+  ],
+  "improvements": [
+    "<specific actionable improvement 1>",
+    "<specific actionable improvement 2>",
+    "<specific actionable improvement 3>"
+  ],
+  "overall_feedback": "<2-3 sentence overall assessment and encouragement>"
+}}"""
+
+
+def _get_ai_feedback(essay: str, word_count: int) -> dict:
+    """Send essay to Claude and return structured IELTS feedback as a dict."""
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="AI feedback is not configured. Set the ANTHROPIC_API_KEY environment variable."
+        )
+
+    client = anthropic.Anthropic(api_key=api_key)
+
+    prompt = _WRITING_PROMPT.format(essay=essay, word_count=word_count)
+
+    try:
+        message = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1500,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        response_text = message.content[0].text.strip()
+        return json.loads(response_text)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="AI returned invalid response. Please try again.")
+    except anthropic.APIError as e:
+        raise HTTPException(status_code=500, detail=f"AI service error: {str(e)}")
+
+
+@app.post("/submit-writing", response_model=schemas.WritingSubmitOut, status_code=status.HTTP_201_CREATED)
+def submit_writing(
+    payload: schemas.SubmitWritingIn,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    word_count = len(payload.essay.split())
+
+    # Get IELTS feedback from Claude
+    feedback_dict = _get_ai_feedback(payload.essay, word_count)
+
+    band_score = float(feedback_dict.get("band_score", 0))
+    if not (0 <= band_score <= 9):
+        band_score = 0.0
+
+    result = models.WritingResult(
+        user_id=current_user.id,
+        essay_text=payload.essay,
+        feedback=json.dumps(feedback_dict),   # store as JSON string
+        band_score=band_score,
+        word_count=word_count,
+    )
+    db.add(result)
+    db.commit()
+    db.refresh(result)
+    return result
+
+
+@app.get("/writing-history", response_model=List[schemas.WritingHistoryItemOut])
+def writing_history(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return (
+        db.query(models.WritingResult)
+        .filter(models.WritingResult.user_id == current_user.id)
+        .order_by(models.WritingResult.created_at.desc())
+        .limit(5)
+        .all()
+    )

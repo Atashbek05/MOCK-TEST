@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Writing Result – IELTS Mock</title>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+}
+
+.header {
+  background: white;
+  padding: 16px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.logo { font-weight: bold; font-size: 18px; }
+
+.container {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 36px 20px 70px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Band hero card ── */
+.band-card {
+  background: white;
+  border-radius: 18px;
+  padding: 36px 30px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.band-card h2  { font-size: 20px; color: #333; margin-bottom: 4px; }
+.band-subtitle { font-size: 13px; color: #bbb; margin-bottom: 28px; }
+
+/* Band circle */
+.band-circle {
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  border: 5px solid;
+  margin: 0 auto 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.band-number { font-size: 52px; font-weight: bold; line-height: 1; }
+.band-tag    { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 4px; }
+
+/* Colour themes */
+.theme-excellent { color: #2e7d32; border-color: #4caf50; background: #f1f8e9; }
+.theme-good      { color: #1565c0; border-color: #1976d2; background: #e3f2fd; }
+.theme-moderate  { color: #e65100; border-color: #ff9800; background: #fff3e0; }
+.theme-low       { color: #c62828; border-color: #e53935; background: #ffebee; }
+
+.word-count-note {
+  font-size: 13px;
+  color: #aaa;
+  margin-bottom: 26px;
+}
+
+/* ── Overall feedback text ── */
+.overall-feedback {
+  background: #f7f7f7;
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.7;
+  text-align: left;
+}
+
+/* ── Criteria grid ── */
+.section-title {
+  font-size: 12px;
+  font-weight: bold;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 14px;
+}
+
+.criteria-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.criterion-card {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+}
+
+.criterion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.criterion-name {
+  font-size: 13px;
+  font-weight: bold;
+  color: #444;
+}
+
+.criterion-score {
+  font-size: 22px;
+  font-weight: bold;
+  color: #222;
+}
+
+.criterion-bar-wrap {
+  background: #eeeeee;
+  border-radius: 20px;
+  height: 5px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.criterion-bar-fill {
+  height: 100%;
+  border-radius: 20px;
+  background: #222;
+}
+
+.criterion-feedback {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* ── Strengths & Improvements ── */
+.feedback-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.feedback-card {
+  background: white;
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+}
+
+.feedback-card-title {
+  font-size: 13px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+
+.feedback-card-title.green { color: #2e7d32; }
+.feedback-card-title.orange { color: #e65100; }
+
+.feedback-card ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feedback-card li {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+  padding-left: 22px;
+  position: relative;
+}
+
+.feedback-card li::before {
+  position: absolute;
+  left: 0;
+  font-size: 14px;
+}
+
+.strength-list li::before  { content: "✓"; color: #4caf50; }
+.improve-list  li::before  { content: "→"; color: #ff9800; }
+
+/* ── Buttons ── */
+.btn-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.btn {
+  padding: 13px 30px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
+  transition: opacity 0.2s;
+}
+
+.btn:hover { opacity: 0.82; }
+.btn-primary   { background: black;  color: white; }
+.btn-secondary { background: #efefef; color: #333; }
+
+/* ── Error state ── */
+.error-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #aaa;
+  font-size: 15px;
+}
+
+/* ── Footer ── */
+.footer {
+  text-align: center;
+  padding: 20px 0;
+  font-size: 12px;
+  color: #bbb;
+  font-weight: bold;
+}
+
+/* ── Responsive ── */
+@media (max-width: 620px) {
+  .criteria-grid { grid-template-columns: 1fr; }
+  .feedback-row  { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <div class="logo">IELTS MOCK TEST</div>
+</div>
+
+<div id="app-content">
+  <!-- Rendered by JavaScript below -->
+</div>
+
+<div class="footer">Created by Atabek</div>
+
+<script src="api.js"></script>
+<script>
+// ── Route protection ──────────────────────────────────────────────────────────
+const token = localStorage.getItem("token");
+if (!token) window.location.href = "login.html";
+
+// ── Read data saved by writing.html ──────────────────────────────────────────
+const band      = +localStorage.getItem("writingBand")      || 0;
+const wordCount = +localStorage.getItem("writingWordCount") || 0;
+const rawJson   = localStorage.getItem("writingFeedback")   || "{}";
+
+let fb = {};
+try {
+  fb = JSON.parse(rawJson);
+} catch (e) {
+  console.error("Could not parse writing feedback:", e);
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function getTheme(b) {
+  if (b >= 7.5) return "theme-excellent";
+  if (b >= 6.0) return "theme-good";
+  if (b >= 5.0) return "theme-moderate";
+  return "theme-low";
+}
+
+// Score bar width — 9.0 = 100%
+function scorePct(s) {
+  return Math.min((s / 9) * 100, 100).toFixed(0);
+}
+
+// Bar colour based on score
+function barColor(s) {
+  if (s >= 7.5) return "#4caf50";
+  if (s >= 6.0) return "#1976d2";
+  if (s >= 5.0) return "#ff9800";
+  return "#e53935";
+}
+
+// ── Build criterion card HTML ─────────────────────────────────────────────────
+function criterionCard(title, data) {
+  if (!data) return "";
+  const score    = data.score || 0;
+  const feedback = data.feedback || "";
+  return `
+    <div class="criterion-card">
+      <div class="criterion-header">
+        <div class="criterion-name">${title}</div>
+        <div class="criterion-score">${parseFloat(score).toFixed(1)}</div>
+      </div>
+      <div class="criterion-bar-wrap">
+        <div class="criterion-bar-fill"
+             style="width:${scorePct(score)}%; background:${barColor(score)};"></div>
+      </div>
+      <div class="criterion-feedback">${feedback}</div>
+    </div>`;
+}
+
+// ── Build list items HTML ─────────────────────────────────────────────────────
+function listItems(arr) {
+  if (!arr || arr.length === 0) return "<li>No data available.</li>";
+  return arr.map(item => `<li>${item}</li>`).join("");
+}
+
+// ── Render the page ───────────────────────────────────────────────────────────
+function render() {
+  if (!fb || Object.keys(fb).length === 0) {
+    document.getElementById("app-content").innerHTML = `
+      <div class="container">
+        <div class="error-state">
+          Could not load feedback.<br>Please return to the dashboard and try again.
+          <br><br>
+          <button class="btn btn-primary" onclick="goToDashboard()">Dashboard</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const html = `
+    <div class="container">
+
+      <!-- Band score hero card -->
+      <div class="band-card">
+        <h2>Writing Test Complete</h2>
+        <p class="band-subtitle">AI-powered IELTS examiner feedback</p>
+
+        <div class="band-circle ${getTheme(band)}">
+          <div class="band-number">${band.toFixed(1)}</div>
+          <div class="band-tag">IELTS Band</div>
+        </div>
+
+        <p class="word-count-note">Word count: ${wordCount}</p>
+
+        <div class="overall-feedback">
+          ${fb.overall_feedback || "No overall feedback available."}
+        </div>
+      </div>
+
+      <!-- 4 IELTS criteria -->
+      <div class="section-title">Criterion Scores</div>
+      <div class="criteria-grid">
+        ${criterionCard("Task Achievement",    fb.task_achievement)}
+        ${criterionCard("Coherence & Cohesion", fb.coherence_cohesion)}
+        ${criterionCard("Lexical Resource",    fb.lexical_resource)}
+        ${criterionCard("Grammatical Range",   fb.grammatical_range)}
+      </div>
+
+      <!-- Strengths + Improvements -->
+      <div class="feedback-row">
+        <div class="feedback-card">
+          <div class="feedback-card-title green">Strengths</div>
+          <ul class="strength-list">
+            ${listItems(fb.strengths)}
+          </ul>
+        </div>
+        <div class="feedback-card">
+          <div class="feedback-card-title orange">Improvements</div>
+          <ul class="improve-list">
+            ${listItems(fb.improvements)}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Navigation buttons -->
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="tryAgain()">Try Again</button>
+        <button class="btn btn-primary"   onclick="goToDashboard()">Dashboard</button>
+      </div>
+
+    </div>`;
+
+  document.getElementById("app-content").innerHTML = html;
+}
+
+render();
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function tryAgain() {
+  localStorage.removeItem("writingBand");
+  localStorage.removeItem("writingWordCount");
+  localStorage.removeItem("writingFeedback");
+  window.location.href = "writing.html";
+}
+
+function goToDashboard() {
+  window.location.href = "dashboard.html";
+}
+</script>
+
+</body>
+</html>

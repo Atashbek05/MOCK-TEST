@@ -16,6 +16,7 @@ class User(Base):
 
     results = relationship("Result", back_populates="user", cascade="all, delete-orphan")
     attempts = relationship("Attempt", back_populates="user", cascade="all, delete-orphan")
+    writing_results = relationship("WritingResult", back_populates="user", cascade="all, delete-orphan")
 
 
 class Test(Base):
@@ -68,3 +69,17 @@ class Attempt(Base):
 
     user = relationship("User", back_populates="attempts")
     test = relationship("Test", back_populates="attempts")
+
+
+class WritingResult(Base):
+    __tablename__ = "writing_results"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    essay_text: Mapped[str] = mapped_column(Text, nullable=False)
+    feedback: Mapped[str] = mapped_column(Text, nullable=False)  # JSON string from Claude
+    band_score: Mapped[float] = mapped_column(Float, nullable=False)
+    word_count: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = relationship("User", back_populates="writing_results")

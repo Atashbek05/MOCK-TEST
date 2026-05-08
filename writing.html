@@ -2,72 +2,434 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Mock Test</title>
+<title>Writing Test – IELTS Mock</title>
 
 <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   background: #f4f4f4;
-  text-align: center;
 }
 
-.container {
-  max-width: 600px;
-  margin: 50px auto;
-}
-
-.question {
+/* ── Header ── */
+.header {
   background: white;
-  padding: 20px;
-  margin: 20px 0;
-  border-radius: 12px;
+  padding: 14px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-button {
-  padding: 12px 25px;
+.logo { font-weight: bold; font-size: 18px; }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.timer {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+  background: #f4f4f4;
+  padding: 6px 18px;
+  border-radius: 20px;
+}
+
+.timer.warning { color: #e53935; animation: pulse 1s infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+.header-label { font-size: 13px; color: #999; }
+
+/* ── Layout ── */
+.layout {
+  max-width: 860px;
+  margin: 28px auto;
+  padding: 0 20px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Task prompt card ── */
+.task-card {
+  background: white;
+  border-radius: 14px;
+  padding: 26px 30px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  border-left: 4px solid #222;
+}
+
+.task-label {
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #aaa;
+  margin-bottom: 10px;
+}
+
+.task-card p {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.75;
+}
+
+.task-note {
+  font-size: 13px;
+  color: #888;
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* ── Essay card ── */
+.essay-card {
+  background: white;
+  border-radius: 14px;
+  padding: 26px 30px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.essay-card label {
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #aaa;
+  display: block;
+  margin-bottom: 12px;
+}
+
+textarea {
+  width: 100%;
+  min-height: 320px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 16px;
+  font-size: 15px;
+  font-family: Arial, sans-serif;
+  line-height: 1.7;
+  color: #333;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+textarea:focus { border-color: #222; }
+
+/* ── Word counter ── */
+.word-counter-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.word-count-label {
+  font-size: 14px;
+  color: #888;
+  white-space: nowrap;
+}
+
+.word-count-label span         { font-weight: bold; font-size: 16px; color: #222; }
+.word-count-label span.ok      { color: #2e7d32; }
+.word-count-label span.warn    { color: #e65100; }
+
+.word-progress-wrap {
+  flex: 1;
+  min-width: 120px;
+  background: #eeeeee;
+  border-radius: 20px;
+  height: 6px;
+  overflow: hidden;
+  margin: 0 14px;
+}
+
+.word-progress-fill {
+  height: 100%;
+  border-radius: 20px;
+  background: #e53935;
+  transition: width 0.3s, background 0.3s;
+  width: 0%;
+}
+
+.target-label {
+  font-size: 12px;
+  color: #aaa;
+  white-space: nowrap;
+}
+
+/* ── Submit area ── */
+.submit-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-submit {
+  padding: 15px 50px;
   background: black;
   color: white;
   border: none;
-  border-radius: 25px;
+  border-radius: 28px;
+  font-size: 16px;
+  font-weight: bold;
   cursor: pointer;
+  transition: opacity 0.2s;
 }
+
+.btn-submit:hover    { opacity: 0.82; }
+.btn-submit:disabled { background: #ccc; cursor: not-allowed; opacity: 1; }
+
+.submit-hint {
+  font-size: 13px;
+  color: #bbb;
+  text-align: center;
+}
+
+/* ── Loading overlay ── */
+.loading-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.9);
+  z-index: 100;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.loading-overlay.show { display: flex; }
+
+.spinner {
+  width: 44px;
+  height: 44px;
+  border: 4px solid #ddd;
+  border-top-color: #222;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-overlay p     { font-size: 16px; color: #444; font-weight: bold; }
+.loading-overlay small { font-size: 13px; color: #aaa; }
+
+/* ── Error banner ── */
+.error-banner {
+  background: #ffebee;
+  color: #c62828;
+  border-radius: 10px;
+  padding: 14px 20px;
+  font-size: 14px;
+  display: none;
+}
+
+.error-banner.show { display: block; }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<!-- Header with timer -->
+<div class="header">
+  <div class="logo">IELTS MOCK TEST</div>
+  <div class="header-right">
+    <div id="timer" class="timer">40:00</div>
+    <div class="header-label">Writing Task 2</div>
+  </div>
+</div>
 
-  <h2>Writing Test</h2>
+<!-- Loading overlay — visible while Claude analyses the essay -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <p>Analysing your essay with AI...</p>
+  <small>This usually takes 10–20 seconds</small>
+</div>
 
-  <div class="question">
-    <p>Describe a situation when you solved a problem.</p>
+<div class="layout">
 
-    <textarea id="writing" placeholder="Write your answer here..." 
-      style="width:100%; height:150px; padding:10px; border-radius:10px;">
-    </textarea>
+  <!-- Task 2 prompt -->
+  <div class="task-card">
+    <div class="task-label">Writing Task 2 — Academic</div>
+    <p>
+      In many countries, the gap between the rich and the poor is widening.
+      What problems does this create, and what solutions can you suggest?
+    </p>
+    <p class="task-note">
+      Give reasons for your answer and include relevant examples from your own knowledge or experience.
+    </p>
   </div>
 
-  <button onclick="submitWriting()">Submit</button>
+  <!-- Essay textarea -->
+  <div class="essay-card">
+    <label>Your Essay</label>
+    <textarea
+      id="essay"
+      placeholder="Write your essay here. Start with an introduction that paraphrases the question and states your position..."
+      oninput="updateWordCount()"
+    ></textarea>
+
+    <!-- Word counter + progress bar -->
+    <div class="word-counter-row">
+      <div class="word-count-label">Words: <span id="word-count">0</span></div>
+      <div class="word-progress-wrap">
+        <div class="word-progress-fill" id="word-progress"></div>
+      </div>
+      <div class="target-label">Target: 250+ words</div>
+    </div>
+  </div>
+
+  <!-- Error message -->
+  <div class="error-banner" id="error-banner"></div>
+
+  <!-- Submit button -->
+  <div class="submit-area">
+    <button class="btn-submit" id="submit-btn" onclick="submitEssay()" disabled>
+      Submit for AI Feedback
+    </button>
+    <p class="submit-hint" id="submit-hint">Write at least 150 words to enable submit</p>
+  </div>
 
 </div>
 
+<script src="api.js"></script>
 <script>
-function submitWriting() {
-  let text = document.getElementById("writing").value;
+// ── Route protection ──────────────────────────────────────────────────────────
+const token = localStorage.getItem("token");
+if (!token) window.location.href = "login.html";
 
-  if (text.trim() === "") {
-    alert("Write something");
-    return;
+// ── Timer — 40 minutes ────────────────────────────────────────────────────────
+let secondsLeft   = 40 * 60;
+let timerInterval = null;
+
+function startTimer() {
+  timerInterval = setInterval(() => {
+    secondsLeft--;
+    const m  = Math.floor(secondsLeft / 60);
+    const s  = secondsLeft % 60;
+    const el = document.getElementById("timer");
+    el.textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    if (secondsLeft <= 300) el.classList.add("warning");
+    if (secondsLeft <= 0) {
+      clearInterval(timerInterval);
+      submitEssay();     // Auto-submit when time runs out
+    }
+  }, 1000);
+}
+
+startTimer();
+
+// ── Live word counter ─────────────────────────────────────────────────────────
+const MIN_WORDS    = 150;   // Minimum to unlock submit
+const TARGET_WORDS = 250;   // Official IELTS minimum shown in progress bar
+
+function updateWordCount() {
+  const text  = document.getElementById("essay").value.trim();
+  const words = text === "" ? 0 : text.split(/\s+/).length;
+
+  // Update number display + colour
+  const countEl   = document.getElementById("word-count");
+  countEl.textContent = words;
+  countEl.className   =
+    words >= TARGET_WORDS ? "ok" :
+    words >= MIN_WORDS    ? "warn" : "";
+
+  // Update progress bar (fills to 100% at TARGET_WORDS)
+  const pct  = Math.min((words / TARGET_WORDS) * 100, 100);
+  const fill = document.getElementById("word-progress");
+  fill.style.width      = pct + "%";
+  fill.style.background =
+    words >= TARGET_WORDS ? "#4caf50" :
+    words >= MIN_WORDS    ? "#ff9800" : "#e53935";
+
+  // Enable / disable submit and update hint text
+  const btn  = document.getElementById("submit-btn");
+  const hint = document.getElementById("submit-hint");
+
+  if (words >= MIN_WORDS) {
+    btn.disabled = false;
+    hint.textContent = words >= TARGET_WORDS
+      ? "Your essay meets the 250-word target."
+      : `${TARGET_WORDS - words} more words recommended for a full IELTS score.`;
+  } else {
+    btn.disabled = true;
+    hint.textContent =
+      `Write at least ${MIN_WORDS} words to enable submit (${MIN_WORDS - words} more needed)`;
   }
+}
 
-  // пока фейковая оценка
-  let score = 6;
+// ── Submit essay to backend ───────────────────────────────────────────────────
+async function submitEssay() {
+  clearInterval(timerInterval);
 
-  localStorage.setItem("writingScore", score);
-  
-  window.location.href = "result.html";
+  const essay = document.getElementById("essay").value.trim();
+  if (!essay) return;
+
+  // Show loading overlay while AI processes
+  document.getElementById("loading-overlay").classList.add("show");
+  document.getElementById("submit-btn").disabled = true;
+  document.getElementById("error-banner").classList.remove("show");
+
+  try {
+    const res = await fetch(`${API_BASE}/submit-writing`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ essay })
+    });
+
+    if (res.status === 401) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      showError(err.detail || "Submission failed. Please try again.");
+      return;
+    }
+
+    const data = await res.json();
+
+    // Save all result data to localStorage for writing-result.html
+    localStorage.setItem("writingBand",      data.band_score);
+    localStorage.setItem("writingWordCount", data.word_count);
+    localStorage.setItem("writingFeedback",  data.feedback);  // JSON string
+
+    window.location.href = "writing-result.html";
+
+  } catch (err) {
+    showError("Cannot connect to server. Please check your connection.");
+    console.error(err);
+  }
+}
+
+function showError(msg) {
+  document.getElementById("loading-overlay").classList.remove("show");
+  document.getElementById("submit-btn").disabled = false;
+  const banner = document.getElementById("error-banner");
+  banner.textContent = msg;
+  banner.classList.add("show");
+  startTimer();   // Resume timer on error
 }
 </script>
+
 </body>
 </html>
