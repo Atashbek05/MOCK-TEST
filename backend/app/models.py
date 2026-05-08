@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -23,6 +23,7 @@ class Test(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     type: Mapped[str] = mapped_column(String(50), nullable=False)
+    passage: Mapped[str] = mapped_column(Text, nullable=True)  # Reading passage text
 
     questions = relationship("Question", back_populates="test", cascade="all, delete-orphan")
     attempts = relationship("Attempt", back_populates="test", cascade="all, delete-orphan")
@@ -33,8 +34,12 @@ class Question(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     test_id: Mapped[int] = mapped_column(ForeignKey("tests.id"), nullable=False)
-    question: Mapped[str] = mapped_column(String(1000), nullable=False)
-    correct_answer: Mapped[str] = mapped_column(String(255), nullable=False)
+    question_text: Mapped[str] = mapped_column(Text, nullable=False)
+    option_a: Mapped[str] = mapped_column(String(500), nullable=False)
+    option_b: Mapped[str] = mapped_column(String(500), nullable=False)
+    option_c: Mapped[str] = mapped_column(String(500), nullable=False)
+    option_d: Mapped[str] = mapped_column(String(500), nullable=False)
+    correct_answer: Mapped[str] = mapped_column(String(1), nullable=False)  # "A", "B", "C", or "D"
 
     test = relationship("Test", back_populates="questions")
 

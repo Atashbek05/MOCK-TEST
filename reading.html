@@ -2,86 +2,504 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Mock Test</title>
+<title>Reading Test – IELTS Mock</title>
 
 <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   background: #f4f4f4;
+}
+
+/* ── Header ── */
+.header {
+  background: white;
+  padding: 14px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.logo { font-weight: bold; font-size: 18px; }
+
+.timer {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+  background: #f4f4f4;
+  padding: 6px 18px;
+  border-radius: 20px;
+}
+
+.timer.warning { color: #e53935; animation: pulse 1s infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.header-label { font-size: 13px; color: #888; }
+
+/* ── Two-column layout ── */
+.layout {
+  display: flex;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+
+/* ── Passage panel (left) ── */
+.passage-panel {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  height: calc(100vh - 110px);
+  overflow-y: auto;
+  position: sticky;
+  top: 76px;
+}
+
+.panel-label {
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #aaa;
+  margin-bottom: 18px;
+}
+
+.passage-panel p {
+  line-height: 1.85;
+  font-size: 15px;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+/* ── Questions panel (right) ── */
+.questions-panel { flex: 1; }
+
+.question-card {
+  background: white;
+  border-radius: 12px;
+  padding: 22px 24px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  border-left: 3px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.question-card.answered { border-left-color: #4caf50; }
+
+.question-num {
+  font-size: 11px;
+  color: #aaa;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.question-card > p {
+  font-size: 15px;
+  color: #222;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  border: 1.5px solid #eee;
+  transition: all 0.15s;
+}
+
+.option:hover { background: #fafafa; border-color: #ccc; }
+
+.option.selected {
+  background: #f0f0f0;
+  border-color: #333;
+}
+
+.option input[type="radio"] {
+  margin-top: 3px;
+  accent-color: black;
+  flex-shrink: 0;
+}
+
+.option label {
+  cursor: pointer;
+  font-size: 14px;
+  color: #444;
+  line-height: 1.45;
+}
+
+/* ── Submit area ── */
+.submit-area {
+  padding: 16px 0 50px;
   text-align: center;
 }
 
-.container {
-  max-width: 600px;
-  margin: 50px auto;
+.progress-bar-wrap {
+  background: #e0e0e0;
+  border-radius: 20px;
+  height: 6px;
+  margin-bottom: 14px;
+  overflow: hidden;
 }
 
-.question {
-  background: white;
-  padding: 20px;
-  margin: 20px 0;
-  border-radius: 12px;
+.progress-bar-fill {
+  background: #4caf50;
+  height: 100%;
+  border-radius: 20px;
+  transition: width 0.3s;
+  width: 0%;
 }
 
-button {
-  padding: 12px 25px;
+.progress-text {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 16px;
+}
+
+.progress-text span { font-weight: bold; color: #333; }
+
+.btn-submit {
+  padding: 14px 44px;
   background: black;
   color: white;
   border: none;
   border-radius: 25px;
   cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: opacity 0.2s;
+}
+
+.btn-submit:hover { opacity: 0.85; }
+
+.btn-submit:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+/* ── Loading / Error ── */
+.loading-screen {
+  text-align: center;
+  padding: 80px 20px;
+  font-size: 16px;
+  color: #888;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #ddd;
+  border-top-color: #333;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-banner {
+  background: #ffebee;
+  color: #c62828;
+  padding: 18px 24px;
+  border-radius: 10px;
+  margin: 30px auto;
+  max-width: 500px;
+  text-align: center;
+  font-size: 15px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .layout { flex-direction: column; }
+  .passage-panel {
+    position: static;
+    height: auto;
+    max-height: 280px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-
-<h2>Mock Test</h2>
-
-<div class="question">
-  <p>1. 2 + 2 = ?</p>
-  <input type="radio" name="q1" value="3"> 3<br>
-  <input type="radio" name="q1" value="4"> 4<br>
+<!-- Header -->
+<div class="header">
+  <div class="logo">IELTS MOCK TEST</div>
+  <div id="timer" class="timer">60:00</div>
+  <div class="header-label">Reading Test</div>
 </div>
 
-<div class="question">
-  <p>2. Capital of UK?</p>
-  <input type="radio" name="q2" value="London"> London<br>
-  <input type="radio" name="q2" value="Paris"> Paris<br>
+<!-- Loading screen -->
+<div id="loading-screen" class="loading-screen">
+  <div class="spinner"></div>
+  Loading test...
 </div>
 
-<button onclick="submitTest()">Submit</button>
+<!-- Main content (hidden until loaded) -->
+<div id="main-content" style="display:none;">
+  <div class="layout">
 
+    <!-- Left: passage -->
+    <div class="passage-panel">
+      <div class="panel-label">Reading Passage</div>
+      <div id="passage-text"></div>
+    </div>
+
+    <!-- Right: questions -->
+    <div class="questions-panel">
+      <div id="questions-list"></div>
+
+      <div class="submit-area">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-text">
+          Answered: <span id="answered-count">0</span> / <span id="total-count">0</span>
+        </div>
+        <button class="btn-submit" id="submit-btn" onclick="submitTest()">Submit Test</button>
+      </div>
+    </div>
+
+  </div>
 </div>
 
+<script src="api.js"></script>
 <script>
-function submitTest() {
-  let score = 0;
+// Redirect to login if not authenticated
+const token = localStorage.getItem("token");
+if (!token) {
+  window.location.href = "login.html";
+}
 
-  let q1 = document.querySelector('input[name="q1"]:checked');
-  let q2 = document.querySelector('input[name="q2"]:checked');
+let testId = null;
+let totalQuestions = 0;
+let timerInterval = null;
+let secondsLeft = 60 * 60; // 60 minutes
 
-  if (!q1 || !q2) {
-    alert("Answer all questions");
-    return;
+// ── Timer ────────────────────────────────────────────────────────────────────
+
+function startTimer() {
+  timerInterval = setInterval(() => {
+    secondsLeft--;
+
+    const m = Math.floor(secondsLeft / 60);
+    const s = secondsLeft % 60;
+    const el = document.getElementById("timer");
+    el.textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+
+    // Red warning when under 5 minutes
+    if (secondsLeft <= 300) el.classList.add("warning");
+
+    // Auto-submit when time runs out
+    if (secondsLeft <= 0) {
+      clearInterval(timerInterval);
+      submitTest();
+    }
+  }, 1000);
+}
+
+// ── Load test from API ────────────────────────────────────────────────────────
+
+async function loadTest() {
+  try {
+    const res = await fetch(`${API_BASE}/questions`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (res.status === 401) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    if (!res.ok) {
+      showError("Failed to load test. Please refresh the page.");
+      return;
+    }
+
+    const data = await res.json();
+    testId = data.id;
+    totalQuestions = data.questions.length;
+
+    renderPassage(data.passage);
+    renderQuestions(data.questions);
+
+    document.getElementById("loading-screen").style.display = "none";
+    document.getElementById("main-content").style.display = "block";
+    document.getElementById("total-count").textContent = totalQuestions;
+
+    startTimer();
+
+  } catch (err) {
+    showError("Cannot connect to server. Please check your connection.");
+    console.error(err);
+  }
+}
+
+// ── Render passage ────────────────────────────────────────────────────────────
+
+function renderPassage(text) {
+  const container = document.getElementById("passage-text");
+  // Split paragraphs by double newline
+  const paragraphs = text.split("\n\n").filter(p => p.trim());
+  container.innerHTML = paragraphs.map(p => `<p>${p.trim()}</p>`).join("");
+}
+
+// ── Render questions ──────────────────────────────────────────────────────────
+
+function renderQuestions(questions) {
+  const container = document.getElementById("questions-list");
+
+  container.innerHTML = questions.map((q, index) => `
+    <div class="question-card" id="card-${q.id}">
+      <div class="question-num">Question ${index + 1} of ${questions.length}</div>
+      <p>${q.question_text}</p>
+
+      ${["A", "B", "C", "D"].map(letter => `
+        <div class="option" id="opt-${q.id}-${letter}"
+             onclick="selectOption(${q.id}, '${letter}')">
+          <input type="radio" name="q${q.id}" value="${letter}" id="r${q.id}${letter}">
+          <label for="r${q.id}${letter}">
+            <strong>${letter}.</strong> ${q["option_" + letter.toLowerCase()]}
+          </label>
+        </div>
+      `).join("")}
+    </div>
+  `).join("");
+}
+
+// ── Option selection ──────────────────────────────────────────────────────────
+
+function selectOption(questionId, letter) {
+  // Clear highlights on all options for this question
+  ["A", "B", "C", "D"].forEach(l => {
+    const opt = document.getElementById(`opt-${questionId}-${l}`);
+    if (opt) opt.classList.remove("selected");
+  });
+
+  // Highlight the chosen option
+  document.getElementById(`opt-${questionId}-${letter}`).classList.add("selected");
+
+  // Mark radio button as checked
+  document.getElementById(`r${questionId}${letter}`).checked = true;
+
+  // Mark the question card as answered (green left border)
+  document.getElementById(`card-${questionId}`).classList.add("answered");
+
+  updateProgress();
+}
+
+function updateProgress() {
+  let count = 0;
+  document.querySelectorAll(".question-card").forEach(card => {
+    if (card.querySelector("input[type='radio']:checked")) count++;
+  });
+
+  document.getElementById("answered-count").textContent = count;
+
+  const pct = totalQuestions > 0 ? (count / totalQuestions) * 100 : 0;
+  document.getElementById("progress-fill").style.width = pct + "%";
+}
+
+// ── Submit test ───────────────────────────────────────────────────────────────
+
+async function submitTest() {
+  clearInterval(timerInterval);
+
+  // Collect answers: { "questionId": "A" / "B" / "C" / "D" }
+  const answers = {};
+  let unanswered = 0;
+
+  document.querySelectorAll(".question-card").forEach(card => {
+    const qId = card.id.replace("card-", "");
+    const checked = card.querySelector("input[type='radio']:checked");
+    if (checked) {
+      answers[qId] = checked.value;
+    } else {
+      unanswered++;
+    }
+  });
+
+  // Warn if not all questions are answered
+  if (unanswered > 0) {
+    const go = confirm(
+      `You have ${unanswered} unanswered question(s).\nSubmit anyway?`
+    );
+    if (!go) {
+      startTimer(); // Resume timer
+      return;
+    }
   }
 
-  if (q1.value === "4") score++;
-  if (q2.value === "London") score++;
+  const btn = document.getElementById("submit-btn");
+  btn.disabled = true;
+  btn.textContent = "Submitting...";
 
-  // перевод в IELTS стиль (пример)
-  let band = score == 2 ? 7 : 5;
+  try {
+    const res = await fetch(`${API_BASE}/submit-test`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ test_id: testId, answers })
+    });
 
-  localStorage.setItem("lastScore", band);
+    if (!res.ok) {
+      btn.disabled = false;
+      btn.textContent = "Submit Test";
+      showError("Submission failed. Please try again.");
+      startTimer();
+      return;
+    }
 
-  let results = JSON.parse(localStorage.getItem("results")) || [];
-  results.push(band);
-  localStorage.setItem("results", JSON.stringify(results));
-  localStorage.setItem("readingScore", band);
-  window.location.href = "listening.html";
+    const result = await res.json();
+
+    // Save results for result.html
+    localStorage.setItem("readingScore", result.band);
+    localStorage.setItem("readingCorrect", result.correct);
+    localStorage.setItem("readingTotal", result.total);
+
+    // Go to results page
+    window.location.href = "result.html";
+
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = "Submit Test";
+    showError("Cannot connect to server. Please try again.");
+    startTimer();
+    console.error(err);
+  }
 }
+
+// ── Error helper ──────────────────────────────────────────────────────────────
+
+function showError(msg) {
+  document.getElementById("loading-screen").innerHTML =
+    `<div class="error-banner">${msg}</div>`;
+  document.getElementById("loading-screen").style.display = "block";
+}
+
+// ── Start ─────────────────────────────────────────────────────────────────────
+loadTest();
 </script>
 
 </body>

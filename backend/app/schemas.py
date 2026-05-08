@@ -52,3 +52,38 @@ class DashboardOut(BaseModel):
     user: UserOut
     level: str
     latest_results: List[ResultOut]
+
+
+# ── Reading test schemas ──────────────────────────────────────────────────────
+
+class QuestionOut(BaseModel):
+    id: int
+    question_text: str
+    option_a: str
+    option_b: str
+    option_c: str
+    option_d: str
+
+    class Config:
+        orm_mode = True
+
+
+class TestOut(BaseModel):
+    id: int
+    type: str
+    passage: str
+    questions: List[QuestionOut]
+
+    class Config:
+        orm_mode = True
+
+
+class SubmitTestIn(BaseModel):
+    test_id: int
+    answers: dict  # {"<question_id>": "A"/"B"/"C"/"D", ...}
+
+
+class SubmitResultOut(BaseModel):
+    correct: int
+    total: int
+    band: float
