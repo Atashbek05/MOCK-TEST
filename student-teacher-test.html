@@ -451,6 +451,15 @@ body {
   <div style="color:#6b7280;font-size:14px;">Loading test…</div>
 </div>
 
+<!-- Previous score banner (shown if student has taken this test before) -->
+<div id="prev-score-banner" style="display:none;
+     background:#f0fdf4; border-bottom:1px solid #bbf7d0;
+     padding:10px 24px; display:none; align-items:center; gap:10px;
+     font-size:13px; color:#065f46;">
+  <span>📊</span>
+  <span id="prev-score-text"></span>
+</div>
+
 <!-- Error state (hidden by default) -->
 <div class="state-center" id="error-state" style="display:none;">
   <div class="state-icon">🔒</div>
@@ -488,7 +497,14 @@ body {
     <div class="result-band-label">IELTS Band Score</div>
     <div class="result-score" id="result-score"></div>
     <p class="result-msg" id="result-msg"></p>
-    <a class="btn-done" href="dashboard.html">← Back to Dashboard</a>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn-done" onclick="retryTest()">↺ Try Again</button>
+      <a class="btn-done" href="dashboard.html"
+         style="background:#f1f5f9;color:#374151;font-weight:600;text-align:center;display:block;padding:13px;border-radius:12px;text-decoration:none;font-size:14px;transition:background 0.2s;"
+         onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+        ← Back to Dashboard
+      </a>
+    </div>
   </div>
 </div>
 
@@ -507,25 +523,38 @@ let testData = null;         // full test object from API
 let currentPassageIdx = 0;   // index into testData.passages
 let answers = {};            // { "questionId": "A" }
 
-// ── Load test ──────────────────────────────────────────────────────────────────
+// ── Load test + previous score in parallel ────────────────────────────────────
 async function loadTest() {
   try {
-    const res = await fetch(`${API_BASE}/student/teacher-test/${testId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const [testRes, scoresRes] = await Promise.all([
+      fetch(`${API_BASE}/student/teacher-test/${testId}`, { headers: { Authorization: `Bearer ${token}` } }),
+      fetch(`${API_BASE}/student/my-teacher-results`,     { headers: { Authorization: `Bearer ${token}` } }),
+    ]);
 
-    if (res.status === 401) { logout(); return; }
+    if (testRes.status === 401) { logout(); return; }
 
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
+    if (!testRes.ok) {
+      const body = await testRes.json().catch(() => ({}));
       showError(
-        res.status === 403 ? "Access Denied" : "Test Not Found",
+        testRes.status === 403 ? "Access Denied" : "Test Not Found",
         body.detail || "Cannot load this test."
       );
       return;
     }
 
-    testData = await res.json();
+    testData = await testRes.json();
+
+    // Show previous score banner if student has attempted before
+    if (scoresRes.ok) {
+      const scores = await scoresRes.json();
+      const my = scores[String(testId)];
+      if (my) {
+        const banner  = document.getElementById("prev-score-banner");
+        document.getElementById("prev-score-text").textContent =
+          `Your best score: Band ${my.best_band.toFixed(1)}  ·  ${my.attempts} previous attempt${my.attempts !== 1 ? "s" : ""}  ·  Last: ${new Date(my.latest_at).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" })}`;
+        banner.style.display = "flex";
+      }
+    }
 
     document.getElementById("test-title-header").textContent = testData.title;
     buildTabs();
@@ -728,6 +757,16 @@ function showResult(result) {
   document.getElementById("result-msg").textContent      = msg;
 
   document.getElementById("result-overlay").classList.add("show");
+}
+
+// ── Retry — reset state and reload the test ───────────────────────────────────
+function retryTest() {
+  answers = {};
+  currentPassageIdx = 0;
+  document.getElementById("result-overlay").classList.remove("show");
+  // Reset all option selections visually and re-render current passage
+  buildTabs();
+  showPassage(0);
 }
 
 // ── Start ─────────────────────────────────────────────────────────────────────

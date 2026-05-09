@@ -1110,3 +1110,77 @@ def get_teacher_results_overview(
         ))
 
     return overview
+
+
+# ── Student: preview test by PIN (no enrollment created) ─────────────────────
+
+@app.get("/join-test/{pin}")
+def preview_test_by_pin(
+    pin: str,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return test info for a PIN without creating an enrollment. Used for preview UI."""
+    test = db.query(models.TeacherTest).filter(
+        models.TeacherTest.pin_code == pin.strip()
+    ).first()
+
+    if not test:
+        raise HTTPException(status_code=404, detail="Invalid PIN. No test found.")
+
+    if not bool(test.is_active):
+        raise HTTPException(status_code=403, detail="This test is currently inactive.")
+
+    teacher = db.query(models.User).filter(models.User.id == test.teacher_id).first()
+    already_joined = db.query(models.StudentTestEnrollment).filter(
+        models.StudentTestEnrollment.student_id == current_user.id,
+        models.StudentTestEnrollment.test_id == test.id,
+    ).first() is not None
+
+    return {
+        "test_id": test.id,
+        "title": test.title,
+        "description": test.description,
+        "teacher_name": teacher.name if teacher else "Unknown",
+        "passage_count": len(test.passages),
+        "question_count": sum(len(p.questions) for p in test.passages),
+        "already_joined": already_joined,
+    }
+
+
+# ── Student: own attempt history across all joined teacher tests ──────────────
+
+@app.get("/student/my-teacher-results")
+def get_my_teacher_results(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Returns the student's attempt stats per teacher test.
+    Shape: { "<test_id>": { attempts, best_band, latest_band, latest_at } }
+    """
+    results = (
+        db.query(models.TeacherTestResult)
+        .filter(models.TeacherTestResult.student_id == current_user.id)
+        .order_by(models.TeacherTestResult.created_at.desc())
+        .all()
+    )
+
+    grouped: dict = {}
+    for r in results:
+        key = str(r.test_id)
+        if key not in grouped:
+            grouped[key] = {
+                "attempts": 0,
+                "best_band": 0.0,
+                "latest_band": None,
+                "latest_at": None,
+            }
+        grouped[key]["attempts"] += 1
+        if r.band > grouped[key]["best_band"]:
+            grouped[key]["best_band"] = r.band
+        if grouped[key]["latest_band"] is None:
+            grouped[key]["latest_band"] = r.band
+            grouped[key]["latest_at"] = r.created_at.isoformat()
+
+    return grouped

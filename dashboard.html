@@ -689,6 +689,99 @@ body {
   flex-shrink: 0;
 }
 
+/* ── PIN preview card ────────────────────────────────────────────────────────── */
+.pin-preview-card {
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+.ppc-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.ppc-icon { font-size: 26px; flex-shrink: 0; }
+
+.ppc-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ppc-meta { font-size: 12px; color: #6b7280; }
+
+.ppc-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-preview-cancel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  background: none;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.15s, border-color 0.15s;
+}
+.btn-preview-cancel:hover { color: #dc2626; border-color: #fca5a5; }
+
+/* ── Score badge on joined test card ────────────────────────────────────────── */
+.jt-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2.5px solid #10b981;
+  flex-shrink: 0;
+}
+.jt-score-val {
+  font-size: 14px;
+  font-weight: 900;
+  color: #059669;
+  line-height: 1;
+}
+.jt-score-lbl {
+  font-size: 8px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.jt-attempts {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-align: center;
+  margin-top: 3px;
+  white-space: nowrap;
+}
+
 /* ── Toast ───────────────────────────────────────────────────────────────────── */
 .toast-msg {
   position: fixed;
@@ -817,11 +910,28 @@ body {
         </div>
         <div class="pin-input-wrap">
           <input class="pin-input" id="pin-input" type="text"
-                 placeholder="000000" maxlength="10" inputmode="numeric"
-                 onkeydown="if(event.key==='Enter')joinTest()">
-          <button class="btn-join" id="btn-join" onclick="joinTest()">Join →</button>
+                 placeholder="000000" maxlength="6" inputmode="numeric"
+                 oninput="onPinInput(this)"
+                 onkeydown="if(event.key==='Enter')previewPin()">
+          <button class="btn-join" id="btn-preview" onclick="previewPin()">Preview →</button>
         </div>
       </div>
+
+      <!-- Preview card — shown after valid PIN lookup, hidden by default -->
+      <div class="pin-preview-card" id="pin-preview-card" style="display:none;">
+        <div class="ppc-left">
+          <span class="ppc-icon">📖</span>
+          <div>
+            <div class="ppc-title" id="ppc-title">—</div>
+            <div class="ppc-meta" id="ppc-meta">—</div>
+          </div>
+        </div>
+        <div class="ppc-right">
+          <button class="btn-join" id="btn-join" onclick="joinTest()" style="background:#059669;">Join Test →</button>
+          <button class="btn-preview-cancel" onclick="clearPreview()">Cancel</button>
+        </div>
+      </div>
+
       <!-- Joined tests list populated by JS -->
       <div id="joined-tests-list"></div>
     </div>
@@ -950,17 +1060,84 @@ function escHtml(str) {
   return d.innerHTML;
 }
 
-// ── Join Teacher Test by PIN ──────────────────────────────────────────────────
-async function joinTest() {
-  const pin = document.getElementById("pin-input").value.trim().replace(/\s/g, "");
+// ── PIN input: digits only ────────────────────────────────────────────────────
+function onPinInput(el) {
+  el.value = el.value.replace(/\D/g, "").slice(0, 6);
+  // If the preview card is visible but PIN changed, clear the preview
+  if (document.getElementById("pin-preview-card").style.display !== "none") {
+    clearPreview();
+  }
+}
+
+// State for the preview flow
+let _previewPin = null;
+
+function clearPreview() {
+  document.getElementById("pin-preview-card").style.display = "none";
+  document.getElementById("btn-preview").disabled = false;
+  document.getElementById("btn-preview").textContent = "Preview →";
+  _previewPin = null;
+}
+
+// ── Step 1: preview the test without joining ──────────────────────────────────
+async function previewPin() {
+  const pin = document.getElementById("pin-input").value.trim();
   const input = document.getElementById("pin-input");
 
-  if (!pin) {
+  if (pin.length < 4) {
     input.classList.add("is-error");
     input.focus();
     setTimeout(() => input.classList.remove("is-error"), 1500);
+    showToast("❌ Enter the PIN code your teacher gave you");
     return;
   }
+
+  const btn = document.getElementById("btn-preview");
+  btn.disabled = true;
+  btn.textContent = "…";
+
+  try {
+    const res = await fetch(`${API_BASE}/join-test/${encodeURIComponent(pin)}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      input.classList.add("is-error");
+      setTimeout(() => input.classList.remove("is-error"), 1500);
+      showToast("❌ " + (data.detail || "Invalid PIN code"));
+      btn.disabled = false;
+      btn.textContent = "Preview →";
+      return;
+    }
+
+    // Show preview card
+    _previewPin = pin;
+    document.getElementById("ppc-title").textContent = data.title;
+    document.getElementById("ppc-meta").textContent  =
+      `By ${data.teacher_name}  ·  ${data.passage_count} passage${data.passage_count !== 1 ? "s" : ""}  ·  ${data.question_count} question${data.question_count !== 1 ? "s" : ""}`;
+
+    if (data.already_joined) {
+      document.getElementById("btn-join").textContent = "Open Test →";
+    } else {
+      document.getElementById("btn-join").textContent = "Join Test →";
+    }
+
+    document.getElementById("pin-preview-card").style.display = "flex";
+    btn.disabled = false;
+    btn.textContent = "Preview →";
+
+  } catch {
+    showToast("❌ Cannot connect to server");
+    btn.disabled = false;
+    btn.textContent = "Preview →";
+  }
+}
+
+// ── Step 2: actually join (or re-join) ───────────────────────────────────────
+async function joinTest() {
+  const pin = _previewPin || document.getElementById("pin-input").value.trim();
+  if (!pin) return;
 
   const btn = document.getElementById("btn-join");
   btn.disabled = true;
@@ -972,46 +1149,66 @@ async function joinTest() {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ pin })
     });
-
     const data = await res.json();
 
     if (res.ok) {
-      input.value = "";
+      document.getElementById("pin-input").value = "";
+      clearPreview();
       if (data.already_joined) {
-        showToast("ℹ️ Already joined: " + data.title);
+        showToast("ℹ️ Already joined — opening test: " + data.title);
+        setTimeout(() => { window.location.href = `student-teacher-test.html?test_id=${data.test_id}`; }, 800);
       } else {
-        showToast("✅ Joined: " + data.title);
+        showToast("✅ Joined: " + data.title + "!");
+        loadJoinedTests();
       }
-      loadJoinedTests();
     } else {
-      input.classList.add("is-error");
-      setTimeout(() => input.classList.remove("is-error"), 1500);
-      showToast("❌ " + (data.detail || "Invalid PIN code"));
+      showToast("❌ " + (data.detail || "Could not join test"));
+      btn.disabled = false;
+      btn.textContent = "Join Test →";
     }
   } catch {
     showToast("❌ Cannot connect to server");
-  } finally {
     btn.disabled = false;
-    btn.textContent = "Join →";
+    btn.textContent = "Join Test →";
   }
 }
 
 // ── Load & render joined teacher tests ───────────────────────────────────────
 async function loadJoinedTests() {
   try {
-    const res = await fetch(`${API_BASE}/student/joined-tests`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    if (!res.ok) return;
-    renderJoinedTests(await res.json());
+    // Fetch joined tests and the student's own attempt history in parallel
+    const [testsRes, scoresRes] = await Promise.all([
+      fetch(`${API_BASE}/student/joined-tests`,        { headers: { Authorization: `Bearer ${token}` } }),
+      fetch(`${API_BASE}/student/my-teacher-results`,  { headers: { Authorization: `Bearer ${token}` } }),
+    ]);
+
+    if (!testsRes.ok) return;
+    const tests  = await testsRes.json();
+    const scores = scoresRes.ok ? await scoresRes.json() : {};
+    renderJoinedTests(tests, scores);
   } catch {}
 }
 
-function renderJoinedTests(tests) {
+function renderJoinedTests(tests, scores = {}) {
   const container = document.getElementById("joined-tests-list");
   if (!tests || !tests.length) { container.innerHTML = ""; return; }
 
-  container.innerHTML = tests.map(t => `
+  container.innerHTML = tests.map(t => {
+    const myResult = scores[String(t.test_id)];
+
+    let scoreHtml = "";
+    if (myResult) {
+      scoreHtml = `
+        <div>
+          <div class="jt-score">
+            <span class="jt-score-val">${myResult.best_band.toFixed(1)}</span>
+            <span class="jt-score-lbl">Best</span>
+          </div>
+          <div class="jt-attempts">${myResult.attempts} attempt${myResult.attempts !== 1 ? "s" : ""}</div>
+        </div>`;
+    }
+
+    return `
     <div class="joined-test-card ${t.is_active ? "" : "inactive"}">
       <span class="jt-icon">📖</span>
       <div class="jt-body">
@@ -1022,11 +1219,12 @@ function renderJoinedTests(tests) {
           ${t.question_count} question${t.question_count !== 1 ? "s" : ""}
         </div>
       </div>
+      ${scoreHtml}
       ${t.is_active
-        ? `<a class="btn-take" href="student-teacher-test.html?test_id=${t.test_id}">Take Test →</a>`
+        ? `<a class="btn-take" href="student-teacher-test.html?test_id=${t.test_id}">${myResult ? "Retry →" : "Take Test →"}</a>`
         : `<span class="badge-inactive">Inactive</span>`}
-    </div>`
-  ).join("");
+    </div>`;
+  }).join("");
 }
 
 // ── Start Full Test ───────────────────────────────────────────────────────────
