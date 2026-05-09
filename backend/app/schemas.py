@@ -306,3 +306,28 @@ class ExamSessionOut(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+# ── Phase 5: Teacher Analytics schemas ───────────────────────────────────────
+
+class TeacherAnalyticsSummary(BaseModel):
+    total_tests: int
+    unique_students: int
+    total_submissions: int
+    overall_avg_band: float
+    overall_best_band: float
+    completion_rate: float        # unique submitters / unique enrolled × 100
+    total_attempts: int
+
+
+class StudentAnalyticsStat(BaseModel):
+    student_id: int
+    student_name: str
+    student_email: str
+    best_band: float
+    avg_band: float
+    total_attempts: int
+    tests_enrolled: int
+    tests_completed: int          # unique tests with ≥1 submission
+    last_active_at: Optional[datetime]
+    is_weak: bool                 # best_band < 5.5

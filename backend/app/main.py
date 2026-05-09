@@ -1184,3 +1184,161 @@ def get_my_teacher_results(
             grouped[key]["latest_at"] = r.created_at.isoformat()
 
     return grouped
+
+
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║  PHASE 5 — Teacher Analytics                                               ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+def _require_teacher(current_user: models.User) -> models.User:
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Teachers only")
+    return current_user
+
+
+@app.get("/teacher/analytics", response_model=schemas.TeacherAnalyticsSummary)
+def get_teacher_analytics(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Aggregate summary across ALL tests owned by this teacher:
+    unique students, avg band, completion rate, total attempts.
+    """
+    _require_teacher(current_user)
+
+    tests = (
+        db.query(models.TeacherTest)
+        .filter(models.TeacherTest.teacher_id == current_user.id)
+        .all()
+    )
+    test_ids = [t.id for t in tests]
+
+    if not test_ids:
+        return schemas.TeacherAnalyticsSummary(
+            total_tests=0,
+            unique_students=0,
+            total_submissions=0,
+            overall_avg_band=0.0,
+            overall_best_band=0.0,
+            completion_rate=0.0,
+            total_attempts=0,
+        )
+
+    enrollments = (
+        db.query(models.StudentTestEnrollment)
+        .filter(models.StudentTestEnrollment.test_id.in_(test_ids))
+        .all()
+    )
+    unique_students = len({e.student_id for e in enrollments})
+
+    results = (
+        db.query(models.TeacherTestResult)
+        .filter(models.TeacherTestResult.test_id.in_(test_ids))
+        .all()
+    )
+    total_submissions = len(results)
+    unique_submitters = len({r.student_id for r in results})
+    bands = [r.band for r in results]
+    overall_avg = round(sum(bands) / len(bands), 2) if bands else 0.0
+    overall_best = max(bands) if bands else 0.0
+    completion_rate = round(unique_submitters / unique_students * 100, 1) if unique_students > 0 else 0.0
+
+    return schemas.TeacherAnalyticsSummary(
+        total_tests=len(tests),
+        unique_students=unique_students,
+        total_submissions=total_submissions,
+        overall_avg_band=overall_avg,
+        overall_best_band=overall_best,
+        completion_rate=completion_rate,
+        total_attempts=total_submissions,
+    )
+
+
+@app.get("/teacher/student-stats", response_model=List[schemas.StudentAnalyticsStat])
+def get_teacher_student_stats(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Per-student rollup across all tests owned by this teacher.
+    Returns every enrolled student with band stats, attempt counts, and a
+    is_weak flag (best_band < 5.5).  Sorted by best_band descending.
+    """
+    _require_teacher(current_user)
+
+    tests = (
+        db.query(models.TeacherTest)
+        .filter(models.TeacherTest.teacher_id == current_user.id)
+        .all()
+    )
+    test_ids = [t.id for t in tests]
+
+    if not test_ids:
+        return []
+
+    # All enrollments for this teacher's tests
+    enrollments = (
+        db.query(models.StudentTestEnrollment)
+        .filter(models.StudentTestEnrollment.test_id.in_(test_ids))
+        .all()
+    )
+
+    # Build map: student_id → {test_ids they're enrolled in}
+    enrolled_map: dict = {}
+    for e in enrollments:
+        enrolled_map.setdefault(e.student_id, set()).add(e.test_id)
+
+    # All submissions
+    results = (
+        db.query(models.TeacherTestResult)
+        .filter(models.TeacherTestResult.test_id.in_(test_ids))
+        .order_by(models.TeacherTestResult.created_at.desc())
+        .all()
+    )
+
+    # Build map: student_id → list of results
+    results_map: dict = {}
+    for r in results:
+        results_map.setdefault(r.student_id, []).append(r)
+
+    out = []
+    for student_id, enrolled_tests in enrolled_map.items():
+        student = db.query(models.User).filter(models.User.id == student_id).first()
+        if not student:
+            continue
+
+        student_results = results_map.get(student_id, [])
+        bands = [r.band for r in student_results]
+        best_band = max(bands) if bands else 0.0
+        avg_band  = round(sum(bands) / len(bands), 2) if bands else 0.0
+        tests_completed = len({r.test_id for r in student_results})
+        last_active = student_results[0].created_at if student_results else None
+
+        out.append(schemas.StudentAnalyticsStat(
+            student_id=student_id,
+            student_name=student.name,
+            student_email=student.email,
+            best_band=best_band,
+            avg_band=avg_band,
+            total_attempts=len(student_results),
+            tests_enrolled=len(enrolled_tests),
+            tests_completed=tests_completed,
+            last_active_at=last_active,
+            is_weak=best_band < 5.5 and len(student_results) > 0,
+        ))
+
+    out.sort(key=lambda x: x.best_band, reverse=True)
+    return out
+
+
+@app.get("/teacher/leaderboard", response_model=List[schemas.StudentAnalyticsStat])
+def get_teacher_leaderboard(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Top 20 students by best band — convenience alias that reuses student-stats logic."""
+    all_stats = get_teacher_student_stats(current_user=current_user, db=db)
+    # Filter to students who actually submitted (band > 0) and return top 20
+    submitted = [s for s in all_stats if s.total_attempts > 0]
+    return submitted[:20]
