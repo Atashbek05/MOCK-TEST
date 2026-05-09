@@ -171,6 +171,7 @@ class TeacherTest(Base):
         cascade="all, delete-orphan",
     )
     enrollments = relationship("StudentTestEnrollment", back_populates="test", cascade="all, delete-orphan")
+    results = relationship("TeacherTestResult", back_populates="test", cascade="all, delete-orphan")
 
 
 class TeacherPassage(Base):
@@ -215,3 +216,19 @@ class StudentTestEnrollment(Base):
 
     student = relationship("User", foreign_keys=[student_id])
     test = relationship("TeacherTest", back_populates="enrollments")
+
+
+class TeacherTestResult(Base):
+    """Stores every submission a student makes on a teacher-created test."""
+    __tablename__ = "teacher_test_results"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    test_id: Mapped[int] = mapped_column(ForeignKey("teacher_tests.id"), nullable=False)
+    correct: Mapped[int] = mapped_column(Integer, default=0)
+    total: Mapped[int] = mapped_column(Integer, default=0)
+    band: Mapped[float] = mapped_column(Float, default=0.0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    student = relationship("User", foreign_keys=[student_id])
+    test = relationship("TeacherTest", back_populates="results")

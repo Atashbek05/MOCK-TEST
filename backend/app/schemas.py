@@ -256,6 +256,35 @@ class JoinTestIn(BaseModel):
     pin: str = Field(..., min_length=4, max_length=10)
 
 
+# ── Teacher student results ───────────────────────────────────────────────────
+
+class TeacherStudentResult(BaseModel):
+    """One student's latest result on a teacher test (with attempt count)."""
+    student_id: int
+    student_name: str
+    student_email: str
+    correct: int
+    total: int
+    band: float
+    attempts: int
+    latest_at: datetime
+
+
+class TeacherResultsOverview(BaseModel):
+    """Per-test summary used to populate the Students page tabs."""
+    test_id: int
+    test_title: str
+    pin_code: Optional[str]
+    is_active: bool
+    enrolled_count: int
+    submission_count: int
+    unique_completions: int
+    avg_band: float
+    best_band: float
+    passage_count: int
+    question_count: int
+
+
 # ── Exam Session schemas ──────────────────────────────────────────────────────
 
 class ExamSessionCreate(BaseModel):

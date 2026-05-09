@@ -705,13 +705,33 @@ def teacher_stats(
     current_user: models.User = Depends(get_teacher_user),
     db: Session = Depends(get_db),
 ):
-    """Teacher-only endpoint: returns basic platform statistics."""
-    total_students = db.query(models.User).filter(models.User.role == "student").count()
-    total_sessions = db.query(models.ExamSession).count()
+    """Teacher stats: students/completions scoped to this teacher's tests."""
+    teacher_test_ids = [
+        t.id for t in db.query(models.TeacherTest)
+        .filter(models.TeacherTest.teacher_id == current_user.id).all()
+    ]
+
+    enrolled_students = 0
+    total_completions = 0
+    if teacher_test_ids:
+        enrolled_students = (
+            db.query(models.StudentTestEnrollment.student_id)
+            .filter(models.StudentTestEnrollment.test_id.in_(teacher_test_ids))
+            .distinct().count()
+        )
+        total_completions = (
+            db.query(models.TeacherTestResult)
+            .filter(models.TeacherTestResult.test_id.in_(teacher_test_ids))
+            .count()
+        )
+
     return {
         "teacher_name": current_user.name,
-        "total_students": total_students,
-        "total_exam_sessions": total_sessions,
+        "enrolled_students": enrolled_students,
+        "total_completions": total_completions,
+        # kept for backward compat, unused by updated dashboard
+        "total_students": db.query(models.User).filter(models.User.role == "student").count(),
+        "total_exam_sessions": db.query(models.ExamSession).count(),
     }
 
 
@@ -971,4 +991,122 @@ def submit_teacher_test(
         if payload.answers.get(str(q.id), "").upper() == q.correct_answer
     )
     total = len(all_questions)
-    return schemas.ReadingResultOut(correct=correct, total=total, band=_calculate_band(correct, total))
+    band = _calculate_band(correct, total)
+
+    # Persist every submission so the teacher can see results
+    db.add(models.TeacherTestResult(
+        student_id=current_user.id,
+        test_id=payload.test_id,
+        correct=correct,
+        total=total,
+        band=band,
+    ))
+    db.commit()
+
+    return schemas.ReadingResultOut(correct=correct, total=total, band=band)
+
+
+# ── Teacher: per-test student results ────────────────────────────────────────
+
+@app.get("/teacher/test/{test_id}/results", response_model=List[schemas.TeacherStudentResult])
+def get_test_student_results(
+    test_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return latest result per student for a specific teacher test, sorted by band desc."""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Teachers only")
+
+    test = db.query(models.TeacherTest).filter(
+        models.TeacherTest.id == test_id,
+        models.TeacherTest.teacher_id == current_user.id,
+    ).first()
+    if not test:
+        raise HTTPException(status_code=404, detail="Test not found")
+
+    # All submissions for this test
+    all_results = (
+        db.query(models.TeacherTestResult)
+        .filter(models.TeacherTestResult.test_id == test_id)
+        .order_by(models.TeacherTestResult.created_at.desc())
+        .all()
+    )
+
+    # Group by student_id — keep latest result, count attempts
+    seen: dict = {}
+    for r in all_results:
+        if r.student_id not in seen:
+            seen[r.student_id] = {"result": r, "attempts": 0}
+        seen[r.student_id]["attempts"] += 1
+
+    out = []
+    for student_id, data in seen.items():
+        r = data["result"]
+        student = db.query(models.User).filter(models.User.id == student_id).first()
+        if not student:
+            continue
+        out.append(schemas.TeacherStudentResult(
+            student_id=student_id,
+            student_name=student.name,
+            student_email=student.email,
+            correct=r.correct,
+            total=r.total,
+            band=r.band,
+            attempts=data["attempts"],
+            latest_at=r.created_at,
+        ))
+
+    out.sort(key=lambda x: x.band, reverse=True)
+    return out
+
+
+# ── Teacher: overview of all tests with stats ─────────────────────────────────
+
+@app.get("/teacher/results", response_model=List[schemas.TeacherResultsOverview])
+def get_teacher_results_overview(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return per-test stats overview for all tests owned by this teacher."""
+    if current_user.role != "teacher":
+        raise HTTPException(status_code=403, detail="Teachers only")
+
+    tests = (
+        db.query(models.TeacherTest)
+        .filter(models.TeacherTest.teacher_id == current_user.id)
+        .order_by(models.TeacherTest.created_at.desc())
+        .all()
+    )
+
+    overview = []
+    for t in tests:
+        passage_count = len(t.passages)
+        question_count = sum(len(p.questions) for p in t.passages)
+        enrolled_count = db.query(models.StudentTestEnrollment).filter(
+            models.StudentTestEnrollment.test_id == t.id
+        ).count()
+        all_subs = db.query(models.TeacherTestResult).filter(
+            models.TeacherTestResult.test_id == t.id
+        ).all()
+        submission_count = len(all_subs)
+        unique_completions = len({r.student_id for r in all_subs})
+        bands = [r.band for r in all_subs]
+        avg_band = round(sum(bands) / len(bands), 2) if bands else 0.0
+        best_band = max(bands) if bands else 0.0
+
+        overview.append(schemas.TeacherResultsOverview(
+            test_id=t.id,
+            test_title=t.title,
+            pin_code=t.pin_code,
+            is_active=bool(t.is_active),
+            enrolled_count=enrolled_count,
+            submission_count=submission_count,
+            unique_completions=unique_completions,
+            avg_band=avg_band,
+            best_band=best_band,
+            passage_count=passage_count,
+            question_count=question_count,
+        ))
+
+    return overview

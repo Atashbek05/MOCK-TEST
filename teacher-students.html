@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Student Results – IELTS Mock</title>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  background: #f1f5f9;
+  min-height: 100vh;
+  color: #0f172a;
+}
+
+/* ── Header ── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 28px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.header-logo {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+
+.header-logo .accent { color: #059669; }
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  transition: background 0.15s, color 0.15s;
+}
+.nav-link:hover { background: #f1f5f9; color: #0f172a; }
+.nav-link.active { background: #f0fdf4; color: #059669; font-weight: 700; }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.header-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.btn-signout {
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b7280;
+  background: none;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  font-family: inherit;
+}
+.btn-signout:hover { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
+
+/* ── Page layout ── */
+.page {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  background: linear-gradient(135deg, #065f46 0%, #059669 55%, #10b981 100%);
+  border-radius: 20px;
+  padding: 36px 44px;
+  margin-bottom: 28px;
+  overflow: hidden;
+  color: white;
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 240px; height: 240px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 50%;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.18);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.hero h1 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+.hero p {
+  font-size: 14px;
+  opacity: 0.85;
+  max-width: 440px;
+  line-height: 1.55;
+}
+
+/* ── Test tabs ── */
+.tabs-wrap {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #6b7280;
+  background: white;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+.tab-btn:hover { border-color: #059669; color: #059669; }
+.tab-btn.active {
+  background: #059669;
+  color: white;
+  border-color: #059669;
+}
+
+/* ── Test info bar ── */
+.test-info-bar {
+  background: white;
+  border-radius: 14px;
+  padding: 18px 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.test-info-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  flex: 1;
+  min-width: 180px;
+}
+
+.info-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.info-chip.pin {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #059669;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.info-chip.pin:hover { background: #dcfce7; }
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-active   { background: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
+.status-inactive { background: #9ca3af; }
+
+/* ── Stats row ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 18px 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border-top: 3px solid #e2e8f0;
+}
+.stat-card.green  { border-top-color: #10b981; }
+.stat-card.blue   { border-top-color: #3b82f6; }
+.stat-card.purple { border-top-color: #8b5cf6; }
+.stat-card.orange { border-top-color: #f59e0b; }
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+.stat-value {
+  font-size: 30px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -1px;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.stat-sub {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+/* ── Result cards ── */
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.result-card {
+  background: white;
+  border-radius: 14px;
+  padding: 18px 22px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.rank-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.rank-badge.gold   { background: #fef9c3; color: #a16207; }
+.rank-badge.silver { background: #f1f5f9; color: #475569; }
+.rank-badge.bronze { background: #fef3c7; color: #b45309; }
+
+.student-info { flex: 1; min-width: 0; }
+.student-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.student-email {
+  font-size: 12px;
+  color: #9ca3af;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.band-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid #10b981;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.band-circle .band-val {
+  font-size: 17px;
+  font-weight: 900;
+  color: #059669;
+  line-height: 1;
+}
+.band-circle .band-lbl {
+  font-size: 9px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.score-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 90px;
+}
+.score-frac {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.score-bar-wrap {
+  width: 90px;
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.score-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #059669);
+  border-radius: 3px;
+}
+
+.meta-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 80px;
+}
+.meta-date {
+  font-size: 11px;
+  color: #9ca3af;
+}
+.meta-attempts {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+/* ── Empty states ── */
+.empty-state {
+  text-align: center;
+  padding: 52px 20px;
+  color: #9ca3af;
+  font-size: 14px;
+  background: white;
+  border-radius: 14px;
+  border: 2px dashed #e2e8f0;
+}
+.empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state p { margin-top: 6px; line-height: 1.6; }
+
+/* ── Loading ── */
+.loading-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 14px;
+  color: #6b7280;
+  font-size: 15px;
+}
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #059669;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: #059669;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  z-index: 100;
+  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .hero { padding: 28px 22px; }
+  .hero h1 { font-size: 22px; }
+  .score-col { display: none; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-logo">IELTS <span class="accent">MOCK</span></div>
+
+  <nav class="header-nav">
+    <a href="teacher-dashboard.html" class="nav-link">Overview</a>
+    <a href="teacher-students.html" class="nav-link active">Students</a>
+    <a href="teacher-create-test.html" class="nav-link">Create Test</a>
+  </nav>
+
+  <div class="header-right">
+    <span class="header-name" id="header-name">Loading…</span>
+    <button class="btn-signout" onclick="logout()">Sign out</button>
+  </div>
+</header>
+
+<!-- Loading -->
+<div id="loading-state" class="loading-page">
+  <div class="spinner"></div>
+  Loading student results…
+</div>
+
+<!-- Page content -->
+<div id="page-content" class="page" style="display:none;">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">👥 Student Results</div>
+    <h1>Student Performance</h1>
+    <p>See which students joined your tests, their band scores, and how many times they've attempted each test.</p>
+  </div>
+
+  <!-- Test tabs -->
+  <div id="no-tests-state" style="display:none;">
+    <div class="empty-state">
+      <div class="empty-icon">📝</div>
+      <strong>No tests created yet</strong>
+      <p>Create your first test and share the PIN with students.<br>
+         <a href="teacher-create-test.html" style="color:#059669;font-weight:700;">Create a test →</a></p>
+    </div>
+  </div>
+
+  <div id="tests-content" style="display:none;">
+    <div class="tabs-wrap" id="tabs-wrap">
+      <!-- tabs rendered by JS -->
+    </div>
+
+    <!-- Per-test info bar -->
+    <div class="test-info-bar" id="test-info-bar">
+      <div class="test-info-title" id="info-title">—</div>
+      <span class="info-chip pin" id="info-pin" onclick="copyPin()" title="Click to copy PIN">🔑 —</span>
+      <span class="info-chip" id="info-status">— status</span>
+      <span class="info-chip">📖 <span id="info-passages">—</span> passages</span>
+      <span class="info-chip">❓ <span id="info-questions">—</span> questions</span>
+    </div>
+
+    <!-- Stats row for selected test -->
+    <div class="stats-row">
+      <div class="stat-card green">
+        <div class="stat-label">Enrolled</div>
+        <div class="stat-value" id="s-enrolled">—</div>
+        <div class="stat-sub">students joined</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">Completed</div>
+        <div class="stat-value" id="s-completed">—</div>
+        <div class="stat-sub">unique finishers</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-label">Avg Band</div>
+        <div class="stat-value" id="s-avg">—</div>
+        <div class="stat-sub">across submissions</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-label">Best Band</div>
+        <div class="stat-value" id="s-best">—</div>
+        <div class="stat-sub">highest score</div>
+      </div>
+    </div>
+
+    <!-- Result cards -->
+    <div class="results-list" id="results-list">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="api.js"></script>
+<script src="auth.js"></script>
+<script>
+const token = requireTeacher();
+
+// State
+let overviewData = [];   // TeacherResultsOverview[]
+let currentTestId = null;
+let currentPin = null;
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+function escHtml(str) {
+  const d = document.createElement("div");
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function bandColor(band) {
+  if (band >= 7)   return "#059669";
+  if (band >= 5.5) return "#d97706";
+  return "#dc2626";
+}
+
+function rankClass(i) {
+  if (i === 0) return "gold";
+  if (i === 1) return "silver";
+  if (i === 2) return "bronze";
+  return "";
+}
+
+// ── Render tabs ────────────────────────────────────────────────────────────────
+
+function renderTabs() {
+  const wrap = document.getElementById("tabs-wrap");
+  wrap.innerHTML = overviewData.map(t => `
+    <button class="tab-btn ${t.test_id === currentTestId ? "active" : ""}"
+            onclick="selectTest(${t.test_id})">
+      ${escHtml(t.test_title.length > 28 ? t.test_title.slice(0, 26) + "…" : t.test_title)}
+    </button>`).join("");
+}
+
+// ── Render info bar for selected test ────────────────────────────────────────
+
+function renderInfoBar(t) {
+  document.getElementById("info-title").textContent = t.test_title;
+  currentPin = t.pin_code || null;
+  document.getElementById("info-pin").textContent = "🔑 " + (t.pin_code || "—");
+  const active = t.is_active;
+  const statusEl = document.getElementById("info-status");
+  statusEl.innerHTML = `<span class="status-dot ${active ? "status-active" : "status-inactive"}"></span> ${active ? "Active" : "Inactive"}`;
+  document.getElementById("info-passages").textContent  = t.passage_count;
+  document.getElementById("info-questions").textContent = t.question_count;
+}
+
+// ── Render stats cards ────────────────────────────────────────────────────────
+
+function renderStats(t) {
+  document.getElementById("s-enrolled").textContent  = t.enrolled_count;
+  document.getElementById("s-completed").textContent = t.unique_completions;
+  document.getElementById("s-avg").textContent       = t.submission_count ? t.avg_band.toFixed(1) : "—";
+  document.getElementById("s-best").textContent      = t.submission_count ? t.best_band.toFixed(1) : "—";
+}
+
+// ── Render result cards ───────────────────────────────────────────────────────
+
+function renderResults(results) {
+  const container = document.getElementById("results-list");
+
+  if (!results.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🎓</div>
+        <strong>No submissions yet</strong>
+        <p>Students who join this test and submit their answers will appear here.</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = results.map((r, i) => {
+    const pct = r.total > 0 ? Math.round((r.correct / r.total) * 100) : 0;
+    const color = bandColor(r.band);
+    return `
+    <div class="result-card">
+      <div class="rank-badge ${rankClass(i)}">${i + 1}</div>
+      <div class="student-info">
+        <div class="student-name">${escHtml(r.student_name)}</div>
+        <div class="student-email">${escHtml(r.student_email)}</div>
+      </div>
+      <div class="band-circle" style="border-color:${color};">
+        <span class="band-val" style="color:${color};">${r.band.toFixed(1)}</span>
+        <span class="band-lbl">Band</span>
+      </div>
+      <div class="score-col">
+        <span class="score-frac">${r.correct}/${r.total} correct</span>
+        <div class="score-bar-wrap">
+          <div class="score-bar" style="width:${pct}%;background:${color};"></div>
+        </div>
+      </div>
+      <div class="meta-col">
+        <span class="meta-date">${formatDate(r.latest_at)}</span>
+        <span class="meta-attempts">${r.attempts} attempt${r.attempts !== 1 ? "s" : ""}</span>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ── Select a test tab ─────────────────────────────────────────────────────────
+
+async function selectTest(testId) {
+  currentTestId = testId;
+  renderTabs();
+
+  const t = overviewData.find(x => x.test_id === testId);
+  renderInfoBar(t);
+  renderStats(t);
+
+  // Show loading state in results list
+  document.getElementById("results-list").innerHTML =
+    '<div style="text-align:center;padding:32px;color:#9ca3af;font-size:14px;">Loading results…</div>';
+
+  try {
+    const res = await fetch(`${API_BASE}/teacher/test/${testId}/results`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const results = await res.json();
+    renderResults(results);
+  } catch (err) {
+    document.getElementById("results-list").innerHTML =
+      `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Could not load results. Please refresh.</p></div>`;
+  }
+}
+
+async function copyPin() {
+  if (!currentPin) return;
+  try {
+    await navigator.clipboard.writeText(currentPin);
+    showToast("📋 PIN " + currentPin + " copied!");
+  } catch {
+    showToast("PIN: " + currentPin);
+  }
+}
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
+
+async function load() {
+  try {
+    const [meRes, overviewRes] = await Promise.all([
+      fetch(`${API_BASE}/me`, { headers: { Authorization: `Bearer ${token}` } }),
+      fetch(`${API_BASE}/teacher/results`, { headers: { Authorization: `Bearer ${token}` } }),
+    ]);
+
+    if (meRes.status === 401) { logout(); return; }
+    const user = await meRes.json();
+    if (user.role !== "teacher") { window.location.replace("dashboard.html"); return; }
+
+    document.getElementById("header-name").textContent = user.name;
+
+    if (!overviewRes.ok) throw new Error("overview fetch failed");
+    overviewData = await overviewRes.json();
+
+    document.getElementById("loading-state").style.display = "none";
+    document.getElementById("page-content").style.display  = "block";
+
+    if (!overviewData.length) {
+      document.getElementById("no-tests-state").style.display = "block";
+      return;
+    }
+
+    document.getElementById("tests-content").style.display = "block";
+    // Select first test automatically
+    await selectTest(overviewData[0].test_id);
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById("loading-state").innerHTML =
+      '<div style="color:#dc2626;font-size:15px;">Cannot connect to server. Please refresh.</div>';
+  }
+}
+
+load();
+</script>
+
+</body>
+</html>
