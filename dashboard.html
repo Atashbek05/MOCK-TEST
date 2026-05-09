@@ -853,6 +853,14 @@ body {
   </div>
   <div class="header-right">
     <span class="header-name" id="header-name"></span>
+    <!-- Telegram badge: shown/hidden by loadDashboard() based on /me response -->
+    <a href="telegram-connect.html" id="tg-badge" title="Telegram not connected — click to connect"
+       style="display:none;font-size:12px;font-weight:700;padding:5px 11px;border-radius:20px;
+              border:1.5px solid #e2e8f0;background:#f8fafc;color:#6b7280;
+              text-decoration:none;transition:border-color 0.15s,color 0.15s;
+              white-space:nowrap;">
+      ✈️ Connect
+    </a>
     <button class="btn-logout" onclick="logout()">Sign out</button>
   </div>
 </header>
@@ -1363,6 +1371,18 @@ async function loadDashboard() {
     const headerName = document.getElementById("header-name");
     headerName.textContent = me.name;
     headerName.style.display = "inline";
+
+    // Telegram badge in header
+    const tgBadge = document.getElementById("tg-badge");
+    if (me.telegram_id) {
+      const handle = me.telegram_username ? `@${me.telegram_username}` : "Telegram";
+      tgBadge.textContent  = `✈️ ${handle}`;
+      tgBadge.title        = "Telegram connected — click to manage";
+      tgBadge.style.color  = "#059669";
+      tgBadge.style.borderColor = "#86efac";
+      tgBadge.style.background  = "#f0fdf4";
+    }
+    tgBadge.style.display = "inline-flex";
 
     // Stats
     document.getElementById("stat-total").textContent = sessions.length;

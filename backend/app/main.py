@@ -1,9 +1,13 @@
+import hashlib
+import hmac as _hmac
 import json
 import os
 import random
+import time
 
+import requests as _req
 from openai import OpenAI
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Body, Depends, FastAPI, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
@@ -34,6 +38,10 @@ app.add_middleware(
 )
 
 Base.metadata.create_all(bind=engine)
+
+# ── Telegram config ───────────────────────────────────────────────────────────
+TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
+FRONTEND_URL: str = os.getenv("FRONTEND_URL", "https://atashasd.vercel.app")
 
 
 def _migrate_add_role_column(db: Session) -> None:
@@ -104,6 +112,148 @@ def _migrate_teacher_tests_pin(db: Session) -> None:
             db.commit()
     except Exception:
         db.rollback()
+
+
+def _migrate_users_telegram(db: Session) -> None:
+    """Add telegram_id and telegram_username to users table if not present.
+    Safe to call multiple times — ALTER TABLE errors are silently swallowed.
+    """
+    for col, defn in [
+        ("telegram_id",       "BIGINT"),
+        ("telegram_username", "VARCHAR(100)"),
+    ]:
+        try:
+            db.execute(text(f"ALTER TABLE users ADD COLUMN {col} {defn}"))
+            db.commit()
+        except Exception:
+            db.rollback()
+
+
+# ── Telegram helpers ──────────────────────────────────────────────────────────
+
+def _tg_api(method: str, payload: dict) -> dict:
+    """POST to Telegram Bot API. Returns parsed JSON or empty dict on error."""
+    if not TELEGRAM_BOT_TOKEN:
+        return {}
+    try:
+        res = _req.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/{method}",
+            json=payload,
+            timeout=8,
+        )
+        return res.json()
+    except Exception:
+        return {}
+
+
+def _tg_get(method: str) -> dict:
+    """GET to Telegram Bot API (for parameter-less methods like getMe)."""
+    if not TELEGRAM_BOT_TOKEN:
+        return {}
+    try:
+        res = _req.get(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/{method}",
+            timeout=8,
+        )
+        return res.json()
+    except Exception:
+        return {}
+
+
+def _tg_verify_hash(data: dict) -> bool:
+    """
+    Verify the hash produced by Telegram Login Widget.
+    Algorithm:
+      secret = SHA256(bot_token)
+      check_string = key=value\\n  sorted alphabetically (excluding hash)
+      hash = HMAC-SHA256(secret, check_string)
+    """
+    if not TELEGRAM_BOT_TOKEN:
+        return False
+    check_hash = str(data.get("hash", ""))
+    fields = {k: str(v) for k, v in data.items() if k != "hash" and v is not None}
+    data_str = "\n".join(f"{k}={v}" for k, v in sorted(fields.items()))
+    secret = hashlib.sha256(TELEGRAM_BOT_TOKEN.encode()).digest()
+    computed = _hmac.new(secret, data_str.encode(), hashlib.sha256).hexdigest()
+    return _hmac.compare_digest(computed, check_hash)
+
+
+def _tg_is_fresh(auth_date: int, max_age_seconds: int = 86400) -> bool:
+    """Return True if auth_date is within max_age_seconds of now (default 24 h)."""
+    return (time.time() - auth_date) < max_age_seconds
+
+
+def _tg_send(chat_id: int, text_body: str, reply_markup: dict | None = None, parse_mode: str = "Markdown") -> None:
+    payload: dict = {"chat_id": chat_id, "text": text_body, "parse_mode": parse_mode}
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
+    _tg_api("sendMessage", payload)
+
+
+def _register_telegram_webhook() -> None:
+    """Auto-register the webhook URL with Telegram on server startup."""
+    if not TELEGRAM_BOT_TOKEN:
+        return
+    base_url = (
+        os.getenv("WEBHOOK_URL")             # manually set override
+        or os.getenv("RENDER_EXTERNAL_URL", "").rstrip("/")
+    )
+    if not base_url:
+        return
+    webhook_url = f"{base_url}/telegram/webhook"
+    _tg_api("setWebhook", {"url": webhook_url, "drop_pending_updates": True})
+
+
+# ── Telegram bot command handlers ─────────────────────────────────────────────
+
+def _bot_start(chat_id: int, first_name: str) -> None:
+    text_body = (
+        f"👋 Привет, *{first_name}*\\!\n\n"
+        f"🎯 *IELTS Mock Test Platform*\n\n"
+        f"Практикуй IELTS Reading, Listening и Writing с AI\\-фидбэком\\.\n\n"
+        f"📌 *Что умеет платформа:*\n"
+        f"• 🔑 Вступить в тест по PIN от учителя\n"
+        f"• 📊 Смотреть свои результаты\n"
+        f"• ✏️ Writing с AI\\-оценкой\n"
+        f"• 👨‍🏫 Учителям: создавать тесты и видеть аналитику\n\n"
+        f"👇 Нажми кнопку, чтобы открыть платформу:"
+    )
+    keyboard = {
+        "inline_keyboard": [
+            [{"text": "🚀 Открыть IELTS Mock", "web_app": {"url": FRONTEND_URL}}],
+            [{"text": "🔗 Связать аккаунт с Telegram", "url": f"{FRONTEND_URL}/telegram-connect.html"}],
+        ]
+    }
+    _tg_api("sendMessage", {"chat_id": chat_id, "text": text_body, "parse_mode": "MarkdownV2", "reply_markup": keyboard})
+
+
+def _bot_help(chat_id: int) -> None:
+    _tg_send(chat_id, (
+        "📚 *Доступные команды:*\n\n"
+        "/start — Главное меню и открыть платформу\n"
+        "/help — Список команд\n"
+        "/link — Связать Telegram с аккаунтом\n"
+        "/status — Твой текущий статус"
+    ))
+
+
+def _bot_link(chat_id: int) -> None:
+    keyboard = {"inline_keyboard": [[
+        {"text": "🔗 Связать аккаунт", "web_app": {"url": f"{FRONTEND_URL}/telegram-connect.html"}}
+    ]]}
+    _tg_send(
+        chat_id,
+        "Чтобы связать Telegram с аккаунтом на платформе, нажми кнопку ниже.",
+        reply_markup=keyboard,
+    )
+
+
+def _bot_status(chat_id: int, telegram_id: int, db) -> None:
+    user = db.query(models.User).filter(models.User.telegram_id == telegram_id).first()
+    if user:
+        _tg_send(chat_id, f"✅ Ты связан с аккаунтом *{user.name}* \\({user.email}\\)\\.", parse_mode="MarkdownV2")
+    else:
+        _tg_send(chat_id, "❌ Твой Telegram ещё не связан с аккаунтом на платформе\\.\n\nИспользуй /link чтобы связать\\.", parse_mode="MarkdownV2")
 
 
 def get_current_user(
@@ -324,10 +474,14 @@ async def startup_event():
     try:
         _migrate_add_role_column(db)
         _migrate_teacher_tests_pin(db)
+        _migrate_users_telegram(db)     # Phase 6
         _seed_questions(db)
         _seed_reading_tests(db)
     finally:
         db.close()
+    # Register Telegram webhook after DB is ready.
+    # Uses WEBHOOK_URL or RENDER_EXTERNAL_URL env var — set these on Render.
+    _register_telegram_webhook()
 
 
 @app.get("/health")
@@ -1342,3 +1496,149 @@ def get_teacher_leaderboard(
     # Filter to students who actually submitted (band > 0) and return top 20
     submitted = [s for s in all_stats if s.total_attempts > 0]
     return submitted[:20]
+
+
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║  PHASE 6 — Telegram Bot + Mini App                                         ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+@app.post("/telegram/webhook", include_in_schema=False)
+async def telegram_webhook(request: Request, db: Session = Depends(get_db)):
+    """
+    Telegram sends every update (message, callback, etc.) here via POST.
+    Endpoint is excluded from OpenAPI docs — it's not called by the frontend.
+    Security: only Telegram can reach this URL (they use HTTPS).
+    """
+    try:
+        update = await request.json()
+    except Exception:
+        return {"ok": True}
+
+    message = update.get("message") or update.get("edited_message")
+    if not message:
+        return {"ok": True}
+
+    chat_id   = message["chat"]["id"]
+    text_body = message.get("text", "")
+    from_user = message.get("from", {})
+    tg_id     = from_user.get("id")
+    first_name = from_user.get("first_name", "Student")
+
+    if text_body.startswith("/start"):
+        _bot_start(chat_id, first_name)
+    elif text_body == "/help":
+        _bot_help(chat_id)
+    elif text_body == "/link":
+        _bot_link(chat_id)
+    elif text_body == "/status":
+        _bot_status(chat_id, tg_id, db)
+
+    return {"ok": True}
+
+
+@app.get("/telegram/bot-info")
+def telegram_bot_info():
+    """
+    Return the bot's public username so the frontend can dynamically load
+    the Telegram Login Widget without hardcoding the bot name.
+    """
+    if not TELEGRAM_BOT_TOKEN:
+        raise HTTPException(status_code=503, detail="Telegram is not configured on this server")
+    result = _tg_get("getMe")
+    if not result.get("ok"):
+        raise HTTPException(status_code=503, detail="Could not reach Telegram API")
+    return {
+        "username": result["result"]["username"],
+        "name":     result["result"]["first_name"],
+    }
+
+
+@app.post("/telegram/auth")
+def telegram_auth(data: schemas.TelegramAuthIn, db: Session = Depends(get_db)):
+    """
+    Verify Telegram Login Widget data sent by the frontend.
+    • If a platform account is already linked → return a JWT so the user is
+      immediately logged in.
+    • If no account is linked yet → return 404 so the frontend can tell the
+      user to log in with email first and then link their Telegram.
+
+    Security:
+    - Hash verified with HMAC-SHA256 using SHA256(bot_token) as the key.
+    - auth_date must be within 24 hours.
+    """
+    if not _tg_verify_hash(data.dict()):
+        raise HTTPException(status_code=400, detail="Invalid Telegram auth data — hash mismatch")
+    if not _tg_is_fresh(data.auth_date):
+        raise HTTPException(status_code=400, detail="Telegram auth data is too old. Please try again.")
+
+    user = db.query(models.User).filter(models.User.telegram_id == data.id).first()
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="No account linked to this Telegram. Log in with email first, then connect Telegram in Settings.",
+        )
+
+    token = create_access_token(subject=user.email)
+    return {
+        "status":       "linked",
+        "access_token": token,
+        "token_type":   "bearer",
+        "role":         user.role,
+        "name":         user.name,
+    }
+
+
+@app.post("/telegram/link")
+def telegram_link(
+    data: schemas.TelegramAuthIn,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Link a Telegram account to the currently logged-in platform account.
+    Requires a valid JWT (the user must already be logged in via email).
+
+    Flow:
+    1. Frontend calls Telegram Login Widget → gets auth data
+    2. Frontend sends auth data + JWT to this endpoint
+    3. Backend verifies hash and links accounts
+    """
+    if not _tg_verify_hash(data.dict()):
+        raise HTTPException(status_code=400, detail="Invalid Telegram auth data — hash mismatch")
+    if not _tg_is_fresh(data.auth_date):
+        raise HTTPException(status_code=400, detail="Telegram auth data is too old. Please try again.")
+
+    # Check if this Telegram account is already linked to a DIFFERENT user
+    conflict = db.query(models.User).filter(
+        models.User.telegram_id == data.id,
+        models.User.id != current_user.id,
+    ).first()
+    if conflict:
+        raise HTTPException(
+            status_code=409,
+            detail="This Telegram account is already linked to another platform account.",
+        )
+
+    current_user.telegram_id       = data.id
+    current_user.telegram_username = data.username
+    db.commit()
+    db.refresh(current_user)
+
+    return {
+        "status":             "linked",
+        "telegram_id":        data.id,
+        "telegram_username":  data.username or "",
+        "first_name":         data.first_name,
+    }
+
+
+@app.delete("/telegram/unlink")
+def telegram_unlink(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Remove the Telegram link from the current account."""
+    current_user.telegram_id       = None
+    current_user.telegram_username = None
+    db.commit()
+    return {"status": "unlinked"}

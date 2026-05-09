@@ -26,9 +26,24 @@ class UserOut(BaseModel):
     name: str
     email: EmailStr
     role: str
+    telegram_id: Optional[int] = None
+    telegram_username: Optional[str] = None
 
     class Config:
         orm_mode = True
+
+
+# ── Telegram Integration (Phase 6) ───────────────────────────────────────────
+
+class TelegramAuthIn(BaseModel):
+    """Data sent by Telegram Login Widget / verified by the backend."""
+    id: int
+    first_name: str
+    last_name: Optional[str] = None
+    username: Optional[str] = None
+    photo_url: Optional[str] = None
+    auth_date: int
+    hash: str
 
 
 class ResultCreate(BaseModel):

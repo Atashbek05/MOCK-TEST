@@ -304,11 +304,36 @@ body {
       Don't have an account? <a href="register.html">Register</a>
     </p>
 
+    <!-- ── Telegram Login ────────────────────────────────────────────────── -->
+    <div id="tg-section" style="margin-top:24px; display:none;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+        <div style="flex:1;height:1px;background:#e2e8f0;"></div>
+        <span style="font-size:12px;font-weight:600;color:#94a3b8;">or</span>
+        <div style="flex:1;height:1px;background:#e2e8f0;"></div>
+      </div>
+      <p style="font-size:13px;color:#64748b;text-align:center;margin-bottom:14px;">
+        Already linked your Telegram? Sign in instantly:
+      </p>
+      <!-- Widget injected here by JS -->
+      <div id="tg-widget-wrap" style="display:flex;justify-content:center;min-height:50px;"></div>
+      <!-- Error message for unlinked Telegram accounts -->
+      <div id="tg-error"
+           style="display:none;margin-top:14px;padding:11px 14px;background:#fef3c7;
+                  border:1.5px solid #fde68a;border-radius:10px;font-size:13px;
+                  color:#92400e;line-height:1.5;text-align:center;">
+      </div>
+    </div>
+
   </div>
 </div>
 
 <div class="footer">Created by Atabek</div>
 
+<!--
+  Telegram Mini App SDK — harmless no-op when opened in a regular browser.
+  Activates when the page is opened inside Telegram as a Mini App.
+-->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="api.js"></script>
 <script>
 
@@ -500,6 +525,64 @@ document.getElementById("password").addEventListener("input", function () {
 
 // ── Auto-focus the first field when the page loads ────────────────────────────
 document.getElementById("email").focus();
+
+// ── Telegram Login Widget ─────────────────────────────────────────────────────
+// We fetch the bot username from the backend first.
+// If Telegram is not configured, the section stays hidden.
+(async function initTelegramLogin() {
+  try {
+    const res = await fetch(`${API_BASE}/telegram/bot-info`);
+    if (!res.ok) return; // Telegram not configured — hide section silently
+
+    const { username } = await res.json();
+    document.getElementById("tg-section").style.display = "block";
+
+    // Expose callback globally (Telegram widget calls it with user data)
+    window.__tgLoginCallback__ = async function(tgUser) {
+      const errEl = document.getElementById("tg-error");
+      errEl.style.display = "none";
+      try {
+        const authRes = await fetch(`${API_BASE}/telegram/auth`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(tgUser),
+        });
+        const data = await authRes.json();
+
+        if (authRes.ok) {
+          // Linked — store JWT and redirect
+          localStorage.setItem("token", data.access_token);
+          localStorage.setItem("userRole", data.role || "student");
+          localStorage.setItem("userName", data.name || "");
+          window.location.href = data.role === "teacher"
+            ? "teacher-dashboard.html"
+            : "dashboard.html";
+        } else {
+          // Not linked — show helpful message
+          errEl.textContent = data.detail || "Your Telegram is not linked to any account. Log in with email, then connect Telegram in Settings.";
+          errEl.style.display = "block";
+        }
+      } catch {
+        errEl.textContent = "Cannot connect to server. Please try again.";
+        errEl.style.display = "block";
+      }
+    };
+
+    // Inject Telegram Login Widget script
+    const script = document.createElement("script");
+    script.src = "https://telegram.org/js/telegram-widget.js?22";
+    script.setAttribute("data-telegram-login", username);
+    script.setAttribute("data-size", "medium");
+    script.setAttribute("data-radius", "10");
+    script.setAttribute("data-onauth", "__tgLoginCallback__(user)");
+    script.setAttribute("data-request-access", "write");
+    script.async = true;
+    document.getElementById("tg-widget-wrap").appendChild(script);
+
+  } catch (e) {
+    // Silently fail — Telegram login is optional
+  }
+})();
 
 </script>
 </body>
