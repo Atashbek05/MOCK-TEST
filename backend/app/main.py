@@ -4,6 +4,7 @@ import json
 import os
 import random
 import time
+from urllib.parse import parse_qsl
 
 import requests as _req
 from openai import OpenAI
@@ -184,6 +185,31 @@ def _tg_is_fresh(auth_date: int, max_age_seconds: int = 86400) -> bool:
     return (time.time() - auth_date) < max_age_seconds
 
 
+def _tg_validate_init_data(init_data: str) -> dict | None:
+    """
+    Validate Telegram Mini App initData string.
+    Secret derivation differs from Login Widget:
+      secret = HMAC-SHA256("WebAppData", bot_token)   ← Mini App
+      secret = SHA256(bot_token)                       ← Login Widget
+    Returns parsed params dict on success, None on failure.
+    """
+    if not TELEGRAM_BOT_TOKEN:
+        return None
+    try:
+        params = dict(parse_qsl(init_data, keep_blank_values=True))
+        received_hash = params.pop("hash", None)
+        if not received_hash:
+            return None
+        check_string = "\n".join(f"{k}={v}" for k, v in sorted(params.items()))
+        secret = _hmac.new(b"WebAppData", TELEGRAM_BOT_TOKEN.encode(), hashlib.sha256).digest()
+        computed = _hmac.new(secret, check_string.encode(), hashlib.sha256).hexdigest()
+        if not _hmac.compare_digest(computed, received_hash):
+            return None
+        return params
+    except Exception:
+        return None
+
+
 def _tg_send(chat_id: int, text_body: str, reply_markup: dict | None = None, parse_mode: str = "Markdown") -> None:
     payload: dict = {"chat_id": chat_id, "text": text_body, "parse_mode": parse_mode}
     if reply_markup:
@@ -234,7 +260,11 @@ def _bot_help(chat_id: int) -> None:
         "/start — Главное меню и открыть платформу\n"
         "/help — Список команд\n"
         "/link — Связать Telegram с аккаунтом\n"
-        "/status — Твой текущий статус"
+        "/status — Твой текущий статус\n"
+        "/progress — Твоя статистика и прогресс\n"
+        "/latestscore — Последний результат теста\n"
+        "/starttest — Начать тест\n"
+        "/dashboard — Открыть дашборд"
     ))
 
 
@@ -255,6 +285,68 @@ def _bot_status(chat_id: int, telegram_id: int, db) -> None:
         _tg_send(chat_id, f"✅ Ты связан с аккаунтом *{user.name}* \\({user.email}\\)\\.", parse_mode="MarkdownV2")
     else:
         _tg_send(chat_id, "❌ Твой Telegram ещё не связан с аккаунтом на платформе\\.\n\nИспользуй /link чтобы связать\\.", parse_mode="MarkdownV2")
+
+
+def _bot_progress(chat_id: int, tg_id: int, db) -> None:
+    user = db.query(models.User).filter(models.User.telegram_id == tg_id).first()
+    if not user:
+        _tg_send(chat_id, "❌ Аккаунт не связан. Открой платформу: /start")
+        return
+    results = (db.query(models.TeacherTestResult)
+               .filter(models.TeacherTestResult.student_id == user.id)
+               .order_by(models.TeacherTestResult.created_at.desc())
+               .limit(5).all())
+    writing = (db.query(models.WritingResult)
+               .filter(models.WritingResult.user_id == user.id)
+               .order_by(models.WritingResult.created_at.desc())
+               .first())
+    if not results and not writing:
+        _tg_send(chat_id, "📊 Нет результатов ещё.\n\nНачни тест: /starttest")
+        return
+    text = f"📊 *Прогресс — {user.name}*\n\n"
+    if results:
+        bands = [r.band for r in results]
+        text += f"🎯 Лучший band: *{max(bands)}*\n"
+        text += f"📈 Средний: *{round(sum(bands)/len(bands), 1)}*\n"
+        text += f"📝 Попыток: *{len(results)}*\n"
+    if writing:
+        text += f"\n✏️ Последний Writing: *{writing.band_score}* band\n"
+    text += f"\n[Открыть дашборд]({FRONTEND_URL}/tg-app.html)"
+    _tg_send(chat_id, text)
+
+
+def _bot_latestscore(chat_id: int, tg_id: int, db) -> None:
+    user = db.query(models.User).filter(models.User.telegram_id == tg_id).first()
+    if not user:
+        _tg_send(chat_id, "❌ Аккаунт не связан. Открой платформу: /start")
+        return
+    r = (db.query(models.TeacherTestResult)
+         .filter(models.TeacherTestResult.student_id == user.id)
+         .order_by(models.TeacherTestResult.created_at.desc())
+         .first())
+    if not r:
+        _tg_send(chat_id, "❌ Нет результатов. Пройди тест: /starttest")
+        return
+    test = db.query(models.TeacherTest).filter(models.TeacherTest.id == r.test_id).first()
+    _tg_send(chat_id, (
+        f"🏆 *Последний результат*\n\n"
+        f"📝 {test.title if test else 'Test'}\n"
+        f"🎯 Band: *{r.band}*\n"
+        f"✔️ {r.correct}/{r.total} правильных\n"
+        f"📅 {r.created_at.strftime('%d.%m.%Y')}\n\n"
+        f"[Все результаты]({FRONTEND_URL}/tg-app.html)"
+    ))
+
+
+def _bot_open_app(chat_id: int, command: str) -> None:
+    url = f"{FRONTEND_URL}/tg-app.html"
+    label = "📊 Мой Дашборд" if command == "/dashboard" else "🚀 Начать тест"
+    _tg_api("sendMessage", {
+        "chat_id": chat_id,
+        "text": "Открываю платформу...",
+        "parse_mode": "HTML",
+        "reply_markup": {"inline_keyboard": [[{"text": label, "web_app": {"url": url}}]]},
+    })
 
 
 def get_current_user(
@@ -1157,6 +1249,17 @@ def submit_teacher_test(
     ))
     db.commit()
 
+    # Telegram notification — only if this student linked their account
+    if current_user.telegram_id:
+        _tg_send(
+            current_user.telegram_id,
+            f"✅ *Тест завершён!*\n\n"
+            f"📝 {test.title}\n"
+            f"🎯 Band Score: *{band}*\n"
+            f"✔️ Правильных: {correct}/{total}\n\n"
+            f"[Открыть дашборд]({FRONTEND_URL}/tg-app.html)",
+        )
+
     return schemas.ReadingResultOut(correct=correct, total=total, band=band)
 
 
@@ -1532,6 +1635,12 @@ async def telegram_webhook(request: Request, db: Session = Depends(get_db)):
         _bot_link(chat_id)
     elif text_body == "/status":
         _bot_status(chat_id, tg_id, db)
+    elif text_body == "/progress":
+        _bot_progress(chat_id, tg_id, db)
+    elif text_body == "/latestscore":
+        _bot_latestscore(chat_id, tg_id, db)
+    elif text_body in ("/starttest", "/dashboard"):
+        _bot_open_app(chat_id, text_body)
 
     return {"ok": True}
 
@@ -1642,3 +1751,135 @@ def telegram_unlink(
     current_user.telegram_username = None
     db.commit()
     return {"status": "unlinked"}
+
+
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║  PHASE 7 — Telegram Mini App Ecosystem                                     ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+@app.post("/telegram/miniapp-auth")
+def telegram_miniapp_auth(
+    payload: schemas.TelegramMiniAppAuthIn,
+    db: Session = Depends(get_db),
+):
+    """
+    Authenticate a Telegram Mini App user via initData.
+
+    Flow:
+      1. Frontend sends window.Telegram.WebApp.initData as {init_data: "..."}
+      2. Backend validates HMAC-SHA256 signature (using "WebAppData" as key prefix)
+      3. Extracts Telegram user ID from the validated data
+      4. Finds the platform account linked to that Telegram ID
+      5. Returns JWT so the Mini App can call all normal API endpoints
+
+    Security: Mini App secret = HMAC-SHA256("WebAppData", bot_token) — different
+    from Login Widget which uses SHA256(bot_token) directly.
+    """
+    params = _tg_validate_init_data(payload.init_data)
+    if params is None:
+        raise HTTPException(status_code=400, detail="Invalid Telegram initData — signature mismatch")
+
+    try:
+        tg_user = json.loads(params.get("user", "{}"))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Cannot parse user from initData")
+
+    tg_id = tg_user.get("id")
+    if not tg_id:
+        raise HTTPException(status_code=400, detail="No user ID in initData")
+
+    user = db.query(models.User).filter(models.User.telegram_id == tg_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="no_account_linked")
+
+    token = create_access_token(subject=user.email)
+    return {
+        "access_token": token,
+        "token_type":   "bearer",
+        "role":         user.role,
+        "name":         user.name,
+    }
+
+
+@app.get("/student/progress-summary")
+def get_progress_summary(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Single-call summary for the Telegram Mini App dashboard.
+    Returns: user info, stats (best/avg band, attempts), recent results, joined tests.
+    """
+    teacher_results = (
+        db.query(models.TeacherTestResult)
+        .filter(models.TeacherTestResult.student_id == current_user.id)
+        .order_by(models.TeacherTestResult.created_at.desc())
+        .limit(20).all()
+    )
+    writing_results = (
+        db.query(models.WritingResult)
+        .filter(models.WritingResult.user_id == current_user.id)
+        .order_by(models.WritingResult.created_at.desc())
+        .limit(5).all()
+    )
+
+    all_bands = [r.band for r in teacher_results] + [r.band_score for r in writing_results]
+    best_band = max(all_bands) if all_bands else 0.0
+    avg_band  = round(sum(all_bands) / len(all_bands), 1) if all_bands else 0.0
+
+    recent: list = []
+    for r in teacher_results[:8]:
+        test = db.query(models.TeacherTest).filter(models.TeacherTest.id == r.test_id).first()
+        recent.append({
+            "type":       "reading",
+            "title":      test.title if test else f"Test #{r.test_id}",
+            "band":       r.band,
+            "correct":    r.correct,
+            "total":      r.total,
+            "word_count": None,
+            "created_at": r.created_at.isoformat(),
+        })
+    for r in writing_results[:4]:
+        recent.append({
+            "type":       "writing",
+            "title":      "Writing Task",
+            "band":       r.band_score,
+            "correct":    None,
+            "total":      None,
+            "word_count": r.word_count,
+            "created_at": r.created_at.isoformat(),
+        })
+    recent.sort(key=lambda x: x["created_at"], reverse=True)
+
+    enrollments = (
+        db.query(models.StudentTestEnrollment)
+        .filter(models.StudentTestEnrollment.student_id == current_user.id)
+        .order_by(models.StudentTestEnrollment.joined_at.desc())
+        .all()
+    )
+    joined = [
+        {
+            "test_id":   e.test.id,
+            "title":     e.test.title,
+            "test_type": e.test.test_type,
+            "is_active": bool(e.test.is_active) if e.test.is_active is not None else True,
+        }
+        for e in enrollments
+    ]
+
+    return {
+        "user": {
+            "id":    current_user.id,
+            "name":  current_user.name,
+            "email": current_user.email,
+            "role":  current_user.role,
+        },
+        "stats": {
+            "best_band":           best_band,
+            "avg_band":            avg_band,
+            "total_attempts":      len(teacher_results),
+            "writing_submissions": len(writing_results),
+        },
+        "recent_results": recent[:8],
+        "joined_tests":   joined,
+    }

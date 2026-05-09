@@ -46,6 +46,11 @@ class TelegramAuthIn(BaseModel):
     hash: str
 
 
+class TelegramMiniAppAuthIn(BaseModel):
+    """Raw initData string from window.Telegram.WebApp.initData (Mini App auth)."""
+    init_data: str
+
+
 class ResultCreate(BaseModel):
     reading_score: float = Field(..., ge=0, le=9)
     listening_score: float = Field(..., ge=0, le=9)

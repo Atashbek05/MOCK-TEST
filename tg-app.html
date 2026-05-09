@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IELTS Platform</title>
+    <!-- Telegram Mini App SDK — must be loaded first -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* ── Telegram theme variables with browser fallbacks ─────────────── */
+        :root {
+            --bg:           var(--tg-theme-bg-color,           #ffffff);
+            --text:         var(--tg-theme-text-color,         #000000);
+            --hint:         var(--tg-theme-hint-color,         #8e8e93);
+            --link:         var(--tg-theme-link-color,         #2481cc);
+            --btn:          var(--tg-theme-button-color,       #2481cc);
+            --btn-text:     var(--tg-theme-button-text-color,  #ffffff);
+            --secondary-bg: var(--tg-theme-secondary-bg-color, #f2f2f7);
+            --border:       rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--secondary-bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Sticky header ──────────────────────────────────────────────── */
+        .header {
+            background: var(--bg);
+            padding: 14px 18px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 30;
+        }
+        .header-left .title  { font-size: 17px; font-weight: 600; }
+        .header-left .sub    { font-size: 12px; color: var(--hint); margin-top: 2px; }
+        .header-badge {
+            font-size: 22px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--secondary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ── Tab content areas ──────────────────────────────────────────── */
+        .content {
+            padding: 14px;
+            padding-bottom: 84px;
+        }
+        .tab-page          { display: none; }
+        .tab-page.active   { display: block; }
+
+        /* ── Cards ──────────────────────────────────────────────────────── */
+        .card {
+            background: var(--bg);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .card-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--hint);
+            margin-bottom: 12px;
+        }
+
+        /* ── Profile hero card ──────────────────────────────────────────── */
+        .hero {
+            background: var(--btn);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 12px;
+            color: var(--btn-text);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: -20px; right: -20px;
+            width: 100px; height: 100px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+        }
+        .hero-name       { font-size: 18px; font-weight: 700; }
+        .hero-level      { font-size: 13px; opacity: 0.85; margin-top: 2px; }
+        .hero-band-row   { display: flex; align-items: flex-end; gap: 8px; margin-top: 14px; }
+        .hero-band       { font-size: 48px; font-weight: 800; line-height: 1; }
+        .hero-band-label { font-size: 12px; opacity: 0.8; margin-bottom: 6px; }
+
+        /* ── Stats grid ─────────────────────────────────────────────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .stat-box {
+            background: var(--bg);
+            border-radius: 14px;
+            padding: 14px 8px;
+            text-align: center;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .stat-value { font-size: 24px; font-weight: 700; color: var(--btn); }
+        .stat-label { font-size: 11px; color: var(--hint); margin-top: 3px; }
+
+        /* ── List items (tests + results) ───────────────────────────────── */
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        .list-item:first-child { padding-top: 0; }
+        .list-item:last-child  { border-bottom: none; padding-bottom: 0; }
+
+        .item-icon {
+            width: 42px; height: 42px;
+            border-radius: 11px;
+            background: var(--secondary-bg);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .item-info { flex: 1; min-width: 0; }
+        .item-title {
+            font-size: 15px; font-weight: 500;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .item-meta { font-size: 12px; color: var(--hint); margin-top: 2px; }
+
+        .item-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .arrow { color: var(--hint); font-size: 20px; }
+
+        /* Band badge circle */
+        .band-circle {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+            margin-right: 12px;
+        }
+        .band-high { background: #4caf50; }
+        .band-mid  { background: #ff9800; }
+        .band-low  { background: #f44336; }
+
+        /* Status badge */
+        .status-badge {
+            font-size: 11px; font-weight: 600;
+            padding: 3px 8px; border-radius: 8px;
+        }
+        .badge-active   { background: rgba(76,175,80,0.15); color: #2e7d32; }
+        .badge-inactive { background: var(--secondary-bg);  color: var(--hint); }
+
+        /* ── Buttons ─────────────────────────────────────────────────────── */
+        .btn {
+            background: var(--btn);
+            color: var(--btn-text);
+            border: none;
+            border-radius: 12px;
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            transition: opacity 0.15s;
+        }
+        .btn:active { opacity: 0.75; }
+
+        /* ── PIN input row ───────────────────────────────────────────────── */
+        .pin-row { display: flex; gap: 10px; }
+        .pin-input {
+            flex: 1;
+            padding: 13px 14px;
+            border-radius: 11px;
+            border: 1.5px solid var(--border);
+            background: var(--secondary-bg);
+            color: var(--text);
+            font-size: 17px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .pin-input:focus { border-color: var(--btn); }
+        .pin-btn {
+            background: var(--btn);
+            color: var(--btn-text);
+            border: none;
+            border-radius: 11px;
+            padding: 13px 18px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .pin-msg { font-size: 13px; margin-top: 8px; min-height: 18px; }
+
+        /* ── Bottom navigation ───────────────────────────────────────────── */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+            display: flex;
+            padding-bottom: env(safe-area-inset-bottom, 4px);
+            z-index: 40;
+        }
+        .nav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 9px 0 5px;
+            cursor: pointer;
+            color: var(--hint);
+            font-size: 10px;
+            font-weight: 500;
+            border: none;
+            background: none;
+            transition: color 0.15s;
+        }
+        .nav-btn.active { color: var(--btn); }
+        .nav-icon { font-size: 24px; line-height: 1; margin-bottom: 2px; }
+
+        /* ── Auth / loading screens ──────────────────────────────────────── */
+        .screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+            padding: 24px;
+        }
+        .screen-icon  { font-size: 64px; margin-bottom: 18px; }
+        .screen-title { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+        .screen-desc  {
+            font-size: 15px; color: var(--hint);
+            margin-bottom: 28px; line-height: 1.55; max-width: 300px;
+        }
+
+        .spinner {
+            width: 38px; height: 38px;
+            border: 3px solid var(--border);
+            border-top-color: var(--btn);
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Empty state ─────────────────────────────────────────────────── */
+        .empty {
+            text-align: center;
+            padding: 28px 16px;
+            color: var(--hint);
+            font-size: 14px;
+        }
+        .empty .icon { font-size: 38px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     AUTH / LOADING SCREENS
+     Only one is visible at a time. The main #app is hidden until auth is done.
+══════════════════════════════════════════════════════════════════════════ -->
+
+<div id="s-loading" class="screen">
+    <div class="spinner"></div>
+</div>
+
+<!-- Account not linked to Telegram -->
+<div id="s-no-account" class="screen" style="display:none">
+    <div class="screen-icon">🔗</div>
+    <div class="screen-title">Link Your Account</div>
+    <div class="screen-desc">
+        Connect your IELTS platform account to Telegram to use this Mini App.
+    </div>
+    <a id="link-btn" href="#" class="btn" style="max-width:280px">
+        Connect Account
+    </a>
+    <br>
+    <a href="login.html" style="color:var(--hint);font-size:13px;margin-top:8px;display:block">
+        Don't have an account? Register →
+    </a>
+</div>
+
+<!-- Opened outside Telegram and no JWT stored -->
+<div id="s-no-tg" class="screen" style="display:none">
+    <div class="screen-icon">📱</div>
+    <div class="screen-title">Open in Telegram</div>
+    <div class="screen-desc">
+        This page is a Telegram Mini App.<br>
+        Open it via the bot, or use the full web version below.
+    </div>
+    <a href="dashboard.html" class="btn" style="max-width:280px">Go to Web App</a>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     MAIN APPLICATION  (hidden until auth succeeds)
+══════════════════════════════════════════════════════════════════════════ -->
+
+<div id="app" style="display:none">
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="title" id="h-name">IELTS Platform</div>
+            <div class="sub"   id="h-role">Loading…</div>
+        </div>
+        <div class="header-badge" id="h-icon">🎓</div>
+    </div>
+
+    <!-- ── Tab: Home ──────────────────────────────────────────────────────── -->
+    <div class="content tab-page active" id="tab-home">
+
+        <!-- Hero: band + name -->
+        <div class="hero">
+            <div class="hero-name"  id="p-name">—</div>
+            <div class="hero-level" id="p-level">—</div>
+            <div class="hero-band-row">
+                <div class="hero-band"       id="p-band">—</div>
+                <div class="hero-band-label">Best Band Score</div>
+            </div>
+        </div>
+
+        <!-- Stats: best / avg / attempts -->
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-value" id="s-best">—</div>
+                <div class="stat-label">Best</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="s-avg">—</div>
+                <div class="stat-label">Average</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="s-total">—</div>
+                <div class="stat-label">Attempts</div>
+            </div>
+        </div>
+
+        <!-- Quick access: first 3 active tests -->
+        <div class="card">
+            <div class="card-title">Quick Access</div>
+            <div id="quick-tests">
+                <div class="empty"><div class="icon">📋</div>No active tests yet</div>
+            </div>
+        </div>
+
+        <!-- Recent results -->
+        <div class="card">
+            <div class="card-title">Recent Results</div>
+            <div id="recent-results">
+                <div class="empty"><div class="icon">📊</div>No results yet</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Tab: Tests ─────────────────────────────────────────────────────── -->
+    <div class="content tab-page" id="tab-tests">
+
+        <!-- All joined tests -->
+        <div class="card">
+            <div class="card-title">My Tests</div>
+            <div id="all-tests">
+                <div class="empty">
+                    <div class="icon">📚</div>
+                    No tests joined yet.<br>Enter a PIN code below.
+                </div>
+            </div>
+        </div>
+
+        <!-- PIN join card -->
+        <div class="card">
+            <div class="card-title">Join a Test</div>
+            <p style="font-size:13px;color:var(--hint);margin-bottom:12px">
+                Enter the 6-digit PIN from your teacher
+            </p>
+            <div class="pin-row">
+                <input id="pin-input" class="pin-input" type="number"
+                       placeholder="123456" inputmode="numeric">
+                <button class="pin-btn" onclick="joinByPin()">Join</button>
+            </div>
+            <div class="pin-msg" id="pin-msg"></div>
+        </div>
+    </div>
+
+    <!-- ── Tab: History ───────────────────────────────────────────────────── -->
+    <div class="content tab-page" id="tab-history">
+        <div class="card">
+            <div class="card-title">All Results</div>
+            <div id="full-history">
+                <div class="empty"><div class="icon">📈</div>No results yet</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Tab: Profile ───────────────────────────────────────────────────── -->
+    <div class="content tab-page" id="tab-profile">
+        <div class="card">
+            <div class="card-title">My Account</div>
+            <div id="profile-rows" style="font-size:15px"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Full Web Version</div>
+            <p style="font-size:13px;color:var(--hint);margin-bottom:14px">
+                Writing tasks, listening tests, and full analytics are in the browser version.
+            </p>
+            <a id="web-link" href="dashboard.html" class="btn">Open Web App</a>
+        </div>
+
+        <div class="card" style="text-align:center">
+            <button class="btn" style="background:rgba(244,67,54,0.1);color:#f44336"
+                    onclick="logout()">Log Out</button>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" onclick="switchTab('home', this)">
+            <span class="nav-icon">🏠</span>Home
+        </button>
+        <button class="nav-btn" onclick="switchTab('tests', this)">
+            <span class="nav-icon">📝</span>Tests
+        </button>
+        <button class="nav-btn" onclick="switchTab('history', this)">
+            <span class="nav-icon">📈</span>History
+        </button>
+        <button class="nav-btn" onclick="switchTab('profile', this)">
+            <span class="nav-icon">👤</span>Profile
+        </button>
+    </nav>
+
+</div><!-- #app -->
+
+
+<script>
+// ── Constants ────────────────────────────────────────────────────────────────
+const API = "https://mock-test-3-t0pr.onrender.com";
+
+// ── Telegram SDK ─────────────────────────────────────────────────────────────
+const tg = window.Telegram?.WebApp;
+if (tg) {
+    tg.ready();
+    tg.expand();          // always fullscreen
+    tg.enableClosingConfirmation();
+}
+
+// ── State ────────────────────────────────────────────────────────────────────
+let JWT  = null;
+let data = null;   // { user, stats, recent_results, joined_tests }
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+async function boot() {
+    // 1. Try Telegram Mini App initData (inside Telegram)
+    if (tg && tg.initData) {
+        try {
+            const res = await fetch(`${API}/telegram/miniapp-auth`, {
+                method:  "POST",
+                headers: { "Content-Type": "application/json" },
+                body:    JSON.stringify({ init_data: tg.initData }),
+            });
+
+            if (res.ok) {
+                JWT = (await res.json()).access_token;
+                localStorage.setItem("token", JWT);
+                await loadDashboard();
+                return;
+            }
+
+            if (res.status === 404) {
+                // Telegram account not yet linked to a platform account
+                show("s-no-account");
+                const connectUrl = location.origin + "/telegram-connect.html";
+                document.getElementById("link-btn").href = connectUrl;
+                if (tg) {
+                    tg.MainButton
+                      .setText("Connect Account")
+                      .show()
+                      .onClick(() => tg.openLink(connectUrl));
+                }
+                return;
+            }
+        } catch (_) {}
+    }
+
+    // 2. Fall back to JWT stored in localStorage (browser or previously logged in)
+    const stored = localStorage.getItem("token");
+    if (stored) {
+        JWT = stored;
+        await loadDashboard();
+        return;
+    }
+
+    // 3. No Telegram context and no JWT
+    show(tg ? "s-no-account" : "s-no-tg");
+}
+
+// ── Load dashboard data ───────────────────────────────────────────────────────
+async function loadDashboard() {
+    try {
+        const res = await fetch(`${API}/student/progress-summary`, {
+            headers: { Authorization: `Bearer ${JWT}` },
+        });
+
+        if (res.status === 401) {
+            // Token expired
+            localStorage.removeItem("token");
+            JWT = null;
+            show(tg ? "s-no-account" : "s-no-tg");
+            return;
+        }
+
+        data = await res.json();
+        renderAll();
+        show("app");
+    } catch (_) {
+        show(tg ? "s-no-account" : "s-no-tg");
+    }
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderAll() {
+    const { user, stats, recent_results, joined_tests } = data;
+
+    // Header
+    document.getElementById("h-name").textContent = user.name;
+    document.getElementById("h-role").textContent = user.role === "teacher" ? "Teacher" : "Student";
+    document.getElementById("h-icon").textContent = user.role === "teacher" ? "👨‍🏫" : "🎓";
+
+    // Hero card
+    document.getElementById("p-name").textContent  = user.name;
+    document.getElementById("p-level").textContent = bandLevel(stats.best_band);
+    document.getElementById("p-band").textContent  = stats.best_band > 0
+        ? stats.best_band.toFixed(1) : "—";
+
+    // Stat boxes
+    document.getElementById("s-best").textContent  = stats.best_band  > 0 ? stats.best_band.toFixed(1)  : "—";
+    document.getElementById("s-avg").textContent   = stats.avg_band   > 0 ? stats.avg_band.toFixed(1)   : "—";
+    document.getElementById("s-total").textContent = stats.total_attempts;
+
+    // Quick tests (max 3 active ones, home tab)
+    const active = joined_tests.filter(t => t.is_active).slice(0, 3);
+    document.getElementById("quick-tests").innerHTML = active.length
+        ? active.map(t => testItem(t)).join("")
+        : `<div class="empty"><div class="icon">📋</div>No active tests yet</div>`;
+
+    // Recent results (home tab, max 4)
+    document.getElementById("recent-results").innerHTML = recent_results.length
+        ? recent_results.slice(0, 4).map(r => resultItem(r)).join("")
+        : `<div class="empty"><div class="icon">📊</div>No results yet</div>`;
+
+    // All tests tab
+    document.getElementById("all-tests").innerHTML = joined_tests.length
+        ? joined_tests.map(t => testItem(t, true)).join("")
+        : `<div class="empty"><div class="icon">📚</div>No tests joined.<br>Enter a PIN below.</div>`;
+
+    // Full history tab
+    document.getElementById("full-history").innerHTML = recent_results.length
+        ? recent_results.map(r => resultItemFull(r)).join("")
+        : `<div class="empty"><div class="icon">📈</div>No results yet</div>`;
+
+    // Profile tab
+    document.getElementById("profile-rows").innerHTML = [
+        row("Name",     esc(user.name)),
+        row("Email",    esc(user.email)),
+        row("Role",     user.role === "teacher" ? "👨‍🏫 Teacher" : "🎓 Student"),
+        row("Telegram", "✅ Connected"),
+    ].join("");
+}
+
+// ── HTML builders ─────────────────────────────────────────────────────────────
+function testItem(t, showBadge = false) {
+    const icon  = t.test_type === "writing" ? "✏️" : "📖";
+    const badge = showBadge
+        ? `<span class="status-badge ${t.is_active ? "badge-active" : "badge-inactive"}">${t.is_active ? "Active" : "Off"}</span>`
+        : "";
+    return `<a class="list-item" href="student-teacher-test.html?test_id=${t.test_id}">
+        <div class="item-icon">${icon}</div>
+        <div class="item-info">
+            <div class="item-title">${esc(t.title)}</div>
+            <div class="item-meta">${t.test_type === "writing" ? "Writing" : "Reading"}</div>
+        </div>
+        <div class="item-right">${badge}<span class="arrow">›</span></div>
+    </a>`;
+}
+
+function resultItem(r) {
+    const cls  = bandClass(r.band);
+    const meta = r.type === "writing"
+        ? `✏️ Writing • ${r.word_count ?? 0} words`
+        : `📖 Reading • ${r.correct}/${r.total} correct`;
+    return `<div class="list-item" style="cursor:default">
+        <div class="band-circle ${cls}">${r.band.toFixed(1)}</div>
+        <div class="item-info">
+            <div class="item-title">${esc(r.title)}</div>
+            <div class="item-meta">${meta} • ${fmtDate(r.created_at)}</div>
+        </div>
+    </div>`;
+}
+
+function resultItemFull(r) {
+    const cls  = bandClass(r.band);
+    const detail = r.type === "writing"
+        ? `${r.word_count ?? 0} words`
+        : `${r.correct}/${r.total} correct`;
+    return `<div class="list-item" style="cursor:default">
+        <div class="band-circle ${cls}">${r.band.toFixed(1)}</div>
+        <div class="item-info">
+            <div class="item-title">${esc(r.title)}</div>
+            <div class="item-meta">${detail} • ${fmtDate(r.created_at)}</div>
+        </div>
+    </div>`;
+}
+
+function row(label, value) {
+    return `<div style="display:flex;justify-content:space-between;padding:10px 0;
+                        border-bottom:1px solid var(--border)">
+        <span style="color:var(--hint)">${label}</span>
+        <span style="font-weight:500">${value}</span>
+    </div>`;
+}
+
+// ── Join by PIN ───────────────────────────────────────────────────────────────
+async function joinByPin() {
+    const pin = document.getElementById("pin-input").value.trim();
+    const msg = document.getElementById("pin-msg");
+    msg.style.color = "var(--hint)";
+
+    if (pin.length < 4) {
+        msg.textContent = "Enter a valid PIN code";
+        msg.style.color = "#f44336";
+        return;
+    }
+
+    msg.textContent = "Checking…";
+
+    try {
+        const res = await fetch(`${API}/join-test`, {
+            method:  "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${JWT}` },
+            body:    JSON.stringify({ pin }),
+        });
+        const body = await res.json();
+
+        if (res.ok) {
+            msg.textContent = body.already_joined
+                ? `✅ Already joined: ${body.title}`
+                : `✅ Joined: ${body.title}`;
+            msg.style.color = "#4caf50";
+            document.getElementById("pin-input").value = "";
+            // Reload dashboard data silently
+            setTimeout(async () => {
+                const r2 = await fetch(`${API}/student/progress-summary`,
+                    { headers: { Authorization: `Bearer ${JWT}` } });
+                if (r2.ok) { data = await r2.json(); renderAll(); }
+            }, 600);
+        } else {
+            msg.textContent = body.detail || "Invalid PIN";
+            msg.style.color = "#f44336";
+        }
+    } catch (_) {
+        msg.textContent = "Network error";
+        msg.style.color = "#f44336";
+    }
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+    document.querySelectorAll(".tab-page").forEach(p => p.classList.remove("active"));
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById(`tab-${name}`).classList.add("active");
+    btn.classList.add("active");
+}
+
+// ── Logout ────────────────────────────────────────────────────────────────────
+function logout() {
+    localStorage.removeItem("token");
+    if (tg) { tg.close(); } else { location.href = "login.html"; }
+}
+
+// ── Screens ───────────────────────────────────────────────────────────────────
+function show(id) {
+    ["s-loading", "s-no-account", "s-no-tg", "app"]
+        .forEach(s => document.getElementById(s).style.display = "none");
+    document.getElementById(id).style.display = id === "app" ? "" : "flex";
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function bandLevel(b) {
+    if (b >= 7.5) return "Advanced";
+    if (b >= 6.0) return "Upper-Intermediate";
+    if (b >= 5.0) return "Intermediate";
+    return b > 0  ? "Beginner" : "No tests yet";
+}
+
+function bandClass(b) {
+    if (b >= 7)   return "band-high";
+    if (b >= 5.5) return "band-mid";
+    return "band-low";
+}
+
+function fmtDate(iso) {
+    return new Date(iso).toLocaleDateString("en", { day: "numeric", month: "short" });
+}
+
+function esc(s) {
+    return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+// ── Start ─────────────────────────────────────────────────────────────────────
+boot();
+</script>
+</body>
+</html>
