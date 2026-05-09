@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create Test – Teacher Portal</title>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  background: #f1f5f9;
+  min-height: 100vh;
+  color: #0f172a;
+}
+
+/* ── Header ── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 28px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.header-logo {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+}
+
+.header-logo .accent { color: #059669; }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-back {
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b7280;
+  background: none;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 7px 16px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+
+.btn-back:hover { color: #0f172a; border-color: #cbd5e1; }
+
+/* ── Page ── */
+.page {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+
+.page-sub {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 28px;
+}
+
+/* ── Card ── */
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 28px 28px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1.5px solid #f1f5f9;
+}
+
+/* ── Form fields ── */
+.field { margin-bottom: 18px; }
+.field:last-child { margin-bottom: 0; }
+
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 7px;
+}
+
+.field-input,
+.field-textarea {
+  width: 100%;
+  padding: 11px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #0f172a;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.field-input::placeholder,
+.field-textarea::placeholder { color: #94a3b8; }
+
+.field-input:focus,
+.field-textarea:focus {
+  border-color: #059669;
+  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+  background: white;
+}
+
+.field-input.is-error,
+.field-textarea.is-error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.field-textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* ── Passage block ── */
+.passage-block {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 22px 22px 18px;
+  margin-bottom: 16px;
+}
+
+.passage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.passage-label {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.btn-remove {
+  background: none;
+  border: 1.5px solid #fca5a5;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.btn-remove:hover { background: #fef2f2; }
+
+/* ── Question block ── */
+.questions-section {
+  margin-top: 18px;
+}
+
+.questions-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 10px;
+}
+
+.question-block {
+  background: white;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px 16px 12px;
+  margin-bottom: 10px;
+}
+
+.question-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.question-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.btn-remove-q {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+  line-height: 1;
+}
+
+.btn-remove-q:hover { color: #dc2626; background: #fef2f2; }
+
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.option-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.option-letter {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  width: 18px;
+  flex-shrink: 0;
+}
+
+.correct-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.correct-row label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.correct-select {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  background: #f0fdf4;
+  border: 1.5px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 5px 10px;
+  outline: none;
+  cursor: pointer;
+}
+
+/* ── Add buttons ── */
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1.5px dashed #059669;
+  border-radius: 10px;
+  color: #059669;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+  margin-top: 4px;
+}
+
+.btn-add:hover { background: #f0fdf4; }
+
+.btn-add-q {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 8px;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  margin-top: 6px;
+}
+
+.btn-add-q:hover { background: #f0fdf4; color: #059669; border-color: #6ee7b7; }
+
+/* ── Submit row ── */
+.submit-row {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 28px;
+}
+
+.btn-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #059669;
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  border: none;
+  border-radius: 12px;
+  padding: 13px 32px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  min-width: 180px;
+}
+
+.btn-submit:hover:not(:disabled) { background: #047857; transform: translateY(-1px); }
+.btn-submit:disabled { opacity: 0.65; cursor: not-allowed; }
+
+.spinner {
+  display: none;
+  width: 16px;
+  height: 16px;
+  border: 2.5px solid rgba(255,255,255,0.35);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+
+.btn-submit.loading .spinner { display: block; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Error banner ── */
+.err-banner {
+  display: none;
+  background: #fef2f2;
+  border: 1.5px solid #fecaca;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #dc2626;
+  margin-top: 16px;
+  text-align: center;
+}
+
+.err-banner.show { display: block; }
+
+@media (max-width: 600px) {
+  .field-row     { grid-template-columns: 1fr; }
+  .options-grid  { grid-template-columns: 1fr; }
+  .submit-row    { flex-direction: column; }
+  .btn-submit    { width: 100%; }
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="header-logo">IELTS <span class="accent">MOCK</span></div>
+  <div class="header-right">
+    <a class="btn-back" href="teacher-dashboard.html">← Back to Dashboard</a>
+  </div>
+</header>
+
+<div class="page">
+  <div class="page-title">Create New Test</div>
+  <p class="page-sub">Add passages and questions. Students will see all passages in tabs during the test.</p>
+
+  <!-- Test info -->
+  <div class="card">
+    <div class="card-title">Test Details</div>
+    <div class="field">
+      <label class="field-label" for="test-title">Test Title *</label>
+      <input class="field-input" id="test-title" type="text" placeholder="e.g. Reading Test — Climate Change" maxlength="300">
+    </div>
+    <div class="field">
+      <label class="field-label" for="test-desc">Description (optional)</label>
+      <input class="field-input" id="test-desc" type="text" placeholder="Brief note for yourself" maxlength="500">
+    </div>
+  </div>
+
+  <!-- Passages -->
+  <div class="card">
+    <div class="card-title">Passages &amp; Questions</div>
+    <div id="passages-container">
+      <!-- passages injected by JS -->
+    </div>
+    <button class="btn-add" id="btn-add-passage" onclick="addPassage()">＋ Add Passage</button>
+  </div>
+
+  <div class="err-banner" id="err-banner"></div>
+
+  <div class="submit-row">
+    <a class="btn-back" href="teacher-dashboard.html">Cancel</a>
+    <button class="btn-submit" id="btn-submit" onclick="submitTest()">
+      <span class="spinner"></span>
+      <span class="btn-label">Create Test</span>
+    </button>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script src="auth.js"></script>
+<script>
+const token = requireTeacher();
+
+let passageCount = 0;
+
+// ── Build a passage block ──────────────────────────────────────────────────────
+function addPassage() {
+  passageCount++;
+  const idx = passageCount;
+  const container = document.getElementById("passages-container");
+
+  const div = document.createElement("div");
+  div.className = "passage-block";
+  div.id = `passage-${idx}`;
+  div.innerHTML = `
+    <div class="passage-header">
+      <span class="passage-label">Passage ${idx}</span>
+      <button class="btn-remove" onclick="removePassage(${idx})">Remove</button>
+    </div>
+    <div class="field">
+      <label class="field-label">Passage Title *</label>
+      <input class="field-input" data-role="passage-title" type="text" placeholder="e.g. The Effects of Climate Change on Coral Reefs" maxlength="300">
+    </div>
+    <div class="field">
+      <label class="field-label">Passage Text *</label>
+      <textarea class="field-textarea" data-role="passage-text" placeholder="Paste or type the full reading passage here…" rows="8"></textarea>
+    </div>
+    <div class="questions-section">
+      <div class="questions-label">Questions</div>
+      <div class="questions-container" id="questions-${idx}">
+        <!-- questions injected here -->
+      </div>
+      <button class="btn-add-q" onclick="addQuestion(${idx})">＋ Add Question</button>
+    </div>`;
+
+  container.appendChild(div);
+  addQuestion(idx); // start with one question
+}
+
+function removePassage(idx) {
+  const el = document.getElementById(`passage-${idx}`);
+  if (el) el.remove();
+}
+
+// ── Build a question block ─────────────────────────────────────────────────────
+let questionCounters = {};
+
+function addQuestion(passageIdx) {
+  if (!questionCounters[passageIdx]) questionCounters[passageIdx] = 0;
+  questionCounters[passageIdx]++;
+  const qIdx = questionCounters[passageIdx];
+
+  const container = document.getElementById(`questions-${passageIdx}`);
+  const div = document.createElement("div");
+  div.className = "question-block";
+  div.id = `question-${passageIdx}-${qIdx}`;
+  div.innerHTML = `
+    <div class="question-header">
+      <span class="question-label">Question ${qIdx}</span>
+      <button class="btn-remove-q" onclick="removeQuestion(${passageIdx}, ${qIdx})" title="Remove question">✕</button>
+    </div>
+    <div class="field">
+      <input class="field-input" data-role="q-text" type="text" placeholder="Question text…">
+    </div>
+    <div class="options-grid">
+      <div class="option-wrap">
+        <span class="option-letter">A.</span>
+        <input class="field-input" data-role="opt-a" type="text" placeholder="Option A">
+      </div>
+      <div class="option-wrap">
+        <span class="option-letter">B.</span>
+        <input class="field-input" data-role="opt-b" type="text" placeholder="Option B">
+      </div>
+      <div class="option-wrap">
+        <span class="option-letter">C.</span>
+        <input class="field-input" data-role="opt-c" type="text" placeholder="Option C">
+      </div>
+      <div class="option-wrap">
+        <span class="option-letter">D.</span>
+        <input class="field-input" data-role="opt-d" type="text" placeholder="Option D">
+      </div>
+    </div>
+    <div class="correct-row">
+      <label>Correct answer:</label>
+      <select class="correct-select" data-role="correct">
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+        <option value="D">D</option>
+      </select>
+    </div>`;
+
+  container.appendChild(div);
+}
+
+function removeQuestion(passageIdx, qIdx) {
+  const el = document.getElementById(`question-${passageIdx}-${qIdx}`);
+  if (el) el.remove();
+}
+
+// ── Collect form data → JSON payload ──────────────────────────────────────────
+function collectData() {
+  const title = document.getElementById("test-title").value.trim();
+  const description = document.getElementById("test-desc").value.trim();
+
+  const passageBlocks = document.querySelectorAll(".passage-block");
+  const passages = [];
+
+  for (let pi = 0; pi < passageBlocks.length; pi++) {
+    const pb = passageBlocks[pi];
+    const passageTitle = pb.querySelector('[data-role="passage-title"]').value.trim();
+    const passageText  = pb.querySelector('[data-role="passage-text"]').value.trim();
+
+    const questionBlocks = pb.querySelectorAll(".question-block");
+    const questions = [];
+
+    for (let qi = 0; qi < questionBlocks.length; qi++) {
+      const qb = questionBlocks[qi];
+      questions.push({
+        question_text:  qb.querySelector('[data-role="q-text"]').value.trim(),
+        option_a:       qb.querySelector('[data-role="opt-a"]').value.trim(),
+        option_b:       qb.querySelector('[data-role="opt-b"]').value.trim(),
+        option_c:       qb.querySelector('[data-role="opt-c"]').value.trim(),
+        option_d:       qb.querySelector('[data-role="opt-d"]').value.trim(),
+        correct_answer: qb.querySelector('[data-role="correct"]').value,
+      });
+    }
+
+    passages.push({ order: pi + 1, title: passageTitle, text: passageText, questions });
+  }
+
+  return { title, description, test_type: "reading", passages };
+}
+
+// ── Validate before sending ────────────────────────────────────────────────────
+function validate(data) {
+  if (!data.title) return "Please enter a test title.";
+  if (!data.passages.length) return "Add at least one passage.";
+
+  for (let pi = 0; pi < data.passages.length; pi++) {
+    const p = data.passages[pi];
+    if (!p.title) return `Passage ${pi + 1}: please enter a title.`;
+    if (!p.text)  return `Passage ${pi + 1}: please enter the passage text.`;
+    if (!p.questions.length) return `Passage ${pi + 1}: add at least one question.`;
+
+    for (let qi = 0; qi < p.questions.length; qi++) {
+      const q = p.questions[qi];
+      const qNum = `Passage ${pi + 1}, Question ${qi + 1}`;
+      if (!q.question_text) return `${qNum}: please enter the question text.`;
+      if (!q.option_a || !q.option_b || !q.option_c || !q.option_d)
+        return `${qNum}: all four options (A, B, C, D) are required.`;
+    }
+  }
+
+  return null; // valid
+}
+
+function showError(msg) {
+  const el = document.getElementById("err-banner");
+  el.textContent = msg;
+  el.classList.add("show");
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function clearError() {
+  document.getElementById("err-banner").classList.remove("show");
+}
+
+// ── Submit ─────────────────────────────────────────────────────────────────────
+async function submitTest() {
+  clearError();
+  const data = collectData();
+  const err = validate(data);
+  if (err) { showError(err); return; }
+
+  const btn = document.getElementById("btn-submit");
+  btn.disabled = true;
+  btn.classList.add("loading");
+  btn.querySelector(".btn-label").textContent = "Creating…";
+
+  try {
+    const res = await fetch(`${API_BASE}/teacher/create-test`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (res.ok) {
+      window.location.replace("teacher-dashboard.html?created=1");
+    } else {
+      const body = await res.json().catch(() => ({}));
+      showError(body.detail || "Failed to create test. Please try again.");
+      btn.disabled = false;
+      btn.classList.remove("loading");
+      btn.querySelector(".btn-label").textContent = "Create Test";
+    }
+  } catch {
+    showError("Cannot connect to server. Please check your connection.");
+    btn.disabled = false;
+    btn.classList.remove("loading");
+    btn.querySelector(".btn-label").textContent = "Create Test";
+  }
+}
+
+// Start with one passage
+addPassage();
+</script>
+
+</body>
+</html>

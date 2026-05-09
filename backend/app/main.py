@@ -651,3 +651,109 @@ def teacher_stats(
         "total_students": total_students,
         "total_exam_sessions": total_sessions,
     }
+
+
+@app.post("/teacher/create-test", response_model=schemas.TeacherTestOut, status_code=status.HTTP_201_CREATED)
+def create_teacher_test(
+    payload: schemas.TeacherTestIn,
+    current_user: models.User = Depends(get_teacher_user),
+    db: Session = Depends(get_db),
+):
+    if not payload.passages:
+        raise HTTPException(status_code=400, detail="At least one passage is required")
+
+    test = models.TeacherTest(
+        teacher_id=current_user.id,
+        title=payload.title.strip(),
+        description=payload.description.strip(),
+        test_type=payload.test_type,
+    )
+    db.add(test)
+    db.flush()
+
+    for p_data in payload.passages:
+        if not p_data.questions:
+            raise HTTPException(status_code=400, detail=f"Passage '{p_data.title}' must have at least one question")
+        passage = models.TeacherPassage(
+            test_id=test.id,
+            order=p_data.order,
+            title=p_data.title.strip(),
+            text=p_data.text.strip(),
+        )
+        db.add(passage)
+        db.flush()
+
+        for q_data in p_data.questions:
+            db.add(models.TeacherQuestion(
+                passage_id=passage.id,
+                question_text=q_data.question_text.strip(),
+                option_a=q_data.option_a.strip(),
+                option_b=q_data.option_b.strip(),
+                option_c=q_data.option_c.strip(),
+                option_d=q_data.option_d.strip(),
+                correct_answer=q_data.correct_answer.upper(),
+            ))
+
+    db.commit()
+    db.refresh(test)
+    return test
+
+
+@app.get("/teacher/tests", response_model=List[schemas.TeacherTestSummary])
+def list_teacher_tests(
+    current_user: models.User = Depends(get_teacher_user),
+    db: Session = Depends(get_db),
+):
+    tests = (
+        db.query(models.TeacherTest)
+        .filter(models.TeacherTest.teacher_id == current_user.id)
+        .order_by(models.TeacherTest.created_at.desc())
+        .all()
+    )
+    result = []
+    for t in tests:
+        passage_count = len(t.passages)
+        question_count = sum(len(p.questions) for p in t.passages)
+        result.append(schemas.TeacherTestSummary(
+            id=t.id,
+            title=t.title,
+            description=t.description,
+            test_type=t.test_type,
+            created_at=t.created_at,
+            passage_count=passage_count,
+            question_count=question_count,
+        ))
+    return result
+
+
+@app.get("/teacher/test/{test_id}", response_model=schemas.TeacherTestOut)
+def get_teacher_test(
+    test_id: int,
+    current_user: models.User = Depends(get_teacher_user),
+    db: Session = Depends(get_db),
+):
+    test = (
+        db.query(models.TeacherTest)
+        .filter(models.TeacherTest.id == test_id, models.TeacherTest.teacher_id == current_user.id)
+        .first()
+    )
+    if not test:
+        raise HTTPException(status_code=404, detail="Test not found")
+    return test
+
+
+@app.delete("/teacher/test/{test_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_teacher_test(
+    test_id: int,
+    current_user: models.User = Depends(get_teacher_user),
+    db: Session = Depends(get_db),
+):
+    test = (
+        db.query(models.TeacherTest)
+        .filter(models.TeacherTest.id == test_id, models.TeacherTest.teacher_id == current_user.id)
+        .first()
+    )
+    if not test:
+        raise HTTPException(status_code=404, detail="Test not found")
+    db.delete(test)
+    db.commit()

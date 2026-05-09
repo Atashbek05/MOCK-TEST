@@ -171,6 +171,82 @@ class ReadingResultOut(BaseModel):
     band: float
 
 
+# ── Teacher Test schemas (input) ─────────────────────────────────────────────
+
+class TeacherQuestionIn(BaseModel):
+    question_text: str = Field(..., min_length=5)
+    option_a: str = Field(..., min_length=1)
+    option_b: str = Field(..., min_length=1)
+    option_c: str = Field(..., min_length=1)
+    option_d: str = Field(..., min_length=1)
+    correct_answer: str = Field(..., regex="^[ABCD]$")
+
+
+class TeacherPassageIn(BaseModel):
+    order: int = Field(..., ge=1)
+    title: str = Field(..., min_length=2)
+    text: str = Field(..., min_length=20)
+    questions: List[TeacherQuestionIn]
+
+
+class TeacherTestIn(BaseModel):
+    title: str = Field(..., min_length=3, max_length=300)
+    description: str = ""
+    test_type: str = "reading"
+    passages: List[TeacherPassageIn]
+
+
+# ── Teacher Test schemas (output) ─────────────────────────────────────────────
+
+class TeacherQuestionOut(BaseModel):
+    id: int
+    question_text: str
+    option_a: str
+    option_b: str
+    option_c: str
+    option_d: str
+    correct_answer: str
+
+    class Config:
+        orm_mode = True
+
+
+class TeacherPassageOut(BaseModel):
+    id: int
+    order: int
+    title: str
+    text: str
+    questions: List[TeacherQuestionOut]
+
+    class Config:
+        orm_mode = True
+
+
+class TeacherTestOut(BaseModel):
+    id: int
+    title: str
+    description: str
+    test_type: str
+    created_at: datetime
+    passages: List[TeacherPassageOut]
+
+    class Config:
+        orm_mode = True
+
+
+class TeacherTestSummary(BaseModel):
+    id: int
+    title: str
+    description: str
+    test_type: str
+    created_at: datetime
+    passage_count: int
+    question_count: int
+
+    class Config:
+        orm_mode = True
+
+
 # ── Exam Session schemas ──────────────────────────────────────────────────────
 
 class ExamSessionCreate(BaseModel):

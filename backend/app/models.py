@@ -148,3 +148,55 @@ class ReadingQuestion(Base):
     correct_answer: Mapped[str] = mapped_column(String(1), nullable=False)
 
     passage = relationship("ReadingPassage", back_populates="questions")
+
+
+# ── Teacher-Created Tests ──────────────────────────────────────────────────────
+
+class TeacherTest(Base):
+    __tablename__ = "teacher_tests"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    teacher_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    title: Mapped[str] = mapped_column(String(300), nullable=False)
+    description: Mapped[str] = mapped_column(Text, default="")
+    test_type: Mapped[str] = mapped_column(String(50), default="reading")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    passages = relationship(
+        "TeacherPassage",
+        back_populates="test",
+        order_by="TeacherPassage.order",
+        cascade="all, delete-orphan",
+    )
+
+
+class TeacherPassage(Base):
+    __tablename__ = "teacher_passages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    test_id: Mapped[int] = mapped_column(ForeignKey("teacher_tests.id"), nullable=False)
+    order: Mapped[int] = mapped_column(Integer, nullable=False)
+    title: Mapped[str] = mapped_column(String(300), nullable=False)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+
+    test = relationship("TeacherTest", back_populates="passages")
+    questions = relationship(
+        "TeacherQuestion",
+        back_populates="passage",
+        cascade="all, delete-orphan",
+    )
+
+
+class TeacherQuestion(Base):
+    __tablename__ = "teacher_questions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    passage_id: Mapped[int] = mapped_column(ForeignKey("teacher_passages.id"), nullable=False)
+    question_text: Mapped[str] = mapped_column(Text, nullable=False)
+    option_a: Mapped[str] = mapped_column(String(500), nullable=False)
+    option_b: Mapped[str] = mapped_column(String(500), nullable=False)
+    option_c: Mapped[str] = mapped_column(String(500), nullable=False)
+    option_d: Mapped[str] = mapped_column(String(500), nullable=False)
+    correct_answer: Mapped[str] = mapped_column(String(1), nullable=False)
+
+    passage = relationship("TeacherPassage", back_populates="questions")
