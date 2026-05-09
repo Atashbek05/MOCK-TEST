@@ -42,7 +42,35 @@ def _migrate_add_role_column(db: Session) -> None:
         db.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'student'"))
         db.commit()
     except Exception:
-        db.rollback()   # Column already exists — safe to ignore
+        db.rollback()
+
+
+def _generate_pin(db: Session) -> str:
+    """Generate a unique 6-digit PIN code (collision-safe)."""
+    while True:
+        pin = str(random.randint(100000, 999999))
+        exists = db.query(models.TeacherTest).filter(models.TeacherTest.pin_code == pin).first()
+        if not exists:
+            return pin
+
+
+def _migrate_teacher_tests_pin(db: Session) -> None:
+    """Add pin_code and is_active columns to teacher_tests; backfill PINs for existing rows."""
+    for col, definition in [
+        ("pin_code",  "VARCHAR(10)"),
+        ("is_active", "BOOLEAN DEFAULT 1"),
+    ]:
+        try:
+            db.execute(text(f"ALTER TABLE teacher_tests ADD COLUMN {col} {definition}"))
+            db.commit()
+        except Exception:
+            db.rollback()
+
+    tests = db.query(models.TeacherTest).filter(models.TeacherTest.pin_code == None).all()
+    for t in tests:
+        t.pin_code = _generate_pin(db)
+    if tests:
+        db.commit()
 
 
 def get_current_user(
@@ -262,6 +290,7 @@ async def startup_event():
     db = SessionLocal()
     try:
         _migrate_add_role_column(db)
+        _migrate_teacher_tests_pin(db)
         _seed_questions(db)
         _seed_reading_tests(db)
     finally:
@@ -667,6 +696,8 @@ def create_teacher_test(
         title=payload.title.strip(),
         description=payload.description.strip(),
         test_type=payload.test_type,
+        pin_code=_generate_pin(db),
+        is_active=True,
     )
     db.add(test)
     db.flush()
@@ -714,14 +745,18 @@ def list_teacher_tests(
     for t in tests:
         passage_count = len(t.passages)
         question_count = sum(len(p.questions) for p in t.passages)
+        enrolled_count = len(t.enrollments)
         result.append(schemas.TeacherTestSummary(
             id=t.id,
             title=t.title,
             description=t.description,
             test_type=t.test_type,
+            pin_code=t.pin_code,
+            is_active=bool(t.is_active) if t.is_active is not None else True,
             created_at=t.created_at,
             passage_count=passage_count,
             question_count=question_count,
+            enrolled_count=enrolled_count,
         ))
     return result
 
@@ -757,3 +792,150 @@ def delete_teacher_test(
         raise HTTPException(status_code=404, detail="Test not found")
     db.delete(test)
     db.commit()
+
+
+@app.patch("/teacher/test/{test_id}/toggle")
+def toggle_teacher_test(
+    test_id: int,
+    current_user: models.User = Depends(get_teacher_user),
+    db: Session = Depends(get_db),
+):
+    """Teacher can activate or deactivate a test (prevents students from accessing it)."""
+    test = (
+        db.query(models.TeacherTest)
+        .filter(models.TeacherTest.id == test_id, models.TeacherTest.teacher_id == current_user.id)
+        .first()
+    )
+    if not test:
+        raise HTTPException(status_code=404, detail="Test not found")
+    test.is_active = not bool(test.is_active)
+    db.commit()
+    return {"id": test_id, "is_active": test.is_active}
+
+
+# ── PIN / Student Test Access Routes ──────────────────────────────────────────
+
+@app.post("/join-test")
+def join_test(
+    payload: schemas.JoinTestIn,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Student joins a teacher test using a PIN code. Idempotent — safe to call multiple times."""
+    test = db.query(models.TeacherTest).filter(
+        models.TeacherTest.pin_code == payload.pin.strip()
+    ).first()
+
+    if not test:
+        raise HTTPException(status_code=404, detail="Invalid PIN code. No test found.")
+
+    if not bool(test.is_active):
+        raise HTTPException(status_code=403, detail="This test is not currently active.")
+
+    existing = db.query(models.StudentTestEnrollment).filter(
+        models.StudentTestEnrollment.student_id == current_user.id,
+        models.StudentTestEnrollment.test_id == test.id,
+    ).first()
+
+    already_joined = existing is not None
+    if not already_joined:
+        db.add(models.StudentTestEnrollment(student_id=current_user.id, test_id=test.id))
+        db.commit()
+
+    teacher = db.query(models.User).filter(models.User.id == test.teacher_id).first()
+    return {
+        "test_id": test.id,
+        "title": test.title,
+        "teacher_name": teacher.name if teacher else "Unknown",
+        "already_joined": already_joined,
+    }
+
+
+@app.get("/student/joined-tests")
+def get_joined_tests(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Returns all teacher tests this student has joined."""
+    enrollments = (
+        db.query(models.StudentTestEnrollment)
+        .filter(models.StudentTestEnrollment.student_id == current_user.id)
+        .order_by(models.StudentTestEnrollment.joined_at.desc())
+        .all()
+    )
+
+    result = []
+    for e in enrollments:
+        t = e.test
+        teacher = db.query(models.User).filter(models.User.id == t.teacher_id).first()
+        result.append({
+            "test_id": t.id,
+            "title": t.title,
+            "description": t.description,
+            "test_type": t.test_type,
+            "teacher_name": teacher.name if teacher else "Unknown",
+            "passage_count": len(t.passages),
+            "question_count": sum(len(p.questions) for p in t.passages),
+            "is_active": bool(t.is_active) if t.is_active is not None else True,
+            "joined_at": e.joined_at.isoformat(),
+        })
+    return result
+
+
+@app.get("/student/teacher-test/{test_id}", response_model=schemas.TeacherTestOut)
+def get_student_teacher_test(
+    test_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Returns the full test content — only if the student is enrolled."""
+    enrollment = db.query(models.StudentTestEnrollment).filter(
+        models.StudentTestEnrollment.student_id == current_user.id,
+        models.StudentTestEnrollment.test_id == test_id,
+    ).first()
+
+    if not enrollment:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not enrolled in this test. Join with a PIN code first."
+        )
+
+    test = db.query(models.TeacherTest).filter(models.TeacherTest.id == test_id).first()
+    if not test:
+        raise HTTPException(status_code=404, detail="Test not found")
+
+    if not bool(test.is_active):
+        raise HTTPException(status_code=403, detail="This test is currently inactive.")
+
+    return test
+
+
+@app.post("/submit-teacher-test", response_model=schemas.ReadingResultOut)
+def submit_teacher_test(
+    payload: schemas.SubmitReadingIn,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Grade a teacher test submission. Student must be enrolled."""
+    enrollment = db.query(models.StudentTestEnrollment).filter(
+        models.StudentTestEnrollment.student_id == current_user.id,
+        models.StudentTestEnrollment.test_id == payload.test_id,
+    ).first()
+
+    if not enrollment:
+        raise HTTPException(status_code=403, detail="Not enrolled in this test")
+
+    test = db.query(models.TeacherTest).filter(models.TeacherTest.id == payload.test_id).first()
+    if not test:
+        raise HTTPException(status_code=404, detail="Test not found")
+
+    all_questions = []
+    for p in test.passages:
+        all_questions.extend(p.questions)
+
+    correct = sum(
+        1 for q in all_questions
+        if payload.answers.get(str(q.id), "").upper() == q.correct_answer
+    )
+    total = len(all_questions)
+    return schemas.ReadingResultOut(correct=correct, total=total, band=_calculate_band(correct, total))

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -227,6 +227,8 @@ class TeacherTestOut(BaseModel):
     title: str
     description: str
     test_type: str
+    pin_code: Optional[str]
+    is_active: bool
     created_at: datetime
     passages: List[TeacherPassageOut]
 
@@ -239,12 +241,19 @@ class TeacherTestSummary(BaseModel):
     title: str
     description: str
     test_type: str
+    pin_code: Optional[str]
+    is_active: bool
     created_at: datetime
     passage_count: int
     question_count: int
+    enrolled_count: int
 
     class Config:
         orm_mode = True
+
+
+class JoinTestIn(BaseModel):
+    pin: str = Field(..., min_length=4, max_length=10)
 
 
 # ── Exam Session schemas ──────────────────────────────────────────────────────

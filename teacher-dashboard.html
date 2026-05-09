@@ -370,6 +370,38 @@ body {
 
 .tests-empty p { margin-top: 8px; }
 
+/* ── PIN badge ── */
+.pin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f0fdf4;
+  border: 1.5px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 6px 13px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #059669;
+  cursor: pointer;
+  letter-spacing: 1px;
+  font-family: 'Courier New', monospace;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.pin-badge:hover { background: #dcfce7; border-color: #6ee7b7; }
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-active   { background: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
+.status-inactive { background: #9ca3af; }
+
 /* ── Toast notification ── */
 .toast {
   position: fixed;
@@ -546,14 +578,14 @@ body {
       <span class="coming-soon">⏳ Coming Soon</span>
     </div>
 
-    <div class="feature-card">
+    <div class="feature-card active-feature">
       <span class="feature-icon">🔑</span>
       <div class="feature-title">PIN Test System</div>
       <div class="feature-desc">
-        Generate unique PIN codes for your tests. Students enter the PIN
-        to access a specific test you've assigned to them.
+        Every test you create gets a unique 6-digit PIN. Students enter the PIN
+        on their dashboard to access the test instantly.
       </div>
-      <span class="coming-soon">⏳ Coming Soon</span>
+      <span class="coming-soon">✅ Available Now</span>
     </div>
 
   </div>
@@ -603,18 +635,76 @@ function renderTests(tests) {
     return;
   }
 
-  container.innerHTML = tests.map(t => `
+  container.innerHTML = tests.map(t => {
+    const pin = t.pin_code || "—";
+    const active = t.is_active !== false;
+    return `
     <div class="test-item" id="test-${t.id}">
       <span class="test-item-icon">📖</span>
       <div class="test-item-body">
         <div class="test-item-title">${escHtml(t.title)}</div>
-        <div class="test-item-meta">${t.passage_count} passage${t.passage_count !== 1 ? "s" : ""} · ${t.question_count} question${t.question_count !== 1 ? "s" : ""} · ${formatDate(t.created_at)}</div>
+        <div class="test-item-meta">
+          ${t.passage_count} passage${t.passage_count !== 1 ? "s" : ""} ·
+          ${t.question_count} question${t.question_count !== 1 ? "s" : ""} ·
+          <strong>${t.enrolled_count}</strong> student${t.enrolled_count !== 1 ? "s" : ""} joined ·
+          ${formatDate(t.created_at)}
+        </div>
       </div>
+      <span class="pin-badge" onclick="copyPin('${pin}')" title="Click to copy PIN">
+        🔑 ${pin}
+      </span>
+      <span class="status-dot ${active ? "status-active" : "status-inactive"}"
+            id="status-dot-${t.id}"
+            title="${active ? "Active — students can access" : "Inactive — access blocked"}"></span>
       <div class="test-item-actions">
+        <button class="btn-icon" id="toggle-btn-${t.id}" onclick="toggleTest(${t.id})"
+                title="${active ? "Deactivate test" : "Activate test"}">
+          ${active ? "⏸" : "▶️"}
+        </button>
         <button class="btn-icon danger" onclick="deleteTest(${t.id})" title="Delete">🗑️</button>
       </div>
-    </div>`
-  ).join("");
+    </div>`;
+  }).join("");
+}
+
+async function copyPin(pin) {
+  if (!pin || pin === "—") return;
+  try {
+    await navigator.clipboard.writeText(pin);
+    showToast("📋 PIN " + pin + " copied — share it with your students!");
+  } catch {
+    showToast("PIN code: " + pin);
+  }
+}
+
+async function toggleTest(id) {
+  try {
+    const res = await fetch(`${API_BASE}/teacher/test/${id}/toggle`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) { showToast("❌ Could not update test status"); return; }
+
+    const data = await res.json();
+    const dot = document.getElementById("status-dot-" + id);
+    const btn = document.getElementById("toggle-btn-" + id);
+
+    if (data.is_active) {
+      dot.className = "status-dot status-active";
+      dot.title = "Active — students can access";
+      btn.textContent = "⏸";
+      btn.title = "Deactivate test";
+      showToast("✅ Test activated — students can now join");
+    } else {
+      dot.className = "status-dot status-inactive";
+      dot.title = "Inactive — access blocked";
+      btn.textContent = "▶️";
+      btn.title = "Activate test";
+      showToast("⏸ Test deactivated — students cannot join");
+    }
+  } catch {
+    showToast("❌ Network error");
+  }
 }
 
 function escHtml(str) {

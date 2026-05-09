@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -160,6 +160,8 @@ class TeacherTest(Base):
     title: Mapped[str] = mapped_column(String(300), nullable=False)
     description: Mapped[str] = mapped_column(Text, default="")
     test_type: Mapped[str] = mapped_column(String(50), default="reading")
+    pin_code: Mapped[str] = mapped_column(String(10), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     passages = relationship(
@@ -168,6 +170,7 @@ class TeacherTest(Base):
         order_by="TeacherPassage.order",
         cascade="all, delete-orphan",
     )
+    enrollments = relationship("StudentTestEnrollment", back_populates="test", cascade="all, delete-orphan")
 
 
 class TeacherPassage(Base):
@@ -200,3 +203,15 @@ class TeacherQuestion(Base):
     correct_answer: Mapped[str] = mapped_column(String(1), nullable=False)
 
     passage = relationship("TeacherPassage", back_populates="questions")
+
+
+class StudentTestEnrollment(Base):
+    __tablename__ = "student_test_enrollments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    test_id: Mapped[int] = mapped_column(ForeignKey("teacher_tests.id"), nullable=False)
+    joined_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    student = relationship("User", foreign_keys=[student_id])
+    test = relationship("TeacherTest", back_populates="enrollments")
