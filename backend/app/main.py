@@ -6,6 +6,7 @@ from openai import OpenAI
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -35,6 +36,15 @@ app.add_middleware(
 Base.metadata.create_all(bind=engine)
 
 
+def _migrate_add_role_column(db: Session) -> None:
+    """Add role column to existing users table if it doesn't exist yet."""
+    try:
+        db.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'student'"))
+        db.commit()
+    except Exception:
+        db.rollback()   # Column already exists — safe to ignore
+
+
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db),
@@ -47,6 +57,16 @@ def get_current_user(
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     return user
+
+
+def get_teacher_user(current_user: models.User = Depends(get_current_user)):
+    """Dependency: only allows teachers through — returns 403 for students."""
+    if current_user.role != "teacher":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Teacher access required"
+        )
+    return current_user
 
 
 def _band_to_level(overall: float) -> str:
@@ -241,6 +261,7 @@ def _seed_reading_tests(db: Session) -> None:
 async def startup_event():
     db = SessionLocal()
     try:
+        _migrate_add_role_column(db)
         _seed_questions(db)
         _seed_reading_tests(db)
     finally:
@@ -262,6 +283,7 @@ def register(payload: schemas.UserRegister, db: Session = Depends(get_db)):
         name=payload.name.strip(),
         email=payload.email.lower(),
         password=hash_password(payload.password),
+        role=payload.role,
     )
     db.add(user)
     db.commit()
@@ -612,3 +634,20 @@ def submit_reading_test(
     band = _calculate_band(correct, total)
 
     return schemas.ReadingResultOut(correct=correct, total=total, band=band)
+
+
+# ── Teacher Routes ─────────────────────────────────────────────────────────────
+
+@app.get("/teacher/stats")
+def teacher_stats(
+    current_user: models.User = Depends(get_teacher_user),
+    db: Session = Depends(get_db),
+):
+    """Teacher-only endpoint: returns basic platform statistics."""
+    total_students = db.query(models.User).filter(models.User.role == "student").count()
+    total_sessions = db.query(models.ExamSession).count()
+    return {
+        "teacher_name": current_user.name,
+        "total_students": total_students,
+        "total_exam_sessions": total_sessions,
+    }

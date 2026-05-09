@@ -13,6 +13,7 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[str] = mapped_column(String(20), default="student", server_default="student")
 
     results = relationship("Result", back_populates="user", cascade="all, delete-orphan")
     attempts = relationship("Attempt", back_populates="user", cascade="all, delete-orphan")

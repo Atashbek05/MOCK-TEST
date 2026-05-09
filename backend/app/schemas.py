@@ -8,6 +8,7 @@ class UserRegister(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     email: EmailStr
     password: str = Field(..., min_length=6, max_length=128)
+    role: str = Field("student", regex="^(student|teacher)$")
 
 
 class UserLogin(BaseModel):
@@ -24,6 +25,7 @@ class UserOut(BaseModel):
     id: int
     name: str
     email: EmailStr
+    role: str
 
     class Config:
         orm_mode = True

@@ -312,9 +312,10 @@ body {
 <script src="api.js"></script>
 <script>
 
-// ── Already logged in → skip to dashboard ─────────────────────────────────────
+// ── Already logged in → skip to correct dashboard ────────────────────────────
 if (localStorage.getItem("token")) {
-  window.location.replace("dashboard.html");
+  var _role = localStorage.getItem("userRole");
+  window.location.replace(_role === "teacher" ? "teacher-dashboard.html" : "dashboard.html");
 }
 
 // ── Back-button trap ──────────────────────────────────────────────────────────
@@ -433,7 +434,21 @@ async function login() {
     }
 
     localStorage.setItem("token", data.access_token);
-    window.location.href = "dashboard.html";
+
+    // Fetch user role from /me, then redirect to the correct dashboard
+    try {
+      const meRes  = await fetch(`${API_BASE}/me`, {
+        headers: { Authorization: `Bearer ${data.access_token}` }
+      });
+      const meData = await meRes.json();
+      const role   = meData.role || "student";
+      localStorage.setItem("userRole", role);
+      localStorage.setItem("userName", meData.name || "");
+      window.location.href = role === "teacher" ? "teacher-dashboard.html" : "dashboard.html";
+    } catch {
+      localStorage.setItem("userRole", "student");
+      window.location.href = "dashboard.html";
+    }
 
   } catch (err) {
     const box    = document.getElementById("err-server");

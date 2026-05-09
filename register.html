@@ -230,6 +230,41 @@ body {
 /* ── Footer ──────────────────────────────────────────────────────────────────── */
 .footer { text-align: center; padding: 14px; font-size: 12px; color: #cbd5e1; font-weight: 600; }
 
+/* ── Role selector ───────────────────────────────────────────────────────────── */
+.role-selector {
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.role-btn {
+  flex: 1;
+  padding: 14px 10px 12px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-family: inherit;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.role-btn:hover { border-color: #93c5fd; background: #f0f9ff; }
+
+.role-btn.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
+}
+
+.role-icon  { font-size: 22px; line-height: 1; }
+.role-name  { font-size: 14px; font-weight: 700; color: #0f172a; }
+.role-desc  { font-size: 11px; color: #94a3b8; }
+
 /* ── Animations ──────────────────────────────────────────────────────────────── */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
@@ -255,6 +290,23 @@ body {
 
     <h1 class="card-title">Create account</h1>
     <p class="card-sub">Join IELTS Mock and start practicing today</p>
+
+    <!-- Role selector -->
+    <div class="field">
+      <label class="field-label">I am a</label>
+      <div class="role-selector">
+        <button type="button" class="role-btn active" id="role-student" onclick="selectRole('student')">
+          <span class="role-icon">🎓</span>
+          <span class="role-name">Student</span>
+          <span class="role-desc">Take IELTS mock tests</span>
+        </button>
+        <button type="button" class="role-btn" id="role-teacher" onclick="selectRole('teacher')">
+          <span class="role-icon">👨‍🏫</span>
+          <span class="role-name">Teacher</span>
+          <span class="role-desc">Manage students & tests</span>
+        </button>
+      </div>
+    </div>
 
     <!-- Name field -->
     <div class="field">
@@ -326,6 +378,15 @@ body {
 
 <script src="api.js"></script>
 <script>
+
+// ── Role selection ────────────────────────────────────────────────────────────
+var selectedRole = "student";
+
+function selectRole(role) {
+  selectedRole = role;
+  document.getElementById("role-student").classList.toggle("active", role === "student");
+  document.getElementById("role-teacher").classList.toggle("active", role === "teacher");
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // HELPERS
@@ -430,7 +491,7 @@ async function register() {
     const res  = await fetch(`${API_BASE}/register`, {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({ name, email, password })
+      body:    JSON.stringify({ name, email, password, role: selectedRole })
     });
 
     const data = await res.json();
@@ -444,7 +505,9 @@ async function register() {
     }
 
     localStorage.setItem("token", data.access_token);
-    window.location.href = "dashboard.html";
+    localStorage.setItem("userRole", selectedRole);
+    localStorage.setItem("userName", name);
+    window.location.href = selectedRole === "teacher" ? "teacher-dashboard.html" : "dashboard.html";
 
   } catch (err) {
     const box    = document.getElementById("err-server");

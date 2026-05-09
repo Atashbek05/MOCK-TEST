@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Teacher Dashboard – IELTS Mock</title>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  background: #f1f5f9;
+  min-height: 100vh;
+  color: #0f172a;
+}
+
+/* ── Header ── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 28px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.header-logo {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+
+.header-logo .accent { color: #059669; }
+
+.header-center {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.header-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.btn-signout {
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b7280;
+  background: none;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 7px 16px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  font-family: inherit;
+}
+
+.btn-signout:hover { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
+
+/* ── Page layout ── */
+.page {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+/* ── Hero banner ── */
+.hero {
+  position: relative;
+  background: linear-gradient(135deg, #065f46 0%, #059669 55%, #10b981 100%);
+  border-radius: 20px;
+  padding: 40px 44px;
+  margin-bottom: 28px;
+  overflow: hidden;
+  color: white;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 260px; height: 260px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 50%;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  bottom: -80px; right: 120px;
+  width: 200px; height: 200px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 50%;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.18);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.hero h1 {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.hero p {
+  font-size: 15px;
+  opacity: 0.85;
+  max-width: 460px;
+  line-height: 1.55;
+  position: relative;
+}
+
+/* ── Stats row ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 14px;
+  padding: 22px 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+  border-top: 3px solid #e2e8f0;
+}
+
+.stat-card.green  { border-top-color: #10b981; }
+.stat-card.blue   { border-top-color: #3b82f6; }
+.stat-card.purple { border-top-color: #8b5cf6; }
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 36px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -1px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-sub {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* ── Section title ── */
+.section-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+  margin-bottom: 14px;
+}
+
+/* ── Feature cards grid ── */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.feature-card {
+  background: white;
+  border-radius: 16px;
+  padding: 26px 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+}
+
+.feature-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.feature-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.feature-desc {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.coming-soon {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.feature-card.active-feature .coming-soon {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+/* ── Info banner ── */
+.info-banner {
+  background: #f0fdf4;
+  border: 1.5px solid #bbf7d0;
+  border-radius: 14px;
+  padding: 20px 24px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.info-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+
+.info-text h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #065f46;
+  margin-bottom: 4px;
+}
+
+.info-text p {
+  font-size: 14px;
+  color: #047857;
+  line-height: 1.5;
+}
+
+/* ── Loading state ── */
+.loading-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 14px;
+  color: #6b7280;
+  font-size: 15px;
+}
+
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #059669;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .stats-row    { grid-template-columns: 1fr; }
+  .features-grid { grid-template-columns: 1fr; }
+  .hero         { padding: 28px 24px; }
+  .hero h1      { font-size: 24px; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-logo">IELTS <span class="accent">MOCK</span></div>
+
+  <div class="header-center">
+    👨‍🏫 Teacher Portal
+  </div>
+
+  <div class="header-right">
+    <span class="header-name" id="header-name">Loading…</span>
+    <button class="btn-signout" onclick="logout()">Sign out</button>
+  </div>
+</header>
+
+<!-- Page content (hidden while loading) -->
+<div id="loading-state" class="loading-page">
+  <div class="spinner"></div>
+  Loading your dashboard…
+</div>
+
+<div id="page-content" class="page" style="display:none;">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">👨‍🏫 Teacher Account</div>
+    <h1>Welcome, <span id="hero-name">Teacher</span></h1>
+    <p>
+      Your teacher portal is ready. Monitor your students' IELTS progress,
+      create custom tests, and access detailed analytics — all in one place.
+    </p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card green">
+      <div class="stat-label">Total Students</div>
+      <div class="stat-value" id="stat-students">—</div>
+      <div class="stat-sub">registered accounts</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">Exam Sessions</div>
+      <div class="stat-value" id="stat-sessions">—</div>
+      <div class="stat-sub">completed by all students</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">Tests Available</div>
+      <div class="stat-value">4</div>
+      <div class="stat-sub">reading tests in system</div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <div class="section-title">Teacher Features</div>
+  <div class="features-grid">
+
+    <div class="feature-card">
+      <span class="feature-icon">👥</span>
+      <div class="feature-title">Manage Students</div>
+      <div class="feature-desc">
+        View all registered students, track their progress over time,
+        and see individual band scores for each section.
+      </div>
+      <span class="coming-soon">⏳ Coming Soon</span>
+    </div>
+
+    <div class="feature-card">
+      <span class="feature-icon">✏️</span>
+      <div class="feature-title">Create Custom Tests</div>
+      <div class="feature-desc">
+        Build your own reading and writing tests with custom passages
+        and questions, then share them with students via PIN codes.
+      </div>
+      <span class="coming-soon">⏳ Coming Soon</span>
+    </div>
+
+    <div class="feature-card">
+      <span class="feature-icon">📊</span>
+      <div class="feature-title">Analytics Dashboard</div>
+      <div class="feature-desc">
+        View class-wide statistics, identify common weaknesses,
+        and track improvement trends across all band score criteria.
+      </div>
+      <span class="coming-soon">⏳ Coming Soon</span>
+    </div>
+
+    <div class="feature-card">
+      <span class="feature-icon">🔑</span>
+      <div class="feature-title">PIN Test System</div>
+      <div class="feature-desc">
+        Generate unique PIN codes for your tests. Students enter the PIN
+        to access a specific test you've assigned to them.
+      </div>
+      <span class="coming-soon">⏳ Coming Soon</span>
+    </div>
+
+  </div>
+
+  <!-- Info banner -->
+  <div class="info-banner">
+    <span class="info-icon">✅</span>
+    <div class="info-text">
+      <h3>Students can start practicing now</h3>
+      <p>
+        While teacher features are being built, your students can already
+        take full IELTS mock tests — Reading, Listening, and Writing with
+        AI-powered feedback. Share the link <strong>atashasd.vercel.app</strong>
+        with your students so they can register and start practicing today.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<script src="api.js"></script>
+<script src="auth.js"></script>
+<script>
+// ── Teacher auth — two layers of protection ───────────────────────────────────
+// Layer 1: requireTeacher() checks localStorage (instant, no network)
+const token = requireTeacher();
+
+// ── Load dashboard from API ───────────────────────────────────────────────────
+async function loadTeacherDashboard() {
+  try {
+    // Fetch user info — also verifies token and role server-side (Layer 2)
+    const meRes = await fetch(`${API_BASE}/me`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (meRes.status === 401) { logout(); return; }
+
+    const user = await meRes.json();
+
+    // Server-side role check — redirect students who somehow reach this page
+    if (user.role !== "teacher") {
+      window.location.replace("dashboard.html");
+      return;
+    }
+
+    // Keep localStorage in sync with server truth
+    localStorage.setItem("userRole", user.role);
+    localStorage.setItem("userName", user.name);
+
+    // Update UI with teacher's name
+    document.getElementById("header-name").textContent = user.name;
+    document.getElementById("hero-name").textContent   = user.name.split(" ")[0];
+
+    // Fetch teacher stats
+    try {
+      const statsRes = await fetch(`${API_BASE}/teacher/stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (statsRes.ok) {
+        const stats = await statsRes.json();
+        document.getElementById("stat-students").textContent = stats.total_students;
+        document.getElementById("stat-sessions").textContent = stats.total_exam_sessions;
+      }
+    } catch {
+      // Stats unavailable — keep "—" placeholder
+    }
+
+    // Show the page
+    document.getElementById("loading-state").style.display = "none";
+    document.getElementById("page-content").style.display  = "block";
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById("loading-state").innerHTML =
+      '<div style="color:#dc2626;font-size:15px;">Cannot connect to server. Please refresh.</div>';
+  }
+}
+
+loadTeacherDashboard();
+</script>
+
+</body>
+</html>

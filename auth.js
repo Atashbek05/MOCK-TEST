@@ -31,7 +31,24 @@ function requireAuth() {
   return token;
 }
 
-// ── 3. logout ─────────────────────────────────────────────────────────────────
+// ── 3. requireTeacher ─────────────────────────────────────────────────────────
+// Call this at the top of every teacher-only page script.
+// Quick localStorage check — teacher pages also verify role via /me API call.
+function requireTeacher() {
+  var token = localStorage.getItem("token");
+  if (!token) {
+    window.location.replace("login.html");
+    return null;
+  }
+  var role = localStorage.getItem("userRole");
+  if (role && role !== "teacher") {
+    window.location.replace("dashboard.html");
+    return null;
+  }
+  return token;
+}
+
+// ── 4. logout ─────────────────────────────────────────────────────────────────
 // Single shared logout used by every page.
 // Clears ALL localStorage (token + exam data) then redirects.
 function logout() {
@@ -40,7 +57,7 @@ function logout() {
   window.location.replace("login.html");
 }
 
-// ── 4. Back-Button / bfcache Protection ──────────────────────────────────────
+// ── 5. Back-Button / bfcache Protection ──────────────────────────────────────
 // Срабатывает при КАЖДОМ показе страницы — как при обычной загрузке,
 // так и при восстановлении из bfcache (кнопка "Назад").
 // Убрали event.persisted — теперь проверка идёт всегда, без исключений.
@@ -50,7 +67,7 @@ window.addEventListener("pageshow", function () {
   }
 });
 
-// ── 5. Tab-Visibility Protection ──────────────────────────────────────────────
+// ── 6. Tab-Visibility Protection ──────────────────────────────────────────────
 // If the user logs out in another tab and then switches back to this tab,
 // this listener re-checks auth and redirects if the token is gone.
 document.addEventListener("visibilitychange", function () {
