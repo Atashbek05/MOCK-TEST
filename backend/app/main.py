@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from . import models, schemas
+from .bot import start_polling
 from .seed_data import READING_TESTS
 from .database import Base, SessionLocal, engine, get_db
 from .security import create_access_token, decode_access_token, hash_password, verify_password
@@ -479,9 +480,8 @@ async def startup_event():
         _seed_reading_tests(db)
     finally:
         db.close()
-    # Register Telegram webhook after DB is ready.
-    # Uses WEBHOOK_URL or RENDER_EXTERNAL_URL env var — set these on Render.
-    _register_telegram_webhook()
+    # Start Telegram bot polling (replaces the old webhook approach).
+    start_polling()
 
 
 @app.get("/health")
