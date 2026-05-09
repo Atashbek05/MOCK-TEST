@@ -45,8 +45,23 @@ def _migrate_add_role_column(db: Session) -> None:
         db.rollback()
 
 
+def _generate_pin_raw(db: Session) -> str:
+    """Generate a unique 6-digit PIN using raw SQL.
+    Used during startup migration — ORM queries cannot be used there because
+    not all model columns may exist in the DB yet.
+    """
+    while True:
+        pin = str(random.randint(100000, 999999))
+        count = db.execute(
+            text("SELECT COUNT(*) FROM teacher_tests WHERE pin_code = :pin"),
+            {"pin": pin}
+        ).scalar()
+        if not count:
+            return pin
+
+
 def _generate_pin(db: Session) -> str:
-    """Generate a unique 6-digit PIN code (collision-safe)."""
+    """Generate a unique 6-digit PIN using ORM (used in request handlers only)."""
     while True:
         pin = str(random.randint(100000, 999999))
         exists = db.query(models.TeacherTest).filter(models.TeacherTest.pin_code == pin).first()
@@ -55,22 +70,40 @@ def _generate_pin(db: Session) -> str:
 
 
 def _migrate_teacher_tests_pin(db: Session) -> None:
-    """Add pin_code and is_active columns to teacher_tests; backfill PINs for existing rows."""
+    """Add pin_code and is_active to teacher_tests; backfill PINs for existing rows.
+
+    Two critical rules for this migration:
+    1. Use DEFAULT TRUE (not DEFAULT 1) — PostgreSQL requires a boolean literal.
+    2. Use raw SQL for all queries — ORM generates SELECT * which includes every
+       column defined in the model, so if is_active doesn't exist yet the ORM
+       SELECT crashes before we get a chance to add it.
+    """
     for col, definition in [
         ("pin_code",  "VARCHAR(10)"),
-        ("is_active", "BOOLEAN DEFAULT 1"),
+        ("is_active", "BOOLEAN DEFAULT TRUE"),   # TRUE not 1 — works on both SQLite & PostgreSQL
     ]:
         try:
             db.execute(text(f"ALTER TABLE teacher_tests ADD COLUMN {col} {definition}"))
             db.commit()
         except Exception:
-            db.rollback()
+            db.rollback()  # column already exists — safe to ignore
 
-    tests = db.query(models.TeacherTest).filter(models.TeacherTest.pin_code == None).all()
-    for t in tests:
-        t.pin_code = _generate_pin(db)
-    if tests:
-        db.commit()
+    # Backfill: assign a PIN to every test that doesn't have one yet.
+    # Raw SQL only — never use ORM here (see rule 2 above).
+    try:
+        rows = db.execute(
+            text("SELECT id FROM teacher_tests WHERE pin_code IS NULL")
+        ).fetchall()
+        for row in rows:
+            pin = _generate_pin_raw(db)
+            db.execute(
+                text("UPDATE teacher_tests SET pin_code = :pin WHERE id = :id"),
+                {"pin": pin, "id": row[0]}
+            )
+        if rows:
+            db.commit()
+    except Exception:
+        db.rollback()
 
 
 def get_current_user(
