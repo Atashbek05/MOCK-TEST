@@ -99,3 +99,51 @@ class ExamSession(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="exam_sessions")
+
+
+# ── Multiple Reading Tests System ─────────────────────────────────────────────
+
+class ReadingTest(Base):
+    __tablename__ = "reading_tests"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+
+    passages = relationship(
+        "ReadingPassage",
+        back_populates="test",
+        order_by="ReadingPassage.order",
+        cascade="all, delete-orphan",
+    )
+
+
+class ReadingPassage(Base):
+    __tablename__ = "reading_passages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    test_id: Mapped[int] = mapped_column(ForeignKey("reading_tests.id"), nullable=False)
+    order: Mapped[int] = mapped_column(Integer, nullable=False)   # 1, 2, 3
+    title: Mapped[str] = mapped_column(String(300), nullable=False)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+
+    test = relationship("ReadingTest", back_populates="passages")
+    questions = relationship(
+        "ReadingQuestion",
+        back_populates="passage",
+        cascade="all, delete-orphan",
+    )
+
+
+class ReadingQuestion(Base):
+    __tablename__ = "reading_questions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    passage_id: Mapped[int] = mapped_column(ForeignKey("reading_passages.id"), nullable=False)
+    question_text: Mapped[str] = mapped_column(Text, nullable=False)
+    option_a: Mapped[str] = mapped_column(String(500), nullable=False)
+    option_b: Mapped[str] = mapped_column(String(500), nullable=False)
+    option_c: Mapped[str] = mapped_column(String(500), nullable=False)
+    option_d: Mapped[str] = mapped_column(String(500), nullable=False)
+    correct_answer: Mapped[str] = mapped_column(String(1), nullable=False)
+
+    passage = relationship("ReadingPassage", back_populates="questions")

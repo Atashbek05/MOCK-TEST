@@ -1,5 +1,6 @@
 import json
 import os
+import random
 
 from openai import OpenAI
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -9,6 +10,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from . import models, schemas
+from .seed_data import READING_TESTS
 from .database import Base, SessionLocal, engine, get_db
 from .security import create_access_token, decode_access_token, hash_password, verify_password
 
@@ -201,11 +203,46 @@ def _seed_questions(db: Session) -> None:
     db.commit()
 
 
+def _seed_reading_tests(db: Session) -> None:
+    """Populate reading_tests / reading_passages / reading_questions on first startup."""
+    if db.query(models.ReadingTest).first():
+        return  # Already seeded
+
+    for test_data in READING_TESTS:
+        test = models.ReadingTest(title=test_data["title"])
+        db.add(test)
+        db.flush()
+
+        for p_data in test_data["passages"]:
+            passage = models.ReadingPassage(
+                test_id=test.id,
+                order=p_data["order"],
+                title=p_data["title"],
+                text=p_data["text"],
+            )
+            db.add(passage)
+            db.flush()
+
+            for q_data in p_data["questions"]:
+                db.add(models.ReadingQuestion(
+                    passage_id=passage.id,
+                    question_text=q_data["question_text"],
+                    option_a=q_data["option_a"],
+                    option_b=q_data["option_b"],
+                    option_c=q_data["option_c"],
+                    option_d=q_data["option_d"],
+                    correct_answer=q_data["correct_answer"],
+                ))
+
+    db.commit()
+
+
 @app.on_event("startup")
 async def startup_event():
     db = SessionLocal()
     try:
         _seed_questions(db)
+        _seed_reading_tests(db)
     finally:
         db.close()
 
@@ -514,3 +551,64 @@ def exam_history(
         .limit(20)
         .all()
     )
+
+
+# ── Multiple Reading Tests Routes ──────────────────────────────────────────────
+
+@app.get("/reading-tests", response_model=List[schemas.ReadingTestListItem])
+def list_reading_tests(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return db.query(models.ReadingTest).all()
+
+
+@app.get("/reading-test/{test_id}", response_model=schemas.ReadingTestOut)
+def get_reading_test(
+    test_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    test = db.query(models.ReadingTest).filter(models.ReadingTest.id == test_id).first()
+    if not test:
+        raise HTTPException(status_code=404, detail="Reading test not found")
+    return test
+
+
+@app.get("/random-reading-test", response_model=schemas.ReadingTestOut)
+def get_random_reading_test(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    tests = db.query(models.ReadingTest).all()
+    if not tests:
+        raise HTTPException(status_code=404, detail="No reading tests available")
+    return random.choice(tests)
+
+
+@app.post("/submit-reading-test", response_model=schemas.ReadingResultOut)
+def submit_reading_test(
+    payload: schemas.SubmitReadingIn,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    passages = (
+        db.query(models.ReadingPassage)
+        .filter(models.ReadingPassage.test_id == payload.test_id)
+        .all()
+    )
+    if not passages:
+        raise HTTPException(status_code=404, detail="Reading test not found")
+
+    all_questions = []
+    for p in passages:
+        all_questions.extend(p.questions)
+
+    correct = sum(
+        1 for q in all_questions
+        if payload.answers.get(str(q.id), "").upper() == q.correct_answer
+    )
+    total = len(all_questions)
+    band = _calculate_band(correct, total)
+
+    return schemas.ReadingResultOut(correct=correct, total=total, band=band)

@@ -15,50 +15,6 @@ body {
   background: #f4f4f4;
 }
 
-/* ── Section progress stepper ── */
-.section-stepper {
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 10px 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 13px;
-  position: sticky;
-  top: 57px;
-  z-index: 9;
-}
-
-.step {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #9ca3af;
-  font-weight: 600;
-}
-
-.step.done    { color: #16a34a; }
-.step.active  { color: #2563eb; }
-
-.step-dot {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 2px solid currentColor;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.step.done .step-dot::before   { content: "✓"; }
-.step.active .step-dot::before { content: "●"; font-size: 8px; }
-.step:not(.done):not(.active) .step-dot::before { content: attr(data-n); }
-
-.step-arrow { color: #d1d5db; font-size: 14px; }
-
 /* ── Header ── */
 .header {
   background: white;
@@ -92,26 +48,116 @@ body {
 
 .header-label { font-size: 13px; color: #888; }
 
+/* ── Section stepper ── */
+.section-stepper {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  position: sticky;
+  top: 57px;
+  z-index: 9;
+}
+
+.step { display: flex; align-items: center; gap: 6px; color: #9ca3af; font-weight: 600; }
+.step.done   { color: #16a34a; }
+.step.active { color: #2563eb; }
+
+.step-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.step.done .step-dot::before   { content: "✓"; }
+.step.active .step-dot::before { content: "●"; font-size: 8px; }
+.step:not(.done):not(.active) .step-dot::before { content: attr(data-n); }
+
+.step-arrow { color: #d1d5db; font-size: 14px; }
+
+/* ── Passage tabs ── */
+.passage-tabs {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 20px;
+  display: flex;
+  gap: 4px;
+  position: sticky;
+  top: 99px;
+  z-index: 8;
+}
+
+.tab-btn {
+  padding: 12px 20px;
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover { color: #374151; }
+
+.tab-btn.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+.tab-btn .tab-badge {
+  display: inline-block;
+  background: #e5e7eb;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-left: 6px;
+  transition: all 0.2s;
+}
+
+.tab-btn.active .tab-badge {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.tab-btn.complete .tab-badge {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
 /* ── Two-column layout ── */
 .layout {
   display: flex;
   gap: 20px;
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 20px auto;
   padding: 0 20px;
 }
 
-/* ── Passage panel (left) ── */
+/* ── Passage panel (left, sticky) ── */
 .passage-panel {
   flex: 1;
   background: white;
   border-radius: 12px;
   padding: 28px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-  height: calc(100vh - 110px);
+  height: calc(100vh - 170px);
   overflow-y: auto;
   position: sticky;
-  top: 76px;
+  top: 148px;
 }
 
 .panel-label {
@@ -120,7 +166,17 @@ body {
   text-transform: uppercase;
   letter-spacing: 1.5px;
   color: #aaa;
+  margin-bottom: 6px;
+}
+
+.passage-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #111;
   margin-bottom: 18px;
+  line-height: 1.3;
+  border-left: 3px solid #2563eb;
+  padding-left: 12px;
 }
 
 .passage-panel p {
@@ -132,6 +188,20 @@ body {
 
 /* ── Questions panel (right) ── */
 .questions-panel { flex: 1; }
+
+.passage-section { display: none; }
+.passage-section.active { display: block; }
+
+.section-heading {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #6b7280;
+  margin-bottom: 14px;
+  padding: 10px 0 10px;
+  border-bottom: 1px solid #f0f0f0;
+}
 
 .question-card {
   background: white;
@@ -176,13 +246,13 @@ body {
 .option:hover { background: #fafafa; border-color: #ccc; }
 
 .option.selected {
-  background: #f0f0f0;
-  border-color: #333;
+  background: #f0f4ff;
+  border-color: #2563eb;
 }
 
 .option input[type="radio"] {
   margin-top: 3px;
-  accent-color: black;
+  accent-color: #2563eb;
   flex-shrink: 0;
 }
 
@@ -193,17 +263,57 @@ body {
   line-height: 1.45;
 }
 
+/* ── Navigation between passages ── */
+.passage-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  margin-top: 8px;
+}
+
+.btn-nav {
+  padding: 10px 24px;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-nav:hover { background: #e5e7eb; }
+.btn-nav:disabled { opacity: 0.4; cursor: not-allowed; }
+
 /* ── Submit area ── */
 .submit-area {
-  padding: 16px 0 50px;
+  padding: 20px 0 60px;
   text-align: center;
 }
+
+.overall-progress {
+  background: white;
+  border-radius: 12px;
+  padding: 18px 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  text-align: left;
+}
+
+.overall-progress .label {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.overall-progress .label span { font-weight: 700; color: #111; }
 
 .progress-bar-wrap {
   background: #e0e0e0;
   border-radius: 20px;
-  height: 6px;
-  margin-bottom: 14px;
+  height: 8px;
   overflow: hidden;
 }
 
@@ -215,16 +325,8 @@ body {
   width: 0%;
 }
 
-.progress-text {
-  font-size: 13px;
-  color: #888;
-  margin-bottom: 16px;
-}
-
-.progress-text span { font-weight: bold; color: #333; }
-
 .btn-submit {
-  padding: 14px 44px;
+  padding: 14px 50px;
   background: black;
   color: white;
   border: none;
@@ -236,12 +338,7 @@ body {
 }
 
 .btn-submit:hover { opacity: 0.85; }
-
-.btn-submit:disabled {
-  background: #aaa;
-  cursor: not-allowed;
-  opacity: 1;
-}
+.btn-submit:disabled { background: #aaa; cursor: not-allowed; opacity: 1; }
 
 /* ── Loading / Error ── */
 .loading-screen {
@@ -255,7 +352,7 @@ body {
   width: 36px;
   height: 36px;
   border: 3px solid #ddd;
-  border-top-color: #333;
+  border-top-color: #2563eb;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   margin: 0 auto 16px;
@@ -316,28 +413,38 @@ body {
   Loading test...
 </div>
 
-<!-- Main content (hidden until loaded) -->
+<!-- Main content (hidden until test is loaded) -->
 <div id="main-content" style="display:none;">
+
+  <!-- Passage tabs -->
+  <div class="passage-tabs" id="passage-tabs"></div>
+
   <div class="layout">
 
-    <!-- Left: passage -->
+    <!-- Left: passage text -->
     <div class="passage-panel">
       <div class="panel-label">Reading Passage</div>
+      <div class="passage-title" id="passage-title"></div>
       <div id="passage-text"></div>
     </div>
 
-    <!-- Right: questions -->
+    <!-- Right: questions by passage section -->
     <div class="questions-panel">
-      <div id="questions-list"></div>
+      <div id="questions-container"></div>
 
+      <!-- Overall progress + submit -->
       <div class="submit-area">
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-fill" id="progress-fill"></div>
+        <div class="overall-progress">
+          <div class="label">
+            Overall progress: <span id="answered-count">0</span> / <span id="total-count">0</span> questions answered
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+          </div>
         </div>
-        <div class="progress-text">
-          Answered: <span id="answered-count">0</span> / <span id="total-count">0</span>
-        </div>
-        <button class="btn-submit" id="submit-btn" onclick="submitTest()">Submit Test</button>
+        <button class="btn-submit" id="submit-btn" onclick="submitTest()">
+          Submit Reading Test
+        </button>
       </div>
     </div>
 
@@ -350,64 +457,53 @@ body {
 // ── Auth ──────────────────────────────────────────────────────────────────────
 const token = requireAuth();
 
-let testId = null;
+let testId        = null;
 let totalQuestions = 0;
+let currentPassageIndex = 0;
+let passagesData  = [];     // full array of passages from API
 let timerInterval = null;
-let secondsLeft = 60 * 60; // 60 minutes
+let secondsLeft   = 60 * 60;
 
 // ── Timer ────────────────────────────────────────────────────────────────────
-
 function startTimer() {
   timerInterval = setInterval(() => {
     secondsLeft--;
-
-    const m = Math.floor(secondsLeft / 60);
-    const s = secondsLeft % 60;
+    const m  = Math.floor(secondsLeft / 60);
+    const s  = secondsLeft % 60;
     const el = document.getElementById("timer");
-    el.textContent = `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-
-    // Red warning when under 5 minutes
+    el.textContent = `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
     if (secondsLeft <= 300) el.classList.add("warning");
-
-    // Auto-submit when time runs out
-    if (secondsLeft <= 0) {
-      clearInterval(timerInterval);
-      submitTest();
-    }
+    if (secondsLeft <= 0) { clearInterval(timerInterval); submitTest(); }
   }, 1000);
 }
 
-// ── Load test from API ────────────────────────────────────────────────────────
-
+// ── Load random reading test ──────────────────────────────────────────────────
 async function loadTest() {
   try {
-    const res = await fetch(`${API_BASE}/questions`, {
+    const res = await fetch(`${API_BASE}/random-reading-test`, {
       headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (res.status === 401) {
-      window.location.href = "login.html";
-      return;
-    }
-
-    if (!res.ok) {
-      showError("Failed to load test. Please refresh the page.");
-      return;
-    }
+    if (res.status === 401) { logout(); return; }
+    if (!res.ok) { showError("Failed to load test. Please refresh the page."); return; }
 
     const data = await res.json();
-    testId = data.id;
-    totalQuestions = data.questions.length;
+    testId       = data.id;
+    passagesData = data.passages;
 
-    // Mark exam start time for duration calculation on final result page
+    // Count total questions across all passages
+    totalQuestions = passagesData.reduce((sum, p) => sum + p.questions.length, 0);
+
+    // Record exam start time (used by final-result page for duration)
     localStorage.setItem("examStartTime", Date.now());
 
-    renderPassage(data.passage);
-    renderQuestions(data.questions);
+    buildTabs();
+    buildQuestions();
+    switchToPassage(0);
 
-    document.getElementById("loading-screen").style.display = "none";
-    document.getElementById("main-content").style.display = "block";
     document.getElementById("total-count").textContent = totalQuestions;
+    document.getElementById("loading-screen").style.display = "none";
+    document.getElementById("main-content").style.display  = "block";
 
     startTimer();
 
@@ -417,99 +513,153 @@ async function loadTest() {
   }
 }
 
-// ── Render passage ────────────────────────────────────────────────────────────
-
-function renderPassage(text) {
-  const container = document.getElementById("passage-text");
-  // Split paragraphs by double newline
-  const paragraphs = text.split("\n\n").filter(p => p.trim());
-  container.innerHTML = paragraphs.map(p => `<p>${p.trim()}</p>`).join("");
-}
-
-// ── Render questions ──────────────────────────────────────────────────────────
-
-function renderQuestions(questions) {
-  const container = document.getElementById("questions-list");
-
-  container.innerHTML = questions.map((q, index) => `
-    <div class="question-card" id="card-${q.id}">
-      <div class="question-num">Question ${index + 1} of ${questions.length}</div>
-      <p>${q.question_text}</p>
-
-      ${["A", "B", "C", "D"].map(letter => `
-        <div class="option" id="opt-${q.id}-${letter}"
-             onclick="selectOption(${q.id}, '${letter}')">
-          <input type="radio" name="q${q.id}" value="${letter}" id="r${q.id}${letter}">
-          <label for="r${q.id}${letter}">
-            <strong>${letter}.</strong> ${q["option_" + letter.toLowerCase()]}
-          </label>
-        </div>
-      `).join("")}
-    </div>
+// ── Build passage tabs ────────────────────────────────────────────────────────
+function buildTabs() {
+  const container = document.getElementById("passage-tabs");
+  container.innerHTML = passagesData.map((p, i) => `
+    <button class="tab-btn ${i === 0 ? "active" : ""}" id="tab-${i}"
+            onclick="switchToPassage(${i})">
+      Passage ${p.order}
+      <span class="tab-badge" id="badge-${i}">0/${p.questions.length}</span>
+    </button>
   `).join("");
 }
 
-// ── Option selection ──────────────────────────────────────────────────────────
+// ── Build all question cards (one section per passage) ────────────────────────
+function buildQuestions() {
+  const container = document.getElementById("questions-container");
+  let globalNum = 0;  // question number across all passages
 
-function selectOption(questionId, letter) {
-  // Clear highlights on all options for this question
-  ["A", "B", "C", "D"].forEach(l => {
-    const opt = document.getElementById(`opt-${questionId}-${l}`);
-    if (opt) opt.classList.remove("selected");
-  });
+  container.innerHTML = passagesData.map((p, pi) => {
+    const questionsHtml = p.questions.map((q, qi) => {
+      globalNum++;
+      return `
+        <div class="question-card" id="card-${q.id}">
+          <div class="question-num">Question ${globalNum}</div>
+          <p>${q.question_text}</p>
+          ${["A","B","C","D"].map(letter => `
+            <div class="option" id="opt-${q.id}-${letter}"
+                 onclick="selectOption(${q.id}, '${letter}', ${pi})">
+              <input type="radio" name="q${q.id}" value="${letter}" id="r${q.id}${letter}">
+              <label for="r${q.id}${letter}">
+                <strong>${letter}.</strong> ${q["option_" + letter.toLowerCase()]}
+              </label>
+            </div>
+          `).join("")}
+        </div>`;
+    }).join("");
 
-  // Highlight the chosen option
-  document.getElementById(`opt-${questionId}-${letter}`).classList.add("selected");
-
-  // Mark radio button as checked
-  document.getElementById(`r${questionId}${letter}`).checked = true;
-
-  // Mark the question card as answered (green left border)
-  document.getElementById(`card-${questionId}`).classList.add("answered");
-
-  updateProgress();
+    return `
+      <div class="passage-section ${pi === 0 ? "active" : ""}" id="section-${pi}">
+        <div class="section-heading">Passage ${p.order} — ${p.questions.length} Questions</div>
+        ${questionsHtml}
+        <div class="passage-nav">
+          <button class="btn-nav" onclick="switchToPassage(${pi-1})"
+                  ${pi === 0 ? "disabled" : ""}>
+            ← Previous Passage
+          </button>
+          ${pi < passagesData.length - 1
+            ? `<button class="btn-nav" onclick="switchToPassage(${pi+1})">Next Passage →</button>`
+            : `<span style="font-size:13px;color:#6b7280">Last passage — scroll down to submit</span>`
+          }
+        </div>
+      </div>`;
+  }).join("");
 }
 
-function updateProgress() {
-  let count = 0;
-  document.querySelectorAll(".question-card").forEach(card => {
-    if (card.querySelector("input[type='radio']:checked")) count++;
+// ── Switch active passage ─────────────────────────────────────────────────────
+function switchToPassage(index) {
+  if (index < 0 || index >= passagesData.length) return;
+  currentPassageIndex = index;
+
+  // Update passage text panel
+  const p = passagesData[index];
+  document.getElementById("passage-title").textContent = p.title;
+  const textEl = document.getElementById("passage-text");
+  textEl.innerHTML = p.text.split("\n\n").filter(s => s.trim())
+    .map(s => `<p>${s.trim()}</p>`).join("");
+
+  // Scroll passage to top
+  textEl.closest(".passage-panel").scrollTop = 0;
+
+  // Update tab highlight
+  document.querySelectorAll(".tab-btn").forEach((btn, i) => {
+    btn.classList.toggle("active", i === index);
   });
 
-  document.getElementById("answered-count").textContent = count;
+  // Update question section visibility
+  document.querySelectorAll(".passage-section").forEach((sec, i) => {
+    sec.classList.toggle("active", i === index);
+  });
+}
 
-  const pct = totalQuestions > 0 ? (count / totalQuestions) * 100 : 0;
+// ── Select option ─────────────────────────────────────────────────────────────
+function selectOption(questionId, letter, passageIndex) {
+  // Clear old highlights for this question
+  ["A","B","C","D"].forEach(l => {
+    const el = document.getElementById(`opt-${questionId}-${l}`);
+    if (el) el.classList.remove("selected");
+  });
+
+  document.getElementById(`opt-${questionId}-${letter}`).classList.add("selected");
+  document.getElementById(`r${questionId}${letter}`).checked = true;
+  document.getElementById(`card-${questionId}`).classList.add("answered");
+
+  updateProgress(passageIndex);
+}
+
+// ── Progress bar + tab badges ─────────────────────────────────────────────────
+function updateProgress(changedPassageIndex) {
+  let totalAnswered = 0;
+
+  passagesData.forEach((p, pi) => {
+    let passageAnswered = 0;
+    p.questions.forEach(q => {
+      if (document.querySelector(`input[name="q${q.id}"]:checked`)) {
+        passageAnswered++;
+        totalAnswered++;
+      }
+    });
+    // Update tab badge
+    const badge = document.getElementById(`badge-${pi}`);
+    if (badge) {
+      badge.textContent = `${passageAnswered}/${p.questions.length}`;
+      const tab = document.getElementById(`tab-${pi}`);
+      if (tab) {
+        tab.classList.toggle("complete", passageAnswered === p.questions.length);
+      }
+    }
+  });
+
+  document.getElementById("answered-count").textContent = totalAnswered;
+  const pct = totalQuestions > 0 ? (totalAnswered / totalQuestions) * 100 : 0;
   document.getElementById("progress-fill").style.width = pct + "%";
 }
 
 // ── Submit test ───────────────────────────────────────────────────────────────
-
 async function submitTest() {
   clearInterval(timerInterval);
 
-  // Collect answers: { "questionId": "A" / "B" / "C" / "D" }
+  // Collect answers across ALL passages
   const answers = {};
   let unanswered = 0;
 
-  document.querySelectorAll(".question-card").forEach(card => {
-    const qId = card.id.replace("card-", "");
-    const checked = card.querySelector("input[type='radio']:checked");
-    if (checked) {
-      answers[qId] = checked.value;
-    } else {
-      unanswered++;
-    }
+  passagesData.forEach(p => {
+    p.questions.forEach(q => {
+      const checked = document.querySelector(`input[name="q${q.id}"]:checked`);
+      if (checked) {
+        answers[q.id] = checked.value;
+      } else {
+        unanswered++;
+      }
+    });
   });
 
-  // Warn if not all questions are answered
   if (unanswered > 0) {
     const go = confirm(
       `You have ${unanswered} unanswered question(s).\nSubmit anyway?`
     );
-    if (!go) {
-      startTimer(); // Resume timer
-      return;
-    }
+    if (!go) { startTimer(); return; }
   }
 
   const btn = document.getElementById("submit-btn");
@@ -517,7 +667,7 @@ async function submitTest() {
   btn.textContent = "Submitting...";
 
   try {
-    const res = await fetch(`${API_BASE}/submit-test`, {
+    const res = await fetch(`${API_BASE}/submit-reading-test`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -526,9 +676,11 @@ async function submitTest() {
       body: JSON.stringify({ test_id: testId, answers })
     });
 
+    if (res.status === 401) { logout(); return; }
+
     if (!res.ok) {
       btn.disabled = false;
-      btn.textContent = "Submit Test";
+      btn.textContent = "Submit Reading Test";
       showError("Submission failed. Please try again.");
       startTimer();
       return;
@@ -536,17 +688,16 @@ async function submitTest() {
 
     const result = await res.json();
 
-    // Save results for result.html
-    localStorage.setItem("readingScore", result.band);
+    // Save for final-result page
+    localStorage.setItem("readingScore",   result.band);
     localStorage.setItem("readingCorrect", result.correct);
-    localStorage.setItem("readingTotal", result.total);
+    localStorage.setItem("readingTotal",   result.total);
 
-    // Go to results page
     window.location.href = "listening.html";
 
   } catch (err) {
     btn.disabled = false;
-    btn.textContent = "Submit Test";
+    btn.textContent = "Submit Reading Test";
     showError("Cannot connect to server. Please try again.");
     startTimer();
     console.error(err);
@@ -554,11 +705,10 @@ async function submitTest() {
 }
 
 // ── Error helper ──────────────────────────────────────────────────────────────
-
 function showError(msg) {
-  document.getElementById("loading-screen").innerHTML =
-    `<div class="error-banner">${msg}</div>`;
-  document.getElementById("loading-screen").style.display = "block";
+  const ls = document.getElementById("loading-screen");
+  ls.innerHTML = `<div class="error-banner">${msg}</div>`;
+  ls.style.display = "block";
 }
 
 // ── Start ─────────────────────────────────────────────────────────────────────

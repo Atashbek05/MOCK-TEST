@@ -116,6 +116,59 @@ class WritingHistoryItemOut(BaseModel):
         orm_mode = True
 
 
+# ── Multiple Reading Tests schemas ───────────────────────────────────────────
+
+class ReadingQuestionOut(BaseModel):
+    id: int
+    question_text: str
+    option_a: str
+    option_b: str
+    option_c: str
+    option_d: str
+
+    class Config:
+        orm_mode = True
+
+
+class ReadingPassageOut(BaseModel):
+    id: int
+    order: int
+    title: str
+    text: str
+    questions: List[ReadingQuestionOut]
+
+    class Config:
+        orm_mode = True
+
+
+class ReadingTestOut(BaseModel):
+    id: int
+    title: str
+    passages: List[ReadingPassageOut]
+
+    class Config:
+        orm_mode = True
+
+
+class ReadingTestListItem(BaseModel):
+    id: int
+    title: str
+
+    class Config:
+        orm_mode = True
+
+
+class SubmitReadingIn(BaseModel):
+    test_id: int
+    answers: dict   # {"<question_id>": "A"/"B"/"C"/"D"}
+
+
+class ReadingResultOut(BaseModel):
+    correct: int
+    total: int
+    band: float
+
+
 # ── Exam Session schemas ──────────────────────────────────────────────────────
 
 class ExamSessionCreate(BaseModel):
