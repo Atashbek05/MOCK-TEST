@@ -1,7 +1,7 @@
 import json
 import os
 
-import anthropic
+from openai import OpenAI
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
@@ -412,25 +412,29 @@ def _get_mock_feedback(word_count: int) -> dict:
 
 
 def _get_ai_feedback(essay: str, word_count: int) -> dict:
-    """Return structured IELTS feedback. Uses Claude when API key is set, otherwise rule-based."""
-    api_key = os.getenv("ANTHROPIC_API_KEY")
+    """Return structured IELTS feedback. Uses OpenAI when API key is set, otherwise rule-based."""
+    api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         return _get_mock_feedback(word_count)
 
-    client = anthropic.Anthropic(api_key=api_key)
+    client = OpenAI(api_key=api_key)
     prompt = _WRITING_PROMPT.format(essay=essay, word_count=word_count)
 
     try:
-        message = client.messages.create(
-            model="claude-haiku-4-5-20251001",
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are an experienced IELTS examiner. Respond only with valid JSON."},
+                {"role": "user", "content": prompt}
+            ],
             max_tokens=1500,
-            messages=[{"role": "user", "content": prompt}]
+            temperature=0.3,
+            response_format={"type": "json_object"}
         )
-        response_text = message.content[0].text.strip()
-        return json.loads(response_text)
+        return json.loads(response.choices[0].message.content)
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="AI returned invalid response. Please try again.")
-    except anthropic.APIError as e:
+    except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI service error: {str(e)}")
 
 
@@ -442,7 +446,7 @@ def submit_writing(
 ):
     word_count = len(payload.essay.split())
 
-    # Get IELTS feedback from Claude
+    # Get IELTS feedback from OpenAI
     feedback_dict = _get_ai_feedback(payload.essay, word_count)
 
     band_score = float(feedback_dict.get("band_score", 0))
