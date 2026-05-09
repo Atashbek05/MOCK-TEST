@@ -19,7 +19,7 @@ origins = [
     "http://127.0.0.1:5500",
     "http://localhost:5500",
     "https://atashasd.vercel.app",
-    "https://mock-test-puce-iota.vercel.app",
+    "https://atashasd-git-main-jaqqon9-6154s-projects.vercel.app",
 ]
 
 app.add_middleware(
