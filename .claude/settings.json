@@ -19,7 +19,8 @@
       "PowerShell(pip show sqlalchemy)",
       "PowerShell(pip show fastapi)",
       "PowerShell(pip show psycopg)",
-      "PowerShell(python -c \"from passlib.context import CryptContext; ctx = CryptContext\\(schemes=['bcrypt']\\); ctx.hash\\('test'\\)\" 2>&1)"
+      "PowerShell(python -c \"from passlib.context import CryptContext; ctx = CryptContext\\(schemes=['bcrypt']\\); ctx.hash\\('test'\\)\" 2>&1)",
+      "Bash(git commit -m 'Remove duplicate mock section from dashboard; wire hero button to startMockTest *)"
     ]
   }
 }
