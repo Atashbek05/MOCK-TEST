@@ -165,7 +165,7 @@ class TeacherTest(Base):
     description: Mapped[str] = mapped_column(Text, default="")
     test_type: Mapped[str] = mapped_column(String(50), default="reading")
     pin_code: Mapped[str] = mapped_column(String(10), nullable=True)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     passages = relationship(
@@ -238,8 +238,8 @@ class TelegramLoginCode(Base):
     code:       Mapped[str]           = mapped_column(String(10), unique=True, index=True, nullable=False)
     user_id:    Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)
     expires_at: Mapped[datetime]      = mapped_column(DateTime, nullable=False)
-    verified:   Mapped[bool]          = mapped_column(Boolean, default=False, server_default="0")
-    used:       Mapped[bool]          = mapped_column(Boolean, default=False, server_default="0")
+    verified:   Mapped[bool]          = mapped_column(Boolean, default=False, server_default="false")
+    used:       Mapped[bool]          = mapped_column(Boolean, default=False, server_default="false")
     created_at: Mapped[datetime]      = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
@@ -254,7 +254,7 @@ class TelegramVerificationCode(Base):
     user_id:    Mapped[int]      = mapped_column(ForeignKey("users.id"), nullable=False)
     code:       Mapped[str]      = mapped_column(String(10), unique=True, index=True, nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    used:       Mapped[bool]     = mapped_column(Boolean, default=False, server_default="0")
+    used:       Mapped[bool]     = mapped_column(Boolean, default=False, server_default="false")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", foreign_keys=[user_id])
@@ -271,7 +271,7 @@ class IELTSTest(Base):
     test_type:   Mapped[str]           = mapped_column(String(20), default="academic")   # academic | general
     component:   Mapped[str]           = mapped_column(String(20), default="reading")    # reading | listening
     time_limit:  Mapped[int]           = mapped_column(Integer, default=60)              # minutes
-    is_active:   Mapped[bool]          = mapped_column(Boolean, default=True, server_default="1")
+    is_active:   Mapped[bool]          = mapped_column(Boolean, default=True, server_default="true")
     created_by:  Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)
     created_at:  Mapped[datetime]      = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -365,7 +365,7 @@ class WritingPrompt(Base):
     prompt_text:        Mapped[str]           = mapped_column(Text, nullable=False)
     image_description:  Mapped[Optional[str]] = mapped_column(Text, nullable=True)             # chart/diagram for Task 1
     min_words:          Mapped[int]           = mapped_column(Integer, default=250)
-    is_active:          Mapped[bool]          = mapped_column(Boolean, default=True, server_default="1")
+    is_active:          Mapped[bool]          = mapped_column(Boolean, default=True, server_default="true")
     created_at:         Mapped[datetime]      = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
@@ -377,7 +377,7 @@ class IELTSStudentAnswer(Base):
     attempt_id:  Mapped[int]           = mapped_column(ForeignKey("ielts_attempts.id"), nullable=False)
     question_id: Mapped[int]           = mapped_column(ForeignKey("ielts_questions.id"), nullable=False)
     answer_value:Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    is_flagged:  Mapped[bool]          = mapped_column(Boolean, default=False, server_default="0")
+    is_flagged:  Mapped[bool]          = mapped_column(Boolean, default=False, server_default="false")
     answered_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     attempt  = relationship("IELTSAttempt", back_populates="answers")

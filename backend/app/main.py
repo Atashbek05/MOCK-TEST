@@ -588,7 +588,10 @@ async def startup_event():
         _migrate_users_telegram(db)     # Phase 6
         _seed_questions(db)
         _seed_reading_tests(db)
-        seed_ielts_content(db)
+        try:
+            seed_ielts_content(db)
+        except Exception as _seed_err:
+            print(f"[startup] IELTS seed skipped: {_seed_err}")
     finally:
         db.close()
     # Start Telegram bot polling (replaces the old webhook approach).
