@@ -18,7 +18,8 @@
       "PowerShell(pip show fastapi 2>&1)",
       "PowerShell(pip show sqlalchemy)",
       "PowerShell(pip show fastapi)",
-      "PowerShell(pip show psycopg)"
+      "PowerShell(pip show psycopg)",
+      "PowerShell(python -c \"from passlib.context import CryptContext; ctx = CryptContext\\(schemes=['bcrypt']\\); ctx.hash\\('test'\\)\" 2>&1)"
     ]
   }
 }
