@@ -351,3 +351,130 @@ class StudentAnalyticsStat(BaseModel):
     tests_completed: int          # unique tests with ≥1 submission
     last_active_at: Optional[datetime]
     is_weak: bool                 # best_band < 5.5
+
+
+# ── IELTS Question Engine Schemas ─────────────────────────────────────────────
+
+class IELTSQuestionOut(BaseModel):
+    id: int
+    global_number: int
+    local_order: int
+    stem: str
+    options: Optional[list] = None
+    # correct_answer intentionally omitted — never sent to student during exam
+
+    class Config:
+        orm_mode = True
+
+
+class IELTSQuestionGroupOut(BaseModel):
+    id: int
+    order: int
+    question_type: str
+    instruction: str
+    word_limit: Optional[int] = None
+    options_pool: Optional[dict] = None
+    questions: List[IELTSQuestionOut]
+
+    class Config:
+        orm_mode = True
+
+
+class IELTSPassageOut(BaseModel):
+    id: int
+    order: int
+    title: str
+    body_text: str
+    image_url: Optional[str] = None
+    question_groups: List[IELTSQuestionGroupOut]
+
+    class Config:
+        orm_mode = True
+
+
+class IELTSTestOut(BaseModel):
+    id: int
+    title: str
+    test_type: str
+    component: str
+    time_limit: int
+    passages: List[IELTSPassageOut]
+
+    class Config:
+        orm_mode = True
+
+
+class IELTSTestListItem(BaseModel):
+    id: int
+    title: str
+    test_type: str
+    component: str
+    time_limit: int
+    best_band: Optional[float] = None
+    attempt_count: Optional[int] = None
+
+    class Config:
+        orm_mode = True
+
+
+class StartAttemptOut(BaseModel):
+    attempt_id: int
+    test: IELTSTestOut
+
+
+class SaveAnswerIn(BaseModel):
+    question_id: int
+    answer_value: Optional[str] = None
+    is_flagged: Optional[bool] = None
+
+
+class PerQuestionResult(BaseModel):
+    question_id: int
+    global_number: int
+    correct: bool
+    student_answer: Optional[str]
+    correct_answer: str
+
+
+class SubmitAttemptOut(BaseModel):
+    attempt_id: int
+    raw_score: int
+    total_questions: int
+    band_score: float
+    time_spent: int
+    per_question: List[PerQuestionResult]
+
+
+# ── IELTS Admin / Teacher Test Creation Schemas ───────────────────────────────
+
+class IELTSQuestionIn(BaseModel):
+    local_order: int
+    stem: str
+    options: Optional[list] = None
+    correct_answer: str
+    answer_variants: Optional[list] = None
+
+
+class IELTSQuestionGroupIn(BaseModel):
+    order: int
+    question_type: str
+    instruction: str
+    word_limit: Optional[int] = None
+    options_pool: Optional[dict] = None
+    questions: List[IELTSQuestionIn]
+
+
+class IELTSPassageIn(BaseModel):
+    order: int
+    title: str
+    body_text: str
+    image_url: Optional[str] = None
+    question_groups: List[IELTSQuestionGroupIn]
+
+
+class IELTSTestIn(BaseModel):
+    title: str
+    test_type: str = "academic"
+    component: str = "reading"
+    time_limit: int = 60
+    passages: List[IELTSPassageIn]

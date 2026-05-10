@@ -315,16 +315,17 @@ textarea:focus { border-color: #222; }
 
 <div class="layout">
 
-  <!-- Task 2 prompt -->
-  <div class="task-card">
-    <div class="task-label">Writing Task 2 — Academic</div>
-    <p>
-      In many countries, the gap between the rich and the poor is widening.
-      What problems does this create, and what solutions can you suggest?
-    </p>
-    <p class="task-note">
-      Give reasons for your answer and include relevant examples from your own knowledge or experience.
-    </p>
+  <!-- Task 2 prompt (loaded dynamically) -->
+  <div class="task-card" id="prompt-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="task-label" id="prompt-label" style="margin-bottom:0;">Writing Task 2 — Academic</div>
+      <button id="refresh-prompt-btn" onclick="loadWritingPrompt()" title="Get a different prompt"
+        style="background:none;border:1.5px solid #cbd5e1;border-radius:8px;padding:4px 12px;font-size:12px;color:#64748b;cursor:pointer;transition:border-color .15s;"
+        onmouseover="this.style.borderColor='#059669';this.style.color='#059669'"
+        onmouseout="this.style.borderColor='#cbd5e1';this.style.color='#64748b'">↻ New prompt</button>
+    </div>
+    <p id="prompt-text" style="min-height:48px;">Loading prompt…</p>
+    <p class="task-note" id="prompt-note">Give reasons for your answer and include relevant examples from your own knowledge or experience.</p>
   </div>
 
   <!-- Essay textarea -->
@@ -385,6 +386,40 @@ function startTimer() {
 }
 
 startTimer();
+
+// ── Writing Prompt (from backend) ─────────────────────────────────────────────
+let _currentPromptId = null;
+
+async function loadWritingPrompt() {
+  const labelEl = document.getElementById("prompt-label");
+  const textEl  = document.getElementById("prompt-text");
+  const noteEl  = document.getElementById("prompt-note");
+  const btn     = document.getElementById("refresh-prompt-btn");
+
+  textEl.style.opacity = "0.4";
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API_BASE}/writing/random-prompt?task=2&test_type=academic`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const p = await res.json();
+      _currentPromptId = p.id;
+      const taskLabel = `Writing Task ${p.task} — ${p.test_type.charAt(0).toUpperCase() + p.test_type.slice(1)}`;
+      labelEl.textContent = taskLabel;
+      textEl.textContent  = p.prompt_text;
+      const minW = p.min_words || 250;
+      noteEl.textContent = `Write at least ${minW} words. Give reasons for your answer and include relevant examples from your own knowledge or experience.`;
+    }
+    // On failure, keep existing / fallback text
+  } catch (_) { /* network error — keep existing text */ }
+
+  textEl.style.opacity = "1";
+  btn.disabled = false;
+}
+
+loadWritingPrompt();
 
 // ── Live word counter ─────────────────────────────────────────────────────────
 const MIN_WORDS    = 150;   // Minimum to unlock submit

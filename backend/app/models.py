@@ -260,6 +260,130 @@ class TelegramVerificationCode(Base):
     user = relationship("User", foreign_keys=[user_id])
 
 
+# ── IELTS Question Engine ─────────────────────────────────────────────────────
+
+class IELTSTest(Base):
+    """A full IELTS practice test (Reading, Listening, or Writing component)."""
+    __tablename__ = "ielts_tests"
+
+    id:          Mapped[int]           = mapped_column(Integer, primary_key=True, index=True)
+    title:       Mapped[str]           = mapped_column(String(300), nullable=False)
+    test_type:   Mapped[str]           = mapped_column(String(20), default="academic")   # academic | general
+    component:   Mapped[str]           = mapped_column(String(20), default="reading")    # reading | listening
+    time_limit:  Mapped[int]           = mapped_column(Integer, default=60)              # minutes
+    is_active:   Mapped[bool]          = mapped_column(Boolean, default=True, server_default="1")
+    created_by:  Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)
+    created_at:  Mapped[datetime]      = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    passages = relationship("IELTSPassage", back_populates="test",
+                            order_by="IELTSPassage.order", cascade="all, delete-orphan")
+    attempts = relationship("IELTSAttempt", back_populates="test", cascade="all, delete-orphan")
+
+
+class IELTSPassage(Base):
+    """One passage (1-3) within an IELTS test."""
+    __tablename__ = "ielts_passages"
+
+    id:        Mapped[int]           = mapped_column(Integer, primary_key=True, index=True)
+    test_id:   Mapped[int]           = mapped_column(ForeignKey("ielts_tests.id"), nullable=False)
+    order:     Mapped[int]           = mapped_column(Integer, nullable=False)   # 1, 2, 3
+    title:     Mapped[str]           = mapped_column(String(300), nullable=False)
+    body_text: Mapped[str]           = mapped_column(Text, nullable=False)
+    image_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+
+    test = relationship("IELTSTest", back_populates="passages")
+    question_groups = relationship("IELTSQuestionGroup", back_populates="passage",
+                                   order_by="IELTSQuestionGroup.order", cascade="all, delete-orphan")
+
+
+class IELTSQuestionGroup(Base):
+    """
+    A block of questions sharing the same type and instruction.
+    E.g. 'Questions 14–17: True / False / Not Given'
+    """
+    __tablename__ = "ielts_question_groups"
+
+    id:            Mapped[int]           = mapped_column(Integer, primary_key=True, index=True)
+    passage_id:    Mapped[int]           = mapped_column(ForeignKey("ielts_passages.id"), nullable=False)
+    order:         Mapped[int]           = mapped_column(Integer, nullable=False)
+    question_type: Mapped[str]           = mapped_column(String(50), nullable=False)
+    # tfng | ynng | mcq | mcq_multi | matching_headings | matching_info
+    # sentence_completion | summary_completion | table_completion | short_answer
+    instruction:   Mapped[str]           = mapped_column(Text, nullable=False)
+    word_limit:    Mapped[Optional[int]] = mapped_column(Integer, nullable=True)   # for completion tasks
+    options_pool:  Mapped[Optional[dict]]= mapped_column(JSON, nullable=True)      # headings list for matching
+
+    passage = relationship("IELTSPassage", back_populates="question_groups")
+    questions = relationship("IELTSQuestion", back_populates="group",
+                             order_by="IELTSQuestion.local_order", cascade="all, delete-orphan")
+
+
+class IELTSQuestion(Base):
+    """One question within a group. global_number is the 1-40 exam number."""
+    __tablename__ = "ielts_questions"
+
+    id:             Mapped[int]           = mapped_column(Integer, primary_key=True, index=True)
+    group_id:       Mapped[int]           = mapped_column(ForeignKey("ielts_question_groups.id"), nullable=False)
+    global_number:  Mapped[int]           = mapped_column(Integer, nullable=False, index=True)
+    local_order:    Mapped[int]           = mapped_column(Integer, nullable=False)
+    stem:           Mapped[str]           = mapped_column(Text, nullable=False)
+    options:        Mapped[Optional[dict]]= mapped_column(JSON, nullable=True)   # [{"key":"A","text":"..."}]
+    correct_answer: Mapped[str]           = mapped_column(Text, nullable=False)  # "TRUE","A","migration"
+    answer_variants:Mapped[Optional[dict]]= mapped_column(JSON, nullable=True)  # ["colour","color"]
+
+    group = relationship("IELTSQuestionGroup", back_populates="questions")
+
+
+class IELTSAttempt(Base):
+    """One student's attempt at an IELTS test."""
+    __tablename__ = "ielts_attempts"
+
+    id:           Mapped[int]           = mapped_column(Integer, primary_key=True, index=True)
+    user_id:      Mapped[int]           = mapped_column(ForeignKey("users.id"), nullable=False)
+    test_id:      Mapped[int]           = mapped_column(ForeignKey("ielts_tests.id"), nullable=False)
+    started_at:   Mapped[datetime]      = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    submitted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    time_spent:   Mapped[int]           = mapped_column(Integer, default=0)       # seconds
+    status:       Mapped[str]           = mapped_column(String(20), default="in_progress")
+    # in_progress | submitted | expired
+    raw_score:    Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    band_score:   Mapped[Optional[float]]= mapped_column(Float, nullable=True)
+
+    user    = relationship("User", foreign_keys=[user_id])
+    test    = relationship("IELTSTest", back_populates="attempts")
+    answers = relationship("IELTSStudentAnswer", back_populates="attempt", cascade="all, delete-orphan")
+
+
+class WritingPrompt(Base):
+    """A writing task prompt (Task 1 or Task 2) drawn randomly for students."""
+    __tablename__ = "writing_prompts"
+
+    id:                 Mapped[int]           = mapped_column(Integer, primary_key=True, index=True)
+    task:               Mapped[int]           = mapped_column(Integer, nullable=False)         # 1 or 2
+    test_type:          Mapped[str]           = mapped_column(String(20), default="academic")  # academic | general
+    topic:              Mapped[str]           = mapped_column(String(100), nullable=False)      # science, health, etc.
+    prompt_text:        Mapped[str]           = mapped_column(Text, nullable=False)
+    image_description:  Mapped[Optional[str]] = mapped_column(Text, nullable=True)             # chart/diagram for Task 1
+    min_words:          Mapped[int]           = mapped_column(Integer, default=250)
+    is_active:          Mapped[bool]          = mapped_column(Boolean, default=True, server_default="1")
+    created_at:         Mapped[datetime]      = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class IELTSStudentAnswer(Base):
+    """One saved answer for one question in one attempt."""
+    __tablename__ = "ielts_student_answers"
+
+    id:          Mapped[int]           = mapped_column(Integer, primary_key=True, index=True)
+    attempt_id:  Mapped[int]           = mapped_column(ForeignKey("ielts_attempts.id"), nullable=False)
+    question_id: Mapped[int]           = mapped_column(ForeignKey("ielts_questions.id"), nullable=False)
+    answer_value:Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    is_flagged:  Mapped[bool]          = mapped_column(Boolean, default=False, server_default="0")
+    answered_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    attempt  = relationship("IELTSAttempt", back_populates="answers")
+    question = relationship("IELTSQuestion", foreign_keys=[question_id])
+
+
 class TeacherTestResult(Base):
     """Stores every submission a student makes on a teacher-created test."""
     __tablename__ = "teacher_test_results"

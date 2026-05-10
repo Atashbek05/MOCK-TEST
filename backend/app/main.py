@@ -20,6 +20,7 @@ from . import models, schemas
 from .bot import start_polling
 from .seed_data import READING_TESTS
 from .database import Base, SessionLocal, engine, get_db
+from .seed_ielts import seed as seed_ielts_content
 from .security import create_access_token, decode_access_token, hash_password, verify_password
 
 app = FastAPI(title="IELTS Mock Test API", version="0.1.0")
@@ -374,6 +375,22 @@ def get_teacher_user(current_user: models.User = Depends(get_current_user)):
     return current_user
 
 
+from fastapi.security import HTTPBearer as _HTTPBearer
+_optional_bearer = _HTTPBearer(auto_error=False)
+
+def get_optional_user(
+    credentials: HTTPAuthorizationCredentials = Depends(_optional_bearer),
+    db: Session = Depends(get_db),
+):
+    """Like get_current_user but returns None instead of 401 when no/invalid token."""
+    if not credentials:
+        return None
+    email = decode_access_token(credentials.credentials)
+    if not email:
+        return None
+    return db.query(models.User).filter(models.User.email == email).first()
+
+
 def _band_to_level(overall: float) -> str:
     if overall >= 7.5:
         return "Advanced"
@@ -571,6 +588,7 @@ async def startup_event():
         _migrate_users_telegram(db)     # Phase 6
         _seed_questions(db)
         _seed_reading_tests(db)
+        seed_ielts_content(db)
     finally:
         db.close()
     # Start Telegram bot polling (replaces the old webhook approach).
@@ -2062,3 +2080,449 @@ def telegram_login_exchange(code: str = Body(..., embed=True), db: Session = Dep
 
     token = create_access_token(subject=user.email)
     return {"token": token, "name": user.name, "role": user.role}
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# IELTS QUESTION ENGINE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── Band score lookup tables (official IELTS conversion) ──────────────────────
+_READING_BANDS = [
+    (39, 9.0), (37, 8.5), (35, 8.0), (33, 7.5), (30, 7.0),
+    (27, 6.5), (23, 6.0), (19, 5.5), (15, 5.0), (13, 4.5),
+    (10, 4.0), (8, 3.5), (6, 3.0), (4, 2.5), (0, 2.0),
+]
+
+_LISTENING_BANDS = [
+    (39, 9.0), (37, 8.5), (35, 8.0), (32, 7.5), (30, 7.0),
+    (26, 6.5), (23, 6.0), (18, 5.5), (16, 5.0), (13, 4.5),
+    (10, 4.0), (8, 3.5), (6, 3.0), (4, 2.5), (0, 2.0),
+]
+
+
+def _raw_to_band(raw: int, component: str = "reading") -> float:
+    table = _LISTENING_BANDS if component == "listening" else _READING_BANDS
+    for min_score, band in table:
+        if raw >= min_score:
+            return band
+    return 0.0
+
+
+def _check_answer(student: Optional[str], correct: str, variants: Optional[list]) -> bool:
+    """Case-insensitive answer check with optional acceptable variants."""
+    if not student:
+        return False
+    s = student.strip().lower()
+    c = correct.strip().lower()
+    if s == c:
+        return True
+    if variants:
+        return s in [v.strip().lower() for v in variants]
+    return False
+
+
+# ── List available IELTS tests ────────────────────────────────────────────────
+
+@app.get("/ielts/tests", response_model=List[schemas.IELTSTestListItem])
+def list_ielts_tests(
+    current_user: models.User = Depends(get_optional_user),
+    db: Session = Depends(get_db),
+):
+    tests = (db.query(models.IELTSTest)
+             .filter(models.IELTSTest.is_active == True)
+             .order_by(models.IELTSTest.created_at.desc())
+             .all())
+
+    if not current_user:
+        return tests
+
+    # Enrich with per-user attempt stats
+    attempts = (
+        db.query(models.IELTSAttempt)
+        .filter(
+            models.IELTSAttempt.user_id == current_user.id,
+            models.IELTSAttempt.status == "submitted",
+        )
+        .all()
+    )
+    best: dict = {}
+    count: dict = {}
+    for a in attempts:
+        count[a.test_id] = count.get(a.test_id, 0) + 1
+        if a.band_score is not None:
+            prev = best.get(a.test_id)
+            if prev is None or a.band_score > prev:
+                best[a.test_id] = a.band_score
+
+    result = []
+    for t in tests:
+        item = schemas.IELTSTestListItem(
+            id=t.id, title=t.title, test_type=t.test_type,
+            component=t.component, time_limit=t.time_limit,
+            best_band=best.get(t.id),
+            attempt_count=count.get(t.id, 0) or None,
+        )
+        result.append(item)
+    return result
+
+
+# ── Get full test structure (no correct answers) ──────────────────────────────
+
+@app.get("/ielts/test/{test_id}", response_model=schemas.IELTSTestOut)
+def get_ielts_test(test_id: int, db: Session = Depends(get_db)):
+    test = db.query(models.IELTSTest).filter(models.IELTSTest.id == test_id).first()
+    if not test:
+        raise HTTPException(status_code=404, detail="Test not found")
+    return test
+
+
+# ── Start or resume an attempt ────────────────────────────────────────────────
+
+@app.post("/ielts/start/{test_id}", response_model=schemas.StartAttemptOut)
+def start_ielts_attempt(
+    test_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    test = db.query(models.IELTSTest).filter(models.IELTSTest.id == test_id).first()
+    if not test:
+        raise HTTPException(status_code=404, detail="Test not found")
+
+    # Resume existing in-progress attempt if one exists
+    existing = (db.query(models.IELTSAttempt)
+                .filter(models.IELTSAttempt.user_id == current_user.id,
+                        models.IELTSAttempt.test_id == test_id,
+                        models.IELTSAttempt.status == "in_progress")
+                .first())
+    if existing:
+        return {"attempt_id": existing.id, "test": test}
+
+    attempt = models.IELTSAttempt(user_id=current_user.id, test_id=test_id)
+    db.add(attempt)
+    db.commit()
+    db.refresh(attempt)
+    return {"attempt_id": attempt.id, "test": test}
+
+
+# ── Save one answer (auto-save, called on every change) ───────────────────────
+
+@app.put("/ielts/attempt/{attempt_id}/answer")
+def save_ielts_answer(
+    attempt_id: int,
+    payload: schemas.SaveAnswerIn,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    attempt = (db.query(models.IELTSAttempt)
+               .filter(models.IELTSAttempt.id == attempt_id,
+                       models.IELTSAttempt.user_id == current_user.id)
+               .first())
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+    if attempt.status != "in_progress":
+        raise HTTPException(status_code=400, detail="Attempt already submitted")
+
+    sa = (db.query(models.IELTSStudentAnswer)
+          .filter(models.IELTSStudentAnswer.attempt_id == attempt_id,
+                  models.IELTSStudentAnswer.question_id == payload.question_id)
+          .first())
+
+    if sa:
+        if payload.answer_value is not None:
+            sa.answer_value = payload.answer_value
+            sa.answered_at = datetime.now(timezone.utc)
+        if payload.is_flagged is not None:
+            sa.is_flagged = payload.is_flagged
+    else:
+        db.add(models.IELTSStudentAnswer(
+            attempt_id=attempt_id,
+            question_id=payload.question_id,
+            answer_value=payload.answer_value,
+            is_flagged=payload.is_flagged or False,
+            answered_at=datetime.now(timezone.utc) if payload.answer_value else None,
+        ))
+
+    db.commit()
+    return {"ok": True}
+
+
+# ── Get saved answers (for resuming a test) ───────────────────────────────────
+
+@app.get("/ielts/attempt/{attempt_id}/answers")
+def get_ielts_answers(
+    attempt_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    attempt = (db.query(models.IELTSAttempt)
+               .filter(models.IELTSAttempt.id == attempt_id,
+                       models.IELTSAttempt.user_id == current_user.id)
+               .first())
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    return [
+        {"question_id": sa.question_id, "answer_value": sa.answer_value,
+         "is_flagged": sa.is_flagged}
+        for sa in attempt.answers
+    ]
+
+
+# ── Submit the attempt and calculate score ────────────────────────────────────
+
+@app.post("/ielts/attempt/{attempt_id}/submit", response_model=schemas.SubmitAttemptOut)
+def submit_ielts_attempt(
+    attempt_id: int,
+    time_spent: int = Body(0, embed=True),
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    attempt = (db.query(models.IELTSAttempt)
+               .filter(models.IELTSAttempt.id == attempt_id,
+                       models.IELTSAttempt.user_id == current_user.id)
+               .first())
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+    if attempt.status != "in_progress":
+        raise HTTPException(status_code=400, detail="Already submitted")
+
+    # Flatten all questions in global_number order
+    all_questions = []
+    for passage in attempt.test.passages:
+        for group in passage.question_groups:
+            for q in group.questions:
+                all_questions.append(q)
+    all_questions.sort(key=lambda q: q.global_number)
+
+    # Index student answers by question_id
+    saved = {sa.question_id: sa.answer_value for sa in attempt.answers}
+
+    raw = 0
+    per_question = []
+    for q in all_questions:
+        student_ans = saved.get(q.id)
+        variants = q.answer_variants if q.answer_variants else []
+        is_correct = _check_answer(student_ans, q.correct_answer, variants)
+        if is_correct:
+            raw += 1
+        per_question.append(schemas.PerQuestionResult(
+            question_id=q.id,
+            global_number=q.global_number,
+            correct=is_correct,
+            student_answer=student_ans,
+            correct_answer=q.correct_answer,
+        ))
+
+    band = _raw_to_band(raw, attempt.test.component)
+
+    attempt.status = "submitted"
+    attempt.submitted_at = datetime.now(timezone.utc)
+    attempt.time_spent = time_spent
+    attempt.raw_score = raw
+    attempt.band_score = band
+    db.commit()
+
+    return schemas.SubmitAttemptOut(
+        attempt_id=attempt_id,
+        raw_score=raw,
+        total_questions=len(all_questions),
+        band_score=band,
+        time_spent=time_spent,
+        per_question=per_question,
+    )
+
+
+# ── Get result of a submitted attempt ─────────────────────────────────────────
+
+@app.get("/ielts/attempt/{attempt_id}/result")
+def get_ielts_result(
+    attempt_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    attempt = (db.query(models.IELTSAttempt)
+               .filter(models.IELTSAttempt.id == attempt_id,
+                       models.IELTSAttempt.user_id == current_user.id)
+               .first())
+    if not attempt or attempt.status != "submitted":
+        raise HTTPException(status_code=404, detail="No submitted result found")
+
+    return {
+        "attempt_id":  attempt_id,
+        "test_title":  attempt.test.title,
+        "raw_score":   attempt.raw_score,
+        "total":       sum(len(g.questions) for p in attempt.test.passages for g in p.question_groups),
+        "band_score":  attempt.band_score,
+        "time_spent":  attempt.time_spent,
+        "submitted_at": attempt.submitted_at.isoformat(),
+    }
+
+
+# ── Admin: create an IELTS test (teacher-only, populates DB) ──────────────────
+
+@app.post("/ielts/admin/create-test", status_code=201)
+def create_ielts_test(
+    payload: schemas.IELTSTestIn,
+    current_user: models.User = Depends(get_teacher_user),
+    db: Session = Depends(get_db),
+):
+    test = models.IELTSTest(
+        title=payload.title,
+        test_type=payload.test_type,
+        component=payload.component,
+        time_limit=payload.time_limit,
+        created_by=current_user.id,
+    )
+    db.add(test)
+    db.flush()
+
+    global_num = 1
+    for p_data in payload.passages:
+        passage = models.IELTSPassage(
+            test_id=test.id, order=p_data.order,
+            title=p_data.title, body_text=p_data.body_text,
+            image_url=p_data.image_url,
+        )
+        db.add(passage)
+        db.flush()
+
+        for g_data in p_data.question_groups:
+            group = models.IELTSQuestionGroup(
+                passage_id=passage.id, order=g_data.order,
+                question_type=g_data.question_type,
+                instruction=g_data.instruction,
+                word_limit=g_data.word_limit,
+                options_pool=g_data.options_pool,
+            )
+            db.add(group)
+            db.flush()
+
+            for q_data in g_data.questions:
+                db.add(models.IELTSQuestion(
+                    group_id=group.id,
+                    global_number=global_num,
+                    local_order=q_data.local_order,
+                    stem=q_data.stem,
+                    options=q_data.options,
+                    correct_answer=q_data.correct_answer,
+                    answer_variants=q_data.answer_variants,
+                ))
+                global_num += 1
+
+    db.commit()
+    return {"id": test.id, "title": test.title, "total_questions": global_num - 1}
+
+
+# ── IELTS: next unseen test ────────────────────────────────────────────────────
+
+@app.get("/ielts/next-test")
+def ielts_next_test(
+    component: str = "reading",
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return the test the student hasn't attempted, or attempted least recently."""
+    tests = (
+        db.query(models.IELTSTest)
+        .filter(models.IELTSTest.component == component, models.IELTSTest.is_active == True)
+        .all()
+    )
+    if not tests:
+        raise HTTPException(status_code=404, detail="No active tests found")
+
+    # Build map: test_id → latest submitted_at (None if never attempted)
+    submitted_attempts = (
+        db.query(models.IELTSAttempt)
+        .filter(
+            models.IELTSAttempt.user_id == current_user.id,
+            models.IELTSAttempt.status == "submitted",
+        )
+        .all()
+    )
+    last_done: dict = {}
+    for a in submitted_attempts:
+        prev = last_done.get(a.test_id)
+        if prev is None or a.submitted_at > prev:
+            last_done[a.test_id] = a.submitted_at
+
+    # Prefer tests never attempted; among attempted pick oldest submission
+    never = [t for t in tests if t.id not in last_done]
+    if never:
+        chosen = random.choice(never)
+    else:
+        chosen = min(tests, key=lambda t: last_done[t.id])
+
+    total_q = (
+        db.query(models.IELTSQuestion)
+        .join(models.IELTSQuestionGroup)
+        .join(models.IELTSPassage)
+        .filter(models.IELTSPassage.test_id == chosen.id)
+        .count()
+    )
+    return {
+        "id": chosen.id,
+        "title": chosen.title,
+        "test_type": chosen.test_type,
+        "component": chosen.component,
+        "time_limit": chosen.time_limit,
+        "total_questions": total_q,
+        "previously_attempted": chosen.id in last_done,
+    }
+
+
+# ── Writing: random prompt ─────────────────────────────────────────────────────
+
+@app.get("/writing/random-prompt")
+def writing_random_prompt(
+    task: int = 2,
+    test_type: str = "academic",
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return a random active writing prompt for the given task (1 or 2) and test_type."""
+    if task not in (1, 2):
+        raise HTTPException(status_code=422, detail="task must be 1 or 2")
+    prompts = (
+        db.query(models.WritingPrompt)
+        .filter(
+            models.WritingPrompt.task == task,
+            models.WritingPrompt.test_type == test_type,
+            models.WritingPrompt.is_active == True,
+        )
+        .all()
+    )
+    if not prompts:
+        raise HTTPException(status_code=404, detail="No prompts found for this task/type")
+
+    p = random.choice(prompts)
+    return {
+        "id": p.id,
+        "task": p.task,
+        "test_type": p.test_type,
+        "topic": p.topic,
+        "prompt_text": p.prompt_text,
+        "image_description": p.image_description,
+        "min_words": p.min_words,
+    }
+
+
+# ── Admin: manual re-seed ──────────────────────────────────────────────────────
+
+@app.post("/admin/seed")
+def admin_seed(
+    force: bool = False,
+    current_user: models.User = Depends(get_teacher_user),
+    db: Session = Depends(get_db),
+):
+    """Manually trigger IELTS content seeder. Use force=true to wipe and re-seed."""
+    if force:
+        db.query(models.IELTSStudentAnswer).delete()
+        db.query(models.IELTSAttempt).delete()
+        db.query(models.IELTSQuestion).delete()
+        db.query(models.IELTSQuestionGroup).delete()
+        db.query(models.IELTSPassage).delete()
+        db.query(models.IELTSTest).delete()
+        db.query(models.WritingPrompt).delete()
+        db.commit()
+    result = seed_ielts_content(db)
+    return {"ok": True, **result}

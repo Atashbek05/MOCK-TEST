@@ -947,6 +947,30 @@ body {
     <div class="tg-banner-arrow">›</div>
   </a>
 
+  <!-- ── IELTS Practice Tests ──────────────────────────────────────────────── -->
+  <div id="ielts-section">
+    <div class="block-header">
+      <span class="block-title">IELTS Practice Tests</span>
+    </div>
+
+    <!-- Next Test Hero Card -->
+    <div id="ielts-next-card" style="display:none;background:linear-gradient(135deg,#ecfdf5,#d1fae5);border:1.5px solid #6ee7b7;border-radius:16px;padding:20px 22px;margin-bottom:14px;display:flex;align-items:center;gap:16px;">
+      <div style="font-size:34px;flex-shrink:0;">🎯</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:11px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Recommended Next</div>
+        <div id="ielts-next-title" style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+        <div id="ielts-next-meta"  style="font-size:12px;color:#047857;">—</div>
+      </div>
+      <a id="ielts-next-btn" href="#" style="flex-shrink:0;background:#059669;color:white;font-size:13px;font-weight:700;padding:9px 18px;border-radius:10px;text-decoration:none;white-space:nowrap;transition:background .15s;"
+         onmouseover="this.style.background='#047857'" onmouseout="this.style.background='#059669'">Start →</a>
+    </div>
+
+    <!-- All Tests List -->
+    <div id="ielts-tests-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
+      <div style="color:#94a3b8;font-size:13px;padding:12px 0;">Loading practice tests…</div>
+    </div>
+  </div>
+
   <!-- ── Teacher Tests: JOIN by PIN ───────────────────────────────────────── -->
   <div>
     <div class="block-header">
@@ -1472,6 +1496,71 @@ async function loadDashboard() {
 }
 
 loadDashboard();
+loadIELTSTests();
+
+async function loadIELTSTests() {
+  const wrap = document.getElementById("ielts-tests-list");
+  const token = localStorage.getItem("token");
+  const authH = token ? { "Authorization": "Bearer " + token } : {};
+
+  try {
+    // Parallel: all tests + next recommended test
+    const [testsRes, nextRes] = await Promise.allSettled([
+      fetch(`${API_BASE}/ielts/tests`, { headers: authH }),
+      fetch(`${API_BASE}/ielts/next-test?component=reading`, { headers: authH }),
+    ]);
+
+    // ── All Tests ──────────────────────────────────────────────────────────────
+    let tests = [];
+    if (testsRes.status === "fulfilled" && testsRes.value.ok) {
+      tests = await testsRes.value.json();
+    }
+
+    if (!Array.isArray(tests) || !tests.length) {
+      wrap.innerHTML = '<div style="color:#94a3b8;font-size:13px;padding:12px 0;">No practice tests available yet.</div>';
+    } else {
+      wrap.innerHTML = tests.map(t => {
+        const band = t.best_band != null
+          ? `<div style="background:#059669;color:white;font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px;white-space:nowrap;">Band ${t.best_band}</div>`
+          : `<div style="font-size:13px;font-weight:700;color:#059669;">Start →</div>`;
+        const sub = t.best_band != null
+          ? `${t.time_limit} min · ${t.test_type} · Attempted ${t.attempt_count}×`
+          : `${t.time_limit} min · ${t.test_type} · ${t.component}`;
+        return `<a href="ielts-exam.html?test_id=${t.id}" style="
+          display:flex;align-items:center;gap:14px;background:white;
+          border:1.5px solid #e2e8f0;border-radius:14px;padding:16px 20px;
+          text-decoration:none;color:inherit;
+          transition:box-shadow .15s,border-color .15s;box-shadow:0 1px 4px rgba(0,0,0,.05);"
+          onmouseover="this.style.borderColor='#059669';this.style.boxShadow='0 4px 16px rgba(5,150,105,.12)'"
+          onmouseout="this.style.borderColor='#e2e8f0';this.style.boxShadow='0 1px 4px rgba(0,0,0,.05)'">
+          <div style="font-size:28px;flex-shrink:0;">📖</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:700;color:#0f172a;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.title}</div>
+            <div style="font-size:12px;color:#64748b;">${sub}</div>
+          </div>
+          ${band}
+        </a>`;
+      }).join("");
+    }
+
+    // ── Next Recommended Test ─────────────────────────────────────────────────
+    if (nextRes.status === "fulfilled" && nextRes.value.ok) {
+      const next = await nextRes.value.json();
+      const card = document.getElementById("ielts-next-card");
+      const titleEl = document.getElementById("ielts-next-title");
+      const metaEl  = document.getElementById("ielts-next-meta");
+      const btn     = document.getElementById("ielts-next-btn");
+      titleEl.textContent = next.title;
+      metaEl.textContent  = `${next.time_limit ?? 60} min · ${next.total_questions} questions`
+        + (next.previously_attempted ? " · Retake" : " · New");
+      btn.href = `ielts-exam.html?test_id=${next.id}`;
+      card.style.display = "flex";
+    }
+
+  } catch (_) {
+    wrap.innerHTML = "";  // hide section silently on network error
+  }
+}
 </script>
 
 </body>

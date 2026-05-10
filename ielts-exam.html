@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IELTS Reading – Exam</title>
+<style>
+/* ── Reset ───────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+       background: #f1f5f9; color: #0f172a; height: 100vh; overflow: hidden; }
+
+/* ── Screens ─────────────────────────────────────────────────────────────── */
+.screen { display: none; }
+.screen.active { display: flex; flex-direction: column; height: 100vh; }
+
+/* ─── Loading ───────────────────────────────────────────────────────────── */
+#screen-loading { align-items: center; justify-content: center; background: #f1f5f9; }
+.loading-spinner {
+  width: 48px; height: 48px;
+  border: 4px solid #e2e8f0; border-top-color: #059669;
+  border-radius: 50%; animation: spin .8s linear infinite;
+}
+.loading-text { margin-top: 16px; font-size: 15px; color: #64748b; font-weight: 500; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── Instructions ──────────────────────────────────────────────────────── */
+#screen-instructions { align-items: center; justify-content: center; background: #f1f5f9; }
+.instr-card {
+  background: white; border-radius: 20px; padding: 48px 56px; max-width: 560px; width: 100%;
+  box-shadow: 0 4px 24px rgba(0,0,0,.1); text-align: center;
+}
+.instr-badge {
+  display: inline-block; background: #ecfdf5; color: #059669;
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px;
+  padding: 5px 14px; border-radius: 20px; margin-bottom: 20px;
+}
+.instr-title { font-size: 26px; font-weight: 800; letter-spacing: -.4px; margin-bottom: 10px; }
+.instr-sub   { font-size: 14px; color: #64748b; margin-bottom: 28px; line-height: 1.6; }
+.instr-meta  {
+  display: flex; gap: 24px; justify-content: center; margin-bottom: 32px;
+}
+.instr-meta-item { text-align: center; }
+.instr-meta-value { font-size: 28px; font-weight: 800; color: #059669; }
+.instr-meta-label { font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
+.instr-rules {
+  text-align: left; background: #f8fafc; border-radius: 12px;
+  padding: 18px 20px; margin-bottom: 28px; list-style: none;
+}
+.instr-rules li {
+  font-size: 13px; color: #374151; padding: 5px 0; padding-left: 20px; position: relative;
+}
+.instr-rules li::before { content: "•"; position: absolute; left: 0; color: #059669; font-weight: 700; }
+.btn-start {
+  width: 100%; padding: 14px; background: #059669; color: white;
+  font-size: 16px; font-weight: 700; font-family: inherit;
+  border: none; border-radius: 12px; cursor: pointer;
+  transition: background .15s, transform .15s;
+}
+.btn-start:hover { background: #047857; transform: translateY(-1px); }
+
+/* ─── Exam Screen ───────────────────────────────────────────────────────── */
+#screen-exam { background: #e2e8f0; height: 100vh; overflow: hidden; }
+
+/* Exam header */
+.exam-header {
+  height: 52px; background: #1e293b; display: flex; align-items: center;
+  justify-content: space-between; padding: 0 20px; flex-shrink: 0; gap: 16px;
+}
+.exam-header-left  { display: flex; align-items: center; gap: 14px; }
+.exam-logo { font-size: 15px; font-weight: 800; color: white; }
+.exam-logo span { color: #34d399; }
+.exam-section-badge {
+  font-size: 11px; font-weight: 700; background: #334155; color: #94a3b8;
+  padding: 3px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: .6px;
+}
+.exam-header-center { flex: 1; display: flex; justify-content: center; }
+.timer-box {
+  background: #0f172a; border-radius: 10px; padding: 6px 18px;
+  display: flex; align-items: center; gap: 8px;
+}
+.timer-icon { font-size: 16px; }
+.timer-value { font-size: 18px; font-weight: 800; color: #34d399; font-variant-numeric: tabular-nums; }
+.timer-box.warn  .timer-value { color: #fbbf24; }
+.timer-box.danger .timer-value { color: #f87171; animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+.exam-header-right { display: flex; align-items: center; gap: 10px; }
+.btn-review {
+  font-size: 13px; font-weight: 700; background: #334155; color: #cbd5e1;
+  border: none; border-radius: 8px; padding: 7px 16px; cursor: pointer;
+  font-family: inherit; transition: background .15s;
+}
+.btn-review:hover { background: #475569; }
+.btn-submit-exam {
+  font-size: 13px; font-weight: 700; background: #059669; color: white;
+  border: none; border-radius: 8px; padding: 7px 16px; cursor: pointer;
+  font-family: inherit; transition: background .15s;
+}
+.btn-submit-exam:hover { background: #047857; }
+
+/* Passage tabs */
+.passage-tabs {
+  height: 40px; background: #1e293b; border-bottom: 1px solid #334155;
+  display: flex; align-items: flex-end; padding: 0 20px; gap: 2px; flex-shrink: 0;
+}
+.passage-tab {
+  font-size: 12px; font-weight: 700; color: #64748b;
+  padding: 7px 18px; border-radius: 8px 8px 0 0; cursor: pointer;
+  background: #334155; border: 1px solid #475569; border-bottom: none;
+  transition: background .15s, color .15s; white-space: nowrap;
+}
+.passage-tab.active { background: #f1f5f9; color: #0f172a; border-color: #e2e8f0; }
+.passage-tab .tab-status { font-size: 10px; margin-left: 5px; }
+
+/* Split body */
+.exam-body {
+  display: flex; gap: 0; flex: 1; overflow: hidden; height: calc(100vh - 52px - 40px - 52px);
+}
+.passage-panel {
+  width: 52%; background: white; overflow-y: auto; padding: 28px 32px;
+  border-right: 2px solid #e2e8f0; flex-shrink: 0;
+}
+.questions-panel { flex: 1; background: #f8fafc; overflow-y: auto; padding: 20px 24px; }
+
+/* Passage text */
+.passage-title {
+  font-size: 18px; font-weight: 800; color: #0f172a;
+  margin-bottom: 18px; padding-bottom: 14px; border-bottom: 2px solid #e2e8f0;
+}
+.passage-paragraph { display: flex; gap: 12px; margin-bottom: 16px; }
+.para-label {
+  font-size: 12px; font-weight: 800; color: #059669; width: 20px;
+  flex-shrink: 0; padding-top: 2px; text-align: center;
+}
+.para-text { font-size: 14px; line-height: 1.8; color: #1e293b; }
+
+/* Question groups */
+.q-group { margin-bottom: 28px; }
+.q-group-header { margin-bottom: 14px; }
+.q-group-type-badge {
+  display: inline-block; font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .7px; padding: 2px 8px; border-radius: 4px; margin-bottom: 8px;
+  background: #ecfdf5; color: #059669;
+}
+.q-group-range { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+.q-group-instruction {
+  font-size: 13px; color: #374151; line-height: 1.6;
+  background: #f0fdf4; border-left: 3px solid #059669;
+  padding: 10px 14px; border-radius: 0 8px 8px 0; margin-bottom: 4px;
+}
+.q-word-limit {
+  font-size: 11px; color: #dc2626; font-weight: 600; margin-top: 4px;
+}
+
+/* Options pool (for matching headings) */
+.options-pool {
+  background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 10px;
+  padding: 14px 16px; margin-bottom: 16px;
+}
+.options-pool-title {
+  font-size: 11px; font-weight: 800; color: #92400e; text-transform: uppercase;
+  letter-spacing: .6px; margin-bottom: 10px;
+}
+.pool-item { font-size: 13px; color: #374151; margin-bottom: 6px; line-height: 1.4; }
+.pool-item-key { font-weight: 700; color: #92400e; margin-right: 5px; }
+
+/* Individual question */
+.q-item { background: white; border-radius: 10px; padding: 14px 16px;
+          border: 1.5px solid #e2e8f0; margin-bottom: 10px; transition: border-color .15s; }
+.q-item.current { border-color: #059669; box-shadow: 0 0 0 3px rgba(5,150,105,.1); }
+.q-item.answered { border-left: 3px solid #059669; }
+.q-item.flagged  { border-left: 3px solid #f59e0b; }
+
+.q-number-row {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+}
+.q-number {
+  font-size: 12px; font-weight: 800; color: #059669; background: #ecfdf5;
+  padding: 2px 8px; border-radius: 5px;
+}
+.btn-flag {
+  font-size: 11px; font-weight: 600; color: #94a3b8; background: none;
+  border: 1px solid #e2e8f0; border-radius: 6px; padding: 3px 9px; cursor: pointer;
+  font-family: inherit; transition: all .15s;
+}
+.btn-flag:hover, .btn-flag.active { color: #f59e0b; border-color: #fde68a; background: #fffbeb; }
+.q-stem { font-size: 13px; color: #1e293b; line-height: 1.6; margin-bottom: 12px; }
+
+/* ── Question type: TFNG / YNNG ───────────────────────────────────────────── */
+.tfng-options { display: flex; gap: 8px; flex-wrap: wrap; }
+.tfng-option {
+  flex: 1; min-width: 80px; padding: 8px 12px; text-align: center;
+  font-size: 12px; font-weight: 700; border: 2px solid #e2e8f0;
+  border-radius: 8px; cursor: pointer; transition: all .15s; user-select: none;
+  background: white; color: #374151;
+}
+.tfng-option:hover { border-color: #059669; color: #059669; background: #f0fdf4; }
+.tfng-option.selected { border-color: #059669; background: #059669; color: white; }
+
+/* ── Question type: MCQ ───────────────────────────────────────────────────── */
+.mcq-option {
+  display: flex; align-items: flex-start; gap: 10px; padding: 9px 12px;
+  border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer;
+  margin-bottom: 7px; transition: all .15s; background: white;
+}
+.mcq-option:last-child { margin-bottom: 0; }
+.mcq-option:hover { border-color: #059669; background: #f0fdf4; }
+.mcq-option.selected { border-color: #059669; background: #ecfdf5; }
+.mcq-key {
+  font-size: 12px; font-weight: 800; color: #059669;
+  width: 20px; flex-shrink: 0; padding-top: 1px;
+}
+.mcq-text { font-size: 13px; color: #1e293b; line-height: 1.5; }
+
+/* MCQ multi (checkboxes) */
+.mcq-option.multi.selected { border-color: #3b82f6; background: #eff6ff; }
+.mcq-option.multi .mcq-key { color: #3b82f6; }
+
+/* ── Question type: Matching (dropdown) ───────────────────────────────────── */
+.match-select-wrap { display: flex; align-items: center; gap: 10px; }
+.match-label { font-size: 13px; color: #374151; flex: 1; line-height: 1.5; }
+.match-select {
+  font-family: inherit; font-size: 13px; font-weight: 600; color: #0f172a;
+  background: #f0fdf4; border: 2px solid #bbf7d0; border-radius: 8px;
+  padding: 7px 12px; outline: none; cursor: pointer; min-width: 80px;
+  transition: border-color .15s;
+}
+.match-select:focus { border-color: #059669; }
+.match-select.answered { border-color: #059669; }
+
+/* ── Question type: Text input ─────────────────────────────────────────────── */
+.text-answer-wrap { display: flex; align-items: center; gap: 10px; }
+.text-answer-input {
+  flex: 1; font-family: inherit; font-size: 13px; color: #0f172a;
+  background: white; border: 2px solid #e2e8f0; border-radius: 8px;
+  padding: 8px 12px; outline: none; transition: border-color .15s, box-shadow .15s;
+}
+.text-answer-input:focus { border-color: #059669; box-shadow: 0 0 0 3px rgba(5,150,105,.1); }
+.text-answer-input.answered { border-color: #059669; }
+.text-answer-input.overlimit { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.1); }
+.word-count-badge {
+  font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 5px;
+  background: #f1f5f9; color: #64748b; white-space: nowrap; flex-shrink: 0;
+}
+.word-count-badge.over { background: #fef2f2; color: #dc2626; }
+
+/* Inline gap (sentence completion with blank in middle) */
+.inline-stem { font-size: 13px; color: #1e293b; line-height: 2; }
+.inline-input {
+  font-family: inherit; font-size: 13px; color: #0f172a; background: white;
+  border: none; border-bottom: 2px solid #059669; padding: 2px 8px;
+  outline: none; min-width: 120px; text-align: center; margin: 0 4px;
+  transition: background .15s;
+}
+.inline-input:focus { background: #f0fdf4; }
+
+/* ── Navigation Palette ─────────────────────────────────────────────────── */
+.nav-palette {
+  height: 52px; background: #1e293b; border-top: 1px solid #334155;
+  display: flex; align-items: center; padding: 0 16px; gap: 6px; overflow-x: auto;
+  flex-shrink: 0;
+}
+.nav-palette::-webkit-scrollbar { height: 3px; }
+.nav-palette::-webkit-scrollbar-track { background: #1e293b; }
+.nav-palette::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
+.palette-label {
+  font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase;
+  letter-spacing: .6px; white-space: nowrap; margin-right: 4px;
+}
+.palette-separator {
+  width: 1px; height: 28px; background: #334155; margin: 0 4px; flex-shrink: 0;
+}
+.nav-cell {
+  width: 28px; height: 28px; border-radius: 6px; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  flex-shrink: 0; transition: all .1s; border: 1.5px solid #475569; color: #94a3b8;
+  background: #334155;
+}
+.nav-cell:hover  { border-color: #059669; color: #34d399; }
+.nav-cell.answered { background: #059669; border-color: #059669; color: white; }
+.nav-cell.flagged  { background: #f59e0b; border-color: #f59e0b; color: white; }
+.nav-cell.current  { outline: 2px solid white; outline-offset: 1px; }
+
+/* ─── Review overlay ────────────────────────────────────────────────────── */
+.overlay {
+  position: fixed; inset: 0; background: rgba(15,23,42,.7);
+  display: none; align-items: center; justify-content: center; z-index: 100;
+}
+.overlay.active { display: flex; }
+.modal {
+  background: white; border-radius: 20px; padding: 40px 44px;
+  max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto;
+}
+.modal-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+.modal-sub   { font-size: 13px; color: #64748b; margin-bottom: 24px; }
+.review-stats { display: flex; gap: 16px; margin-bottom: 28px; }
+.review-stat  {
+  flex: 1; text-align: center; background: #f8fafc;
+  border-radius: 12px; padding: 16px 12px;
+}
+.review-stat-value { font-size: 32px; font-weight: 800; }
+.review-stat-label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+.review-stat.green .review-stat-value { color: #059669; }
+.review-stat.amber .review-stat-value { color: #f59e0b; }
+.review-stat.red   .review-stat-value { color: #dc2626; }
+.unanswered-list { margin-bottom: 24px; }
+.unanswered-title { font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 8px; }
+.unanswered-cells { display: flex; flex-wrap: wrap; gap: 6px; }
+.unanswered-chip {
+  font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px;
+  background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca; cursor: pointer;
+}
+.unanswered-chip:hover { background: #dc2626; color: white; }
+.modal-actions { display: flex; gap: 12px; }
+.btn-go-back {
+  flex: 1; padding: 12px; font-size: 14px; font-weight: 700; font-family: inherit;
+  background: none; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer;
+  transition: border-color .15s;
+}
+.btn-go-back:hover { border-color: #059669; color: #059669; }
+.btn-confirm-submit {
+  flex: 1; padding: 12px; font-size: 14px; font-weight: 700; font-family: inherit;
+  background: #059669; color: white; border: none; border-radius: 10px; cursor: pointer;
+  transition: background .15s;
+}
+.btn-confirm-submit:hover { background: #047857; }
+
+/* ─── Result screen ─────────────────────────────────────────────────────── */
+#screen-result { align-items: center; justify-content: center; background: #f1f5f9; }
+.result-card {
+  background: white; border-radius: 20px; padding: 48px 52px; max-width: 580px; width: 100%;
+  box-shadow: 0 4px 24px rgba(0,0,0,.1); text-align: center;
+}
+.result-badge {
+  display: inline-block; background: #ecfdf5; color: #059669;
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px;
+  padding: 5px 14px; border-radius: 20px; margin-bottom: 20px;
+}
+.result-title  { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+.result-test   { font-size: 14px; color: #64748b; margin-bottom: 28px; }
+.result-band   { font-size: 72px; font-weight: 900; color: #059669; line-height: 1; margin-bottom: 6px; }
+.result-band-label { font-size: 13px; color: #94a3b8; font-weight: 600; margin-bottom: 28px; }
+.result-stats  { display: flex; gap: 16px; margin-bottom: 28px; }
+.result-stat   { flex: 1; background: #f8fafc; border-radius: 12px; padding: 16px 12px; text-align: center; }
+.result-stat-value { font-size: 26px; font-weight: 800; color: #0f172a; }
+.result-stat-label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; margin-top: 2px; }
+.result-detail-toggle {
+  font-size: 13px; color: #059669; font-weight: 600; cursor: pointer;
+  margin-bottom: 16px; display: block; text-decoration: underline;
+}
+.result-detail-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 24px; }
+.result-detail-table th {
+  background: #f8fafc; padding: 8px 12px; text-align: left;
+  font-weight: 700; color: #374151; border-bottom: 1.5px solid #e2e8f0;
+}
+.result-detail-table td { padding: 7px 12px; border-bottom: 1px solid #f1f5f9; }
+.result-detail-table tr.correct td:first-child { color: #059669; font-weight: 700; }
+.result-detail-table tr.wrong   td:first-child { color: #dc2626; font-weight: 700; }
+.result-actions { display: flex; gap: 12px; }
+.btn-dashboard {
+  flex: 1; padding: 13px; font-size: 14px; font-weight: 700; font-family: inherit;
+  background: #059669; color: white; border: none; border-radius: 10px; cursor: pointer;
+}
+.btn-try-again {
+  flex: 1; padding: 13px; font-size: 14px; font-weight: 700; font-family: inherit;
+  background: none; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer;
+}
+.btn-try-again:hover { border-color: #059669; color: #059669; }
+
+/* ── Scrollbars ─────────────────────────────────────────────────────────── */
+.passage-panel::-webkit-scrollbar,
+.questions-panel::-webkit-scrollbar { width: 5px; }
+.passage-panel::-webkit-scrollbar-track,
+.questions-panel::-webkit-scrollbar-track { background: transparent; }
+.passage-panel::-webkit-scrollbar-thumb,
+.questions-panel::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+</style>
+</head>
+
+<body>
+
+<!-- ══ SCREEN: Loading ═══════════════════════════════════════════════════════ -->
+<div id="screen-loading" class="screen active">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Loading exam…</div>
+</div>
+
+<!-- ══ SCREEN: Instructions ══════════════════════════════════════════════════ -->
+<div id="screen-instructions" class="screen">
+  <div class="instr-card">
+    <div class="instr-badge">IELTS Academic Reading</div>
+    <div class="instr-title" id="instr-title">Practice Test</div>
+    <div class="instr-sub">Read each passage carefully and answer all questions.</div>
+    <div class="instr-meta">
+      <div class="instr-meta-item">
+        <div class="instr-meta-value" id="instr-time">60</div>
+        <div class="instr-meta-label">Minutes</div>
+      </div>
+      <div class="instr-meta-item">
+        <div class="instr-meta-value" id="instr-passages">3</div>
+        <div class="instr-meta-label">Passages</div>
+      </div>
+      <div class="instr-meta-item">
+        <div class="instr-meta-value" id="instr-questions">40</div>
+        <div class="instr-meta-label">Questions</div>
+      </div>
+    </div>
+    <ul class="instr-rules">
+      <li>Answer ALL 40 questions — no marks deducted for wrong answers.</li>
+      <li>You can navigate freely between passages and questions.</li>
+      <li>Use the <b>Flag</b> button to mark questions for review.</li>
+      <li>Your answers are saved automatically as you go.</li>
+      <li>The timer starts when you click <b>Start Exam</b>.</li>
+    </ul>
+    <button class="btn-start" onclick="startExam()">▶ Start Exam</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN: Exam ═══════════════════════════════════════════════════════════ -->
+<div id="screen-exam" class="screen">
+
+  <!-- Fixed header -->
+  <div class="exam-header">
+    <div class="exam-header-left">
+      <div class="exam-logo">IELTS <span>MOCK</span></div>
+      <div class="exam-section-badge" id="exam-section-badge">Reading</div>
+    </div>
+    <div class="exam-header-center">
+      <div class="timer-box" id="timer-box">
+        <span class="timer-icon">⏱</span>
+        <span class="timer-value" id="timer-display">60:00</span>
+      </div>
+    </div>
+    <div class="exam-header-right">
+      <button class="btn-review" onclick="openReview()">📋 Review</button>
+      <button class="btn-submit-exam" onclick="openReview()">Submit →</button>
+    </div>
+  </div>
+
+  <!-- Passage tabs -->
+  <div class="passage-tabs" id="passage-tabs"></div>
+
+  <!-- Split body -->
+  <div class="exam-body">
+    <div class="passage-panel" id="passage-panel"></div>
+    <div class="questions-panel" id="questions-panel"></div>
+  </div>
+
+  <!-- Question navigation palette -->
+  <div class="nav-palette" id="nav-palette"></div>
+
+</div>
+
+<!-- ══ OVERLAY: Review ═══════════════════════════════════════════════════════ -->
+<div class="overlay" id="overlay-review">
+  <div class="modal">
+    <div class="modal-title">Review Your Answers</div>
+    <div class="modal-sub">Check your progress before submitting.</div>
+    <div class="review-stats">
+      <div class="review-stat green">
+        <div class="review-stat-value" id="rev-answered">0</div>
+        <div class="review-stat-label">Answered</div>
+      </div>
+      <div class="review-stat red">
+        <div class="review-stat-value" id="rev-unanswered">0</div>
+        <div class="review-stat-label">Unanswered</div>
+      </div>
+      <div class="review-stat amber">
+        <div class="review-stat-value" id="rev-flagged">0</div>
+        <div class="review-stat-label">Flagged</div>
+      </div>
+    </div>
+    <div class="unanswered-list" id="unanswered-list" style="display:none;">
+      <div class="unanswered-title">Unanswered questions — click to go to:</div>
+      <div class="unanswered-cells" id="unanswered-cells"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-go-back" onclick="closeReview()">← Continue Test</button>
+      <button class="btn-confirm-submit" onclick="confirmSubmit()">Submit Test</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: Result ════════════════════════════════════════════════════════ -->
+<div id="screen-result" class="screen">
+  <div class="result-card">
+    <div class="result-badge">Test Complete</div>
+    <div class="result-title">Your IELTS Reading Score</div>
+    <div class="result-test" id="res-test-title"></div>
+    <div class="result-band" id="res-band">—</div>
+    <div class="result-band-label">IELTS Band Score</div>
+    <div class="result-stats">
+      <div class="result-stat">
+        <div class="result-stat-value" id="res-correct">—</div>
+        <div class="result-stat-label">Correct</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-value" id="res-total">—</div>
+        <div class="result-stat-label">Total</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-value" id="res-time">—</div>
+        <div class="result-stat-label">Time Used</div>
+      </div>
+    </div>
+    <span class="result-detail-toggle" id="detail-toggle" onclick="toggleDetail()" style="display:none;">
+      Show answer breakdown ▼
+    </span>
+    <div id="result-detail" style="display:none;">
+      <table class="result-detail-table">
+        <thead><tr><th>Q#</th><th>Your Answer</th><th>Correct Answer</th><th>Result</th></tr></thead>
+        <tbody id="result-detail-tbody"></tbody>
+      </table>
+    </div>
+    <div class="result-actions">
+      <button class="btn-try-again" onclick="location.reload()">Try Again</button>
+      <button class="btn-dashboard" onclick="goToDashboard()">Dashboard →</button>
+    </div>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script src="auth.js"></script>
+<script>
+// ═════════════════════════════════════════════════════════════════════════════
+// IELTS EXAM ENGINE — State & Config
+// ═════════════════════════════════════════════════════════════════════════════
+
+const token = localStorage.getItem("token");
+if (!token) { window.location.replace("login.html"); }
+
+// URL param: ?test_id=1
+const TEST_ID = new URLSearchParams(location.search).get("test_id") || 1;
+
+const S = {
+  attemptId:       null,
+  test:            null,        // full test object from API
+  currentPassage:  0,           // index 0, 1, 2
+  currentQNum:     null,        // global question number
+  answers:         {},          // { question_id: "TRUE" | "A" | "migration" | ... }
+  flags:           {},          // { question_id: true | false }
+  allQuestions:    [],          // flat sorted array of question objects
+  timeLeft:        0,           // seconds
+  timerInterval:   null,
+  autosaveQueue:   {},          // pending saves
+  autosaveTimer:   null,
+  startedAt:       null,
+  perQuestion:     [],          // from submit response (for result detail)
+};
+
+// ═════════════════════════════════════════════════════════════════════════════
+// API helpers
+// ═════════════════════════════════════════════════════════════════════════════
+
+const auth = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+
+async function apiPost(url, body = {}) {
+  const r = await fetch(`${API_BASE}${url}`, { method: "POST", headers: auth, body: JSON.stringify(body) });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || r.status); }
+  return r.json();
+}
+
+async function apiPut(url, body = {}) {
+  const r = await fetch(`${API_BASE}${url}`, { method: "PUT", headers: auth, body: JSON.stringify(body) });
+  return r.json();
+}
+
+async function apiGet(url) {
+  const r = await fetch(`${API_BASE}${url}`, { headers: auth });
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// INIT — load test, start attempt, build UI
+// ═════════════════════════════════════════════════════════════════════════════
+
+async function init() {
+  try {
+    const data = await apiPost(`/ielts/start/${TEST_ID}`);
+    S.attemptId = data.attempt_id;
+    S.test = data.test;
+    S.timeLeft = data.test.time_limit * 60;
+    S.startedAt = Date.now();
+
+    // Flatten all questions sorted by global_number
+    S.allQuestions = [];
+    for (const p of S.test.passages) {
+      for (const g of p.question_groups) {
+        for (const q of g.questions) {
+          S.allQuestions.push({ ...q, group: g, passage: p });
+        }
+      }
+    }
+    S.allQuestions.sort((a, b) => a.global_number - b.global_number);
+
+    // Restore saved answers (if resuming)
+    try {
+      const saved = await apiGet(`/ielts/attempt/${S.attemptId}/answers`);
+      for (const sa of saved) {
+        if (sa.answer_value) S.answers[sa.question_id] = sa.answer_value;
+        if (sa.is_flagged) S.flags[sa.question_id] = true;
+      }
+    } catch (_) {}
+
+    // Populate instructions screen
+    document.getElementById("instr-title").textContent = S.test.title;
+    document.getElementById("instr-time").textContent = S.test.time_limit;
+    document.getElementById("instr-passages").textContent = S.test.passages.length;
+    document.getElementById("instr-questions").textContent = S.allQuestions.length;
+
+    showScreen("instructions");
+  } catch (e) {
+    document.querySelector("#screen-loading .loading-text").textContent =
+      "Failed to load exam: " + e.message;
+  }
+}
+
+function startExam() {
+  showScreen("exam");
+  buildExamUI();
+  showPassage(0);
+  startTimer();
+  S.currentQNum = S.allQuestions[0]?.global_number || 1;
+  NavEngine.refresh();
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// BUILD UI
+// ═════════════════════════════════════════════════════════════════════════════
+
+function buildExamUI() {
+  buildPassageTabs();
+  buildNavPalette();
+}
+
+function buildPassageTabs() {
+  const wrap = document.getElementById("passage-tabs");
+  wrap.innerHTML = S.test.passages.map((p, i) => {
+    const start = p.question_groups[0]?.questions[0]?.global_number || "?";
+    const allGrp = p.question_groups.flatMap(g => g.questions);
+    const end = allGrp[allGrp.length - 1]?.global_number || "?";
+    return `<div class="passage-tab${i===0?" active":""}" id="ptab-${i}" onclick="showPassage(${i})">
+              Passage ${i+1} <span class="tab-status">(Q${start}–${end})</span>
+            </div>`;
+  }).join("");
+}
+
+function buildNavPalette() {
+  const wrap = document.getElementById("nav-palette");
+  wrap.innerHTML = '<span class="palette-label">Questions:</span>';
+  let prevPassageId = null;
+
+  for (const q of S.allQuestions) {
+    if (prevPassageId !== null && q.passage.id !== prevPassageId) {
+      wrap.insertAdjacentHTML("beforeend", '<div class="palette-separator"></div>');
+    }
+    prevPassageId = q.passage.id;
+    wrap.insertAdjacentHTML("beforeend",
+      `<div class="nav-cell" id="nc-${q.global_number}" onclick="navJump(${q.global_number})">${q.global_number}</div>`);
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// PASSAGE RENDER
+// ═════════════════════════════════════════════════════════════════════════════
+
+function showPassage(passageIdx) {
+  // Update tab highlight
+  document.querySelectorAll(".passage-tab").forEach((t, i) =>
+    t.classList.toggle("active", i === passageIdx));
+  S.currentPassage = passageIdx;
+
+  const passage = S.test.passages[passageIdx];
+
+  // Left panel — passage text with paragraph labels
+  document.getElementById("passage-panel").innerHTML =
+    `<div class="passage-title">${passage.title}</div>` +
+    renderPassageText(passage.body_text);
+
+  // Right panel — question groups
+  document.getElementById("questions-panel").innerHTML =
+    passage.question_groups.map(g => renderGroup(g, passage)).join("");
+
+  NavEngine.refresh();
+}
+
+function renderPassageText(bodyText) {
+  const labels = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  return bodyText.split(/\n\n+/).filter(p => p.trim()).map((p, i) =>
+    `<div class="passage-paragraph">
+       <span class="para-label">${labels[i] || ""}</span>
+       <p class="para-text">${escapeHtml(p.trim()).replace(/\n/g, "<br>")}</p>
+     </div>`
+  ).join("");
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// QUESTION GROUP RENDER
+// ═════════════════════════════════════════════════════════════════════════════
+
+const TYPE_LABELS = {
+  tfng:                 "True / False / Not Given",
+  ynng:                 "Yes / No / Not Given",
+  mcq:                  "Multiple Choice",
+  mcq_multi:            "Multiple Choice (select TWO)",
+  matching_headings:    "Matching Headings",
+  matching_info:        "Matching Information",
+  sentence_completion:  "Sentence Completion",
+  summary_completion:   "Summary Completion",
+  table_completion:     "Table Completion",
+  short_answer:         "Short Answer",
+};
+
+function renderGroup(group, passage) {
+  const qs = group.questions;
+  if (!qs.length) return "";
+  const start = qs[0].global_number;
+  const end   = qs[qs.length - 1].global_number;
+  const range = start === end ? `Question ${start}` : `Questions ${start}–${end}`;
+
+  let poolHtml = "";
+  if (group.question_type === "matching_headings" && group.options_pool) {
+    const items = Object.entries(group.options_pool).map(([k, v]) =>
+      `<div class="pool-item"><span class="pool-item-key">${k}.</span>${escapeHtml(v)}</div>`
+    ).join("");
+    poolHtml = `<div class="options-pool">
+      <div class="options-pool-title">List of Headings</div>${items}</div>`;
+  }
+
+  const wordLimitHtml = group.word_limit
+    ? `<div class="q-word-limit">⚠ Write NO MORE THAN ${group.word_limit} WORD${group.word_limit>1?"S":""} from the passage.</div>`
+    : "";
+
+  const questionsHtml = qs.map(q => renderQuestion(q, group, passage)).join("");
+
+  return `<div class="q-group" id="qg-${group.id}">
+    <div class="q-group-header">
+      <div class="q-group-type-badge">${TYPE_LABELS[group.question_type] || group.question_type}</div>
+      <div class="q-group-range">${range}</div>
+      <div class="q-group-instruction">${escapeHtml(group.instruction)}</div>
+      ${wordLimitHtml}
+    </div>
+    ${poolHtml}
+    ${questionsHtml}
+  </div>`;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// QUESTION RENDERER FACTORY
+// ═════════════════════════════════════════════════════════════════════════════
+
+function renderQuestion(q, group, passage) {
+  const isCurrent  = S.currentQNum === q.global_number;
+  const isAnswered = !!S.answers[q.id];
+  const isFlagged  = !!S.flags[q.id];
+  const classes = ["q-item",
+    isCurrent  ? "current"  : "",
+    isAnswered ? "answered" : "",
+    isFlagged  ? "flagged"  : "",
+  ].filter(Boolean).join(" ");
+
+  let inputHtml;
+  switch (group.question_type) {
+    case "tfng":  inputHtml = renderTFNG(q, ["TRUE","FALSE","NOT GIVEN"]); break;
+    case "ynng":  inputHtml = renderTFNG(q, ["YES","NO","NOT GIVEN"]); break;
+    case "mcq":   inputHtml = renderMCQ(q, false); break;
+    case "mcq_multi": inputHtml = renderMCQ(q, true); break;
+    case "matching_headings": inputHtml = renderDropdown(q, group.options_pool); break;
+    case "matching_info":     inputHtml = renderMatchingInfo(q, passage); break;
+    default:      inputHtml = renderTextInput(q, group.word_limit); break;
+  }
+
+  const stemHtml = renderStem(q.stem, q.id, group.word_limit);
+
+  return `<div class="${classes}" id="q-item-${q.id}"
+               onclick="setCurrentQ(${q.global_number})">
+    <div class="q-number-row">
+      <span class="q-number">Q${q.global_number}</span>
+      <button class="btn-flag${isFlagged?" active":""}" id="flag-${q.id}"
+              onclick="event.stopPropagation(); toggleFlag(${q.id})">
+        ${isFlagged ? "🚩 Flagged" : "⚑ Flag"}
+      </button>
+    </div>
+    ${stemHtml}
+    ${inputHtml}
+  </div>`;
+}
+
+// Render stem — if it contains _____ replace with inline input
+function renderStem(stem, qId, wordLimit) {
+  const BLANK = "_____";
+  if (stem.includes(BLANK)) {
+    const parts = stem.split(BLANK);
+    const current = S.answers[qId] || "";
+    const inputHtml = `<input class="inline-input" id="inp-${qId}"
+      value="${escapeAttr(current)}" placeholder="…"
+      oninput="onTextChange(${qId}, this.value, ${wordLimit || "null"})"
+      onblur="saveAnswer(${qId}, this.value)">`;
+    return `<div class="q-stem inline-stem">${parts.map(escapeHtml).join(inputHtml)}</div>`;
+  }
+  return `<div class="q-stem">${escapeHtml(stem)}</div>`;
+}
+
+// ── True/False/Not Given ──────────────────────────────────────────────────────
+function renderTFNG(q, options) {
+  const current = S.answers[q.id] || "";
+  return `<div class="tfng-options">
+    ${options.map(opt => `
+      <div class="tfng-option${current===opt?" selected":""}"
+           onclick="selectTFNG(${q.id}, '${opt}')">
+        ${opt}
+      </div>`).join("")}
+  </div>`;
+}
+
+// ── Multiple Choice ───────────────────────────────────────────────────────────
+function renderMCQ(q, isMulti) {
+  if (!q.options || !q.options.length) return renderTextInput(q, null);
+  const current = S.answers[q.id] || "";
+  const selected = current ? current.split(",") : [];
+
+  return q.options.map(opt => {
+    const isSelected = selected.includes(opt.key);
+    return `<div class="mcq-option${isMulti?" multi":""}${isSelected?" selected":""}"
+                 onclick="selectMCQ(${q.id}, '${opt.key}', ${isMulti})">
+      <span class="mcq-key">${opt.key}.</span>
+      <span class="mcq-text">${escapeHtml(opt.text)}</span>
+    </div>`;
+  }).join("");
+}
+
+// ── Matching Headings (dropdown from pool) ────────────────────────────────────
+function renderDropdown(q, pool) {
+  if (!pool) return renderTextInput(q, null);
+  const current = S.answers[q.id] || "";
+  const opts = Object.entries(pool).map(([k, v]) =>
+    `<option value="${k}"${current===k?" selected":""}>${k}. ${escapeAttr(v)}</option>`
+  ).join("");
+  return `<div class="match-select-wrap">
+    <select class="match-select${current?" answered":""}" id="inp-${q.id}"
+            onchange="selectDropdown(${q.id}, this.value)">
+      <option value="">— select —</option>${opts}
+    </select>
+  </div>`;
+}
+
+// ── Matching Information (which paragraph) ────────────────────────────────────
+function renderMatchingInfo(q, passage) {
+  const labels = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const paraCount = passage.body_text.split(/\n\n+/).filter(p => p.trim()).length;
+  const current = S.answers[q.id] || "";
+  const opts = Array.from({length: paraCount}, (_, i) =>
+    `<option value="${labels[i]}"${current===labels[i]?" selected":""}>${labels[i]}</option>`
+  ).join("");
+  return `<div class="match-select-wrap">
+    <span class="match-label">Paragraph:</span>
+    <select class="match-select${current?" answered":""}" id="inp-${q.id}"
+            onchange="selectDropdown(${q.id}, this.value)">
+      <option value="">—</option>${opts}
+    </select>
+  </div>`;
+}
+
+// ── Text input (sentence/summary/table completion, short answer) ──────────────
+function renderTextInput(q, wordLimit) {
+  const current = S.answers[q.id] || "";
+  const words = current.trim() ? current.trim().split(/\s+/).length : 0;
+  const over = wordLimit && words > wordLimit;
+  return `<div class="text-answer-wrap">
+    <input class="text-answer-input${current?" answered":""}${over?" overlimit":""}"
+           id="inp-${q.id}" type="text" value="${escapeAttr(current)}"
+           placeholder="${wordLimit ? `Max ${wordLimit} word${wordLimit>1?"s":""}` : "Your answer…"}"
+           oninput="onTextChange(${q.id}, this.value, ${wordLimit || "null"})"
+           onblur="saveAnswer(${q.id}, this.value)">
+    ${wordLimit
+      ? `<span class="word-count-badge${over?" over":""}" id="wc-${q.id}">${words}/${wordLimit}</span>`
+      : ""}
+  </div>`;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ANSWER HANDLERS — called from UI events
+// ═════════════════════════════════════════════════════════════════════════════
+
+function selectTFNG(qId, value) {
+  S.answers[qId] = value;
+  queueSave(qId, value);
+  // Re-render just the tfng options
+  const item = document.getElementById(`q-item-${qId}`);
+  if (!item) return;
+  item.querySelectorAll(".tfng-option").forEach(el => {
+    el.classList.toggle("selected", el.textContent.trim() === value);
+  });
+  syncItemState(qId);
+}
+
+function selectMCQ(qId, key, isMulti) {
+  if (isMulti) {
+    const cur = S.answers[qId] ? S.answers[qId].split(",") : [];
+    const idx = cur.indexOf(key);
+    if (idx > -1) cur.splice(idx, 1); else cur.push(key);
+    S.answers[qId] = cur.sort().join(",") || "";
+  } else {
+    S.answers[qId] = key;
+  }
+  queueSave(qId, S.answers[qId]);
+  const item = document.getElementById(`q-item-${qId}`);
+  if (!item) return;
+  const selected = S.answers[qId] ? S.answers[qId].split(",") : [];
+  item.querySelectorAll(".mcq-option").forEach(el => {
+    const elKey = el.querySelector(".mcq-key").textContent.replace(".","").trim();
+    el.classList.toggle("selected", selected.includes(elKey));
+  });
+  syncItemState(qId);
+}
+
+function selectDropdown(qId, value) {
+  S.answers[qId] = value;
+  queueSave(qId, value);
+  const sel = document.getElementById(`inp-${qId}`);
+  if (sel) sel.classList.toggle("answered", !!value);
+  syncItemState(qId);
+}
+
+function onTextChange(qId, value, wordLimit) {
+  S.answers[qId] = value;
+  const input = document.getElementById(`inp-${qId}`);
+  const wcBadge = document.getElementById(`wc-${qId}`);
+  if (wordLimit && wcBadge) {
+    const words = value.trim() ? value.trim().split(/\s+/).length : 0;
+    const over  = words > wordLimit;
+    wcBadge.textContent = `${words}/${wordLimit}`;
+    wcBadge.classList.toggle("over", over);
+    if (input) input.classList.toggle("overlimit", over);
+  }
+  if (input) input.classList.toggle("answered", !!value.trim());
+  syncItemState(qId);
+  queueSave(qId, value);
+}
+
+function saveAnswer(qId, value) {
+  // Immediate save on blur
+  if (value === undefined || value === null) return;
+  S.answers[qId] = value;
+  flushSave(qId, value);
+}
+
+// ── Sync item card classes (answered / flagged) ───────────────────────────────
+function syncItemState(qId) {
+  const item = document.getElementById(`q-item-${qId}`);
+  if (!item) return;
+  item.classList.toggle("answered", !!S.answers[qId]);
+  item.classList.toggle("flagged",  !!S.flags[qId]);
+  const globalNum = S.allQuestions.find(q => q.id === qId)?.global_number;
+  if (globalNum) NavEngine.updateCell(globalNum);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// FLAG SYSTEM
+// ═════════════════════════════════════════════════════════════════════════════
+
+function toggleFlag(qId) {
+  S.flags[qId] = !S.flags[qId];
+  const btn = document.getElementById(`flag-${qId}`);
+  if (btn) {
+    btn.textContent = S.flags[qId] ? "🚩 Flagged" : "⚑ Flag";
+    btn.classList.toggle("active", S.flags[qId]);
+  }
+  const item = document.getElementById(`q-item-${qId}`);
+  if (item) item.classList.toggle("flagged", S.flags[qId]);
+  const globalNum = S.allQuestions.find(q => q.id === qId)?.global_number;
+  if (globalNum) NavEngine.updateCell(globalNum);
+  // Save flag to backend
+  apiPut(`/ielts/attempt/${S.attemptId}/answer`, { question_id: qId, is_flagged: S.flags[qId] });
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// NAVIGATION ENGINE
+// ═════════════════════════════════════════════════════════════════════════════
+
+const NavEngine = {
+  refresh() {
+    for (const q of S.allQuestions) {
+      this.updateCell(q.global_number);
+    }
+  },
+  updateCell(globalNum) {
+    const cell = document.getElementById(`nc-${globalNum}`);
+    if (!cell) return;
+    const q = S.allQuestions.find(q => q.global_number === globalNum);
+    if (!q) return;
+    const answered = !!S.answers[q.id];
+    const flagged  = !!S.flags[q.id];
+    const current  = S.currentQNum === globalNum;
+    cell.className = "nav-cell" +
+      (answered ? " answered" : "") +
+      (flagged  ? " flagged"  : "") +
+      (current  ? " current"  : "");
+  },
+};
+
+function setCurrentQ(globalNum) {
+  const old = S.currentQNum;
+  S.currentQNum = globalNum;
+  if (old) NavEngine.updateCell(old);
+  NavEngine.updateCell(globalNum);
+  // Highlight item card
+  if (old) {
+    const prev = S.allQuestions.find(q => q.global_number === old);
+    if (prev) document.getElementById(`q-item-${prev.id}`)?.classList.remove("current");
+  }
+  const cur = S.allQuestions.find(q => q.global_number === globalNum);
+  if (cur) document.getElementById(`q-item-${cur.id}`)?.classList.add("current");
+}
+
+function navJump(globalNum) {
+  const q = S.allQuestions.find(q => q.global_number === globalNum);
+  if (!q) return;
+
+  // Switch to correct passage tab if needed
+  const passageIdx = S.test.passages.findIndex(p => p.id === q.passage.id);
+  if (passageIdx !== S.currentPassage) showPassage(passageIdx);
+
+  // Scroll question into view
+  setTimeout(() => {
+    const el = document.getElementById(`q-item-${q.id}`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setCurrentQ(globalNum);
+  }, 50);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// AUTOSAVE QUEUE — batches saves to avoid spamming the API on every keystroke
+// ═════════════════════════════════════════════════════════════════════════════
+
+function queueSave(qId, value) {
+  S.autosaveQueue[qId] = value;
+  if (!S.autosaveTimer) {
+    S.autosaveTimer = setTimeout(flushAllSaves, 2000);
+  }
+}
+
+function flushSave(qId, value) {
+  apiPut(`/ielts/attempt/${S.attemptId}/answer`, { question_id: qId, answer_value: value });
+}
+
+async function flushAllSaves() {
+  S.autosaveTimer = null;
+  const queue = { ...S.autosaveQueue };
+  S.autosaveQueue = {};
+  for (const [qId, value] of Object.entries(queue)) {
+    try { await flushSave(Number(qId), value); } catch (_) {}
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// TIMER
+// ═════════════════════════════════════════════════════════════════════════════
+
+function startTimer() {
+  renderTimer();
+  S.timerInterval = setInterval(() => {
+    S.timeLeft--;
+    renderTimer();
+    if (S.timeLeft <= 0) {
+      clearInterval(S.timerInterval);
+      autoSubmit();
+    }
+  }, 1000);
+}
+
+function renderTimer() {
+  const m = Math.floor(S.timeLeft / 60);
+  const s = S.timeLeft % 60;
+  document.getElementById("timer-display").textContent =
+    `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+  const box = document.getElementById("timer-box");
+  box.classList.toggle("warn",   S.timeLeft <= 300 && S.timeLeft > 60);
+  box.classList.toggle("danger", S.timeLeft <= 60);
+}
+
+function timeSpentSeconds() {
+  return Math.round((Date.now() - S.startedAt) / 1000);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// REVIEW MODAL
+// ═════════════════════════════════════════════════════════════════════════════
+
+function openReview() {
+  const totalQ = S.allQuestions.length;
+  const answered = S.allQuestions.filter(q => !!S.answers[q.id]).length;
+  const flagged  = S.allQuestions.filter(q => !!S.flags[q.id]).length;
+  const unanswered = totalQ - answered;
+
+  document.getElementById("rev-answered").textContent   = answered;
+  document.getElementById("rev-unanswered").textContent = unanswered;
+  document.getElementById("rev-flagged").textContent    = flagged;
+
+  const listEl = document.getElementById("unanswered-list");
+  const cellEl = document.getElementById("unanswered-cells");
+  const unQs = S.allQuestions.filter(q => !S.answers[q.id]);
+  if (unQs.length) {
+    listEl.style.display = "block";
+    cellEl.innerHTML = unQs.map(q =>
+      `<span class="unanswered-chip" onclick="goToUnanswered(${q.global_number})">${q.global_number}</span>`
+    ).join("");
+  } else {
+    listEl.style.display = "none";
+  }
+
+  document.getElementById("overlay-review").classList.add("active");
+}
+
+function closeReview() {
+  document.getElementById("overlay-review").classList.remove("active");
+}
+
+function goToUnanswered(globalNum) {
+  closeReview();
+  navJump(globalNum);
+}
+
+async function confirmSubmit() {
+  closeReview();
+  await flushAllSaves();
+  await doSubmit();
+}
+
+async function autoSubmit() {
+  await flushAllSaves();
+  await doSubmit();
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// SUBMIT
+// ═════════════════════════════════════════════════════════════════════════════
+
+async function doSubmit() {
+  clearInterval(S.timerInterval);
+  try {
+    const result = await apiPost(`/ielts/attempt/${S.attemptId}/submit`, {
+      time_spent: timeSpentSeconds()
+    });
+    S.perQuestion = result.per_question || [];
+    showResult(result);
+  } catch (e) {
+    alert("Submit failed: " + e.message + "\nPlease try again.");
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// RESULT SCREEN
+// ═════════════════════════════════════════════════════════════════════════════
+
+function showResult(result) {
+  showScreen("result");
+  document.getElementById("res-test-title").textContent = S.test.title;
+  document.getElementById("res-band").textContent = result.band_score.toFixed(1);
+  document.getElementById("res-correct").textContent = result.raw_score;
+  document.getElementById("res-total").textContent = result.total_questions;
+
+  const sec = result.time_spent;
+  const m = Math.floor(sec / 60), s = sec % 60;
+  document.getElementById("res-time").textContent = `${m}m ${s}s`;
+
+  if (S.perQuestion.length) {
+    document.getElementById("detail-toggle").style.display = "block";
+    const tbody = document.getElementById("result-detail-tbody");
+    tbody.innerHTML = S.perQuestion.map(r =>
+      `<tr class="${r.correct?"correct":"wrong"}">
+        <td>Q${r.global_number}</td>
+        <td>${escapeHtml(r.student_answer || "—")}</td>
+        <td>${escapeHtml(r.correct_answer)}</td>
+        <td>${r.correct ? "✓" : "✗"}</td>
+      </tr>`
+    ).join("");
+  }
+}
+
+function toggleDetail() {
+  const d = document.getElementById("result-detail");
+  const t = document.getElementById("detail-toggle");
+  const shown = d.style.display !== "none";
+  d.style.display = shown ? "none" : "block";
+  t.textContent = shown ? "Show answer breakdown ▼" : "Hide answer breakdown ▲";
+}
+
+function goToDashboard() {
+  const role = localStorage.getItem("userRole");
+  window.location.href = role === "teacher" ? "teacher-dashboard.html" : "dashboard.html";
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// SCREEN MANAGEMENT
+// ═════════════════════════════════════════════════════════════════════════════
+
+function showScreen(name) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(`screen-${name}`).classList.add("active");
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// UTILITIES
+// ═════════════════════════════════════════════════════════════════════════════
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function escapeAttr(str) {
+  if (!str) return "";
+  return String(str).replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
