@@ -101,88 +101,96 @@ h1 { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
 
 <main class="main">
   <div id="content">
-    <div class="loading">Loading…</div>
+    <div class="loading">
+      <div style="font-size:28px;margin-bottom:12px;">⏳</div>
+      Loading your IELTS Mock Test…
+      <div style="font-size:12px;color:#94a3b8;margin-top:8px;" id="loading-sub">Connecting to server…</div>
+    </div>
   </div>
 </main>
 
 <script>
 const API_BASE = "https://mock-test-1.onrender.com";
 const token = localStorage.getItem("token");
+const params = new URLSearchParams(location.search);
+const attemptId = parseInt(params.get("attempt_id") || "0", 10);
 
-function logout() {
-  localStorage.clear();
-  location.href = "login.html";
+function logout() { localStorage.clear(); location.href = "login.html"; }
+function authH() { return { "Authorization": "Bearer " + token }; }
+
+function showError(msg) {
+  document.getElementById("content").innerHTML = `
+    <div style="text-align:center;padding:60px 20px;">
+      <div style="font-size:32px;margin-bottom:12px;">⚠️</div>
+      <div style="font-size:15px;font-weight:700;color:#ef4444;margin-bottom:8px;">Could not load test</div>
+      <div style="font-size:13px;color:#64748b;margin-bottom:20px;">${msg}</div>
+      <button onclick="init()" style="background:#059669;color:white;border:none;padding:9px 20px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">Retry</button>
+      <a href="dashboard.html" style="display:block;margin-top:12px;font-size:13px;color:#94a3b8;">← Back to dashboard</a>
+    </div>`;
 }
 
-const params = new URLSearchParams(location.search);
-const slot = parseInt(params.get("slot") || "1", 10);
-
-function authH() {
-  return token ? { "Authorization": "Bearer " + token } : {};
+async function fetchWithTimeout(url, opts, ms = 40000) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), ms);
+  try { return await fetch(url, { ...opts, signal: ctrl.signal }); }
+  finally { clearTimeout(id); }
 }
 
 async function init() {
   if (!token) { location.href = "login.html"; return; }
+  if (!attemptId) { location.href = "dashboard.html"; return; }
 
-  // Load user name
+  // User name
   fetch(`${API_BASE}/me`, { headers: authH() })
     .then(r => r.json())
     .then(u => { document.getElementById("header-name").textContent = u.name || ""; })
     .catch(() => {});
 
-  // Load or create attempt
+  const subEl = document.getElementById("loading-sub");
+  const hint = setTimeout(() => { if (subEl) subEl.textContent = "Server is waking up — this may take 20-30 seconds…"; }, 5000);
+
   let attempt;
   try {
-    const startRes = await fetch(`${API_BASE}/mock/slots/${slot}/start`, {
-      method: "POST",
-      headers: authH(),
-    });
-    if (!startRes.ok) {
-      if (startRes.status === 401) { location.href = "login.html"; return; }
-      throw new Error(await startRes.text());
+    const res = await fetchWithTimeout(`${API_BASE}/mock/attempts/${attemptId}`, { headers: authH() });
+    clearTimeout(hint);
+    if (res.status === 401) { location.href = "login.html"; return; }
+    if (!res.ok) {
+      const body = await res.text();
+      let detail = body;
+      try { detail = JSON.parse(body).detail || body; } catch (_) {}
+      showError(`Error ${res.status}: ${detail}`);
+      return;
     }
-    attempt = await startRes.json();
+    attempt = await res.json();
   } catch (e) {
-    document.getElementById("content").innerHTML =
-      `<div class="loading" style="color:#ef4444;">Failed to load: ${e.message}</div>`;
+    clearTimeout(hint);
+    showError(e.name === "AbortError"
+      ? "Timed out — server may be starting up. Please retry."
+      : `Network error: ${e.message}`);
     return;
   }
 
   render(attempt);
 }
 
-function sectionDone(attempt, section) {
-  if (section === "listening") return !!attempt.listening_submitted_at;
-  if (section === "reading")   return !!attempt.reading_submitted_at;
-  if (section === "writing")   return !!attempt.writing_submitted_at;
-  return false;
-}
-
-function sectionUnlocked(attempt, section) {
-  if (section === "listening") return true;
-  if (section === "reading")   return !!attempt.listening_submitted_at;
-  if (section === "writing")   return !!attempt.reading_submitted_at;
-  return false;
-}
-
 function render(attempt) {
-  const lisDone  = sectionDone(attempt, "listening");
-  const readDone = sectionDone(attempt, "reading");
-  const writDone = sectionDone(attempt, "writing");
+  const lisDone  = !!attempt.listening_submitted_at;
+  const readDone = !!attempt.reading_submitted_at;
+  const writDone = !!attempt.writing_submitted_at;
 
   const lisUrl  = `ielts-listening.html?attempt_id=${attempt.id}`;
   const readUrl = `ielts-exam.html?attempt_id=${attempt.id}&test_id=${attempt.reading_test_id}`;
   const writUrl = `writing.html?attempt_id=${attempt.id}`;
 
-  function sectionBtn(section, url, done, unlocked) {
+  function sectionBtn(url, done, unlocked) {
     if (done)      return `<span class="btn-start done">✓ Done</span>`;
     if (!unlocked) return `<span class="btn-start locked">🔒 Locked</span>`;
     return `<a class="btn-start" href="${url}">Start →</a>`;
   }
 
   function bandPill(band, done) {
-    if (!done)  return `<span class="band-pill pending">Pending</span>`;
-    if (band == null) return `<span class="band-pill pending">Grading…</span>`;
+    if (!done)       return `<span class="band-pill pending">Pending</span>`;
+    if (band == null) return `<span class="band-pill pending">Scoring…</span>`;
     return `<span class="band-pill">Band ${band}</span>`;
   }
 
@@ -192,41 +200,45 @@ function render(attempt) {
       <div class="overall-label">Overall Band Score</div>
       <div class="overall-band">${attempt.overall_band}</div>
       <div class="overall-sub">Listening ${attempt.listening_band} · Reading ${attempt.reading_band} · Writing ${attempt.writing_band}</div>
-    </div>` : "";
+    </div>` : (allDone ? `
+    <div class="overall-card" style="display:block;">
+      <div class="overall-label">All sections complete</div>
+      <div style="font-size:14px;color:#047857;margin-top:6px;">Writing is being graded by AI — check back shortly.</div>
+    </div>` : "");
 
   document.getElementById("content").innerHTML = `
-    <div class="slot-badge">Mock Test ${slot}</div>
+    <div class="slot-badge">Attempt #${attempt.slot_number}</div>
     <h1>Full IELTS Mock Test</h1>
     <p class="subtitle">Complete all three sections in order: Listening → Reading → Writing</p>
 
     <div class="section-card">
       <div class="section-icon">🎧</div>
       <div class="section-body">
-        <div class="section-name">Listening</div>
+        <div class="section-name">Part 1 — Listening</div>
         <div class="section-meta">40 questions · ~30 min</div>
         <div style="margin-top:6px;">${bandPill(attempt.listening_band, lisDone)}</div>
       </div>
-      <div class="section-status">${sectionBtn("listening", lisUrl, lisDone, true)}</div>
+      <div class="section-status">${sectionBtn(lisUrl, lisDone, true)}</div>
     </div>
 
     <div class="section-card">
       <div class="section-icon">📖</div>
       <div class="section-body">
-        <div class="section-name">Reading</div>
+        <div class="section-name">Part 2 — Reading</div>
         <div class="section-meta">40 questions · 60 min</div>
         <div style="margin-top:6px;">${bandPill(attempt.reading_band, readDone)}</div>
       </div>
-      <div class="section-status">${sectionBtn("reading", readUrl, readDone, sectionUnlocked(attempt, "reading"))}</div>
+      <div class="section-status">${sectionBtn(readUrl, readDone, lisDone)}</div>
     </div>
 
     <div class="section-card">
       <div class="section-icon">✏️</div>
       <div class="section-body">
-        <div class="section-name">Writing</div>
+        <div class="section-name">Part 3 — Writing</div>
         <div class="section-meta">2 tasks · 60 min · AI-graded</div>
         <div style="margin-top:6px;">${bandPill(attempt.writing_band, writDone)}</div>
       </div>
-      <div class="section-status">${sectionBtn("writing", writUrl, writDone, sectionUnlocked(attempt, "writing"))}</div>
+      <div class="section-status">${sectionBtn(writUrl, writDone, readDone)}</div>
     </div>
 
     ${overallHtml}

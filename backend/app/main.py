@@ -2538,9 +2538,6 @@ def admin_seed(
 
 # ── Full Mock Test endpoints ──────────────────────────────────────────────────
 
-TOTAL_SLOTS = 20
-
-
 def _raw_score_to_band(raw: int) -> float:
     """Convert listening/reading raw score (0-40) to IELTS band (0-9)."""
     table = [
@@ -2554,85 +2551,96 @@ def _raw_score_to_band(raw: int) -> float:
     return 0.0
 
 
-def _pick_random_content(db: Session, user_id: int, slot: int):
-    """Pick a random (but reproducible for this user+slot) set of content."""
-    seed_val = user_id * 1000 + slot
-    rng = random.Random(seed_val)
-
+def _pick_random_content(db: Session):
+    """Randomly select one listening section, reading test and two writing prompts from the DB pools."""
     listening_ids = [r[0] for r in db.query(models.ListeningSection.id).filter_by(is_active=True).all()]
     reading_ids   = [r[0] for r in db.query(models.IELTSTest.id).all()]
     writing_ids   = [r[0] for r in db.query(models.WritingPrompt.id).all()]
 
     if not listening_ids or not reading_ids or len(writing_ids) < 2:
-        raise HTTPException(status_code=503, detail="Not enough content seeded yet")
+        raise HTTPException(status_code=503, detail="Not enough content seeded yet. Run /admin/seed first.")
 
+    w1, w2 = random.sample(writing_ids, min(2, len(writing_ids)))
     return {
-        "listening_section_id": rng.choice(listening_ids),
-        "reading_test_id":      rng.choice(reading_ids),
-        "writing_task1_id":     writing_ids[rng.randint(0, len(writing_ids) - 1)],
-        "writing_task2_id":     writing_ids[rng.randint(0, len(writing_ids) - 1)],
+        "listening_section_id": random.choice(listening_ids),
+        "reading_test_id":      random.choice(reading_ids),
+        "writing_task1_id":     w1,
+        "writing_task2_id":     w2,
     }
 
 
-@app.get("/mock/slots", response_model=List[schemas.MockSlotOut])
-def get_mock_slots(
+@app.post("/mock/start", response_model=schemas.MockAttemptOut)
+def start_mock_test(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Return all 20 mock test slots with attempt status for the logged-in student."""
-    attempts = (
-        db.query(models.FullMockAttempt)
-        .filter_by(user_id=current_user.id)
-        .all()
-    )
-    attempt_map = {a.slot_number: a for a in attempts}
-    result = []
-    for slot in range(1, TOTAL_SLOTS + 1):
-        a = attempt_map.get(slot)
-        if a:
-            result.append(schemas.MockSlotOut(
-                slot_number=slot,
-                attempt_id=a.id,
-                status=a.status,
-                current_section=a.current_section,
-                listening_band=a.listening_band,
-                reading_band=a.reading_band,
-                writing_band=a.writing_band,
-                overall_band=a.overall_band,
-            ))
-        else:
-            result.append(schemas.MockSlotOut(slot_number=slot))
-    return result
-
-
-@app.post("/mock/slots/{slot}/start", response_model=schemas.MockAttemptOut)
-def start_mock_slot(
-    slot: int,
-    current_user: models.User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """Start or resume a mock test slot. Idempotent — returns existing attempt if present."""
-    if slot < 1 or slot > TOTAL_SLOTS:
-        raise HTTPException(status_code=400, detail="slot must be 1-20")
-
-    existing = (
-        db.query(models.FullMockAttempt)
-        .filter_by(user_id=current_user.id, slot_number=slot)
-        .first()
-    )
-    if existing:
-        return existing
-
-    content = _pick_random_content(db, current_user.id, slot)
+    """Create a new full mock test attempt with randomly selected content pools."""
+    attempt_number = db.query(models.FullMockAttempt).filter_by(user_id=current_user.id).count() + 1
+    content = _pick_random_content(db)
     attempt = models.FullMockAttempt(
         user_id=current_user.id,
-        slot_number=slot,
+        slot_number=attempt_number,
         **content,
     )
     db.add(attempt)
     db.commit()
     db.refresh(attempt)
     return attempt
+
+
+@app.get("/mock/current")
+def get_current_mock(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return the student's most recent in-progress attempt, or null if none."""
+    attempt = (
+        db.query(models.FullMockAttempt)
+        .filter_by(user_id=current_user.id, status="in_progress")
+        .order_by(models.FullMockAttempt.started_at.desc())
+        .first()
+    )
+    if not attempt:
+        return None
+    return {
+        "id": attempt.id,
+        "slot_number": attempt.slot_number,
+        "current_section": attempt.current_section,
+        "started_at": attempt.started_at.isoformat(),
+        "listening_submitted_at": attempt.listening_submitted_at.isoformat() if attempt.listening_submitted_at else None,
+        "reading_submitted_at":   attempt.reading_submitted_at.isoformat()   if attempt.reading_submitted_at   else None,
+        "writing_submitted_at":   attempt.writing_submitted_at.isoformat()   if attempt.writing_submitted_at   else None,
+        "listening_band": attempt.listening_band,
+        "reading_band":   attempt.reading_band,
+        "writing_band":   attempt.writing_band,
+        "overall_band":   attempt.overall_band,
+    }
+
+
+@app.get("/mock/history")
+def get_mock_history(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return all completed mock attempts for the student (newest first)."""
+    attempts = (
+        db.query(models.FullMockAttempt)
+        .filter_by(user_id=current_user.id, status="completed")
+        .order_by(models.FullMockAttempt.started_at.desc())
+        .all()
+    )
+    return [
+        {
+            "id": a.id,
+            "attempt_number": a.slot_number,
+            "started_at": a.started_at.isoformat(),
+            "overall_band":   a.overall_band,
+            "listening_band": a.listening_band,
+            "reading_band":   a.reading_band,
+            "writing_band":   a.writing_band,
+        }
+        for a in attempts
+    ]
 
 
 @app.get("/mock/attempts/{attempt_id}", response_model=schemas.MockAttemptOut)
