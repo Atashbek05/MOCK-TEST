@@ -222,6 +222,23 @@ class StudentTestEnrollment(Base):
     test = relationship("TeacherTest", back_populates="enrollments")
 
 
+class TelegramVerificationCode(Base):
+    """
+    Temporary one-time codes used to link a platform account with a Telegram account.
+    Flow: website generates code → user sends /link CODE to bot → bot verifies here.
+    """
+    __tablename__ = "telegram_verification_codes"
+
+    id:         Mapped[int]      = mapped_column(Integer, primary_key=True, index=True)
+    user_id:    Mapped[int]      = mapped_column(ForeignKey("users.id"), nullable=False)
+    code:       Mapped[str]      = mapped_column(String(10), unique=True, index=True, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    used:       Mapped[bool]     = mapped_column(Boolean, default=False, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = relationship("User", foreign_keys=[user_id])
+
+
 class TeacherTestResult(Base):
     """Stores every submission a student makes on a teacher-created test."""
     __tablename__ = "teacher_test_results"

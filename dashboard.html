@@ -837,6 +837,40 @@ body {
   .hero-actions { flex-direction: column; align-items: flex-start; }
   .btn-start { width: 100%; justify-content: center; }
 }
+
+/* ── Telegram banner card ─────────────────────────────────────────────────── */
+.tg-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: white;
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 28px;
+  border: 1.5px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.tg-banner:hover { border-color: #bfdbfe; box-shadow: 0 2px 8px rgba(37,99,235,0.08); }
+.tg-banner.connected { border-color: #86efac; background: #f0fdf4; }
+.tg-banner-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  background: #eff6ff;
+}
+.tg-banner.connected .tg-banner-icon { background: #dcfce7; }
+.tg-banner-body { flex: 1; min-width: 0; }
+.tg-banner-title {
+  font-size: 14px; font-weight: 700; color: #0f172a;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tg-banner-sub { font-size: 12px; color: #64748b; margin-top: 2px; }
+.tg-banner.connected .tg-banner-sub { color: #059669; }
+.tg-banner-arrow { font-size: 16px; color: #94a3b8; flex-shrink: 0; }
 </style>
 </head>
 
@@ -902,6 +936,16 @@ body {
       <div class="stat-label">Average Band</div>
     </div>
   </div>
+
+  <!-- ── Telegram connect banner ──────────────────────────────────────────── -->
+  <a class="tg-banner" id="tg-banner" href="telegram-connect.html">
+    <div class="tg-banner-icon" id="tg-banner-icon">✈️</div>
+    <div class="tg-banner-body">
+      <div class="tg-banner-title" id="tg-banner-title">Connect Telegram</div>
+      <div class="tg-banner-sub"  id="tg-banner-sub">Get results, reminders & notifications in Telegram</div>
+    </div>
+    <div class="tg-banner-arrow">›</div>
+  </a>
 
   <!-- ── Teacher Tests: JOIN by PIN ───────────────────────────────────────── -->
   <div>
@@ -1383,6 +1427,16 @@ async function loadDashboard() {
       tgBadge.style.background  = "#f0fdf4";
     }
     tgBadge.style.display = "inline-flex";
+
+    // Telegram banner card below stats
+    const banner = document.getElementById("tg-banner");
+    if (me.telegram_id) {
+      const handle = me.telegram_username ? `@${me.telegram_username}` : "Telegram";
+      banner.classList.add("connected");
+      document.getElementById("tg-banner-icon").textContent  = "✅";
+      document.getElementById("tg-banner-title").textContent = `Telegram: ${handle}`;
+      document.getElementById("tg-banner-sub").textContent   = "Connected · click to manage or disconnect";
+    }
 
     // Stats
     document.getElementById("stat-total").textContent = sessions.length;

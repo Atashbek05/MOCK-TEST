@@ -96,10 +96,85 @@ def _cmd_help(chat_id: int) -> None:
 
 
 def _cmd_link(chat_id: int) -> None:
+    """No code provided — show instructions on how to get a code from the website."""
     keyboard = {"inline_keyboard": [[
-        {"text": "🔗 Link Account", "web_app": {"url": f"{APP_URL}/telegram-connect.html"}}
+        {"text": "🔗 Get Verification Code", "url": f"{APP_URL}/telegram-connect.html"}
     ]]}
-    _send(chat_id, "Tap below to link your IELTS account with Telegram.", keyboard)
+    _send(chat_id, (
+        "To link your Telegram with your IELTS account:\n\n"
+        "1️⃣ Open the platform and go to *Telegram Connect*\n"
+        "2️⃣ Get your 6-digit verification code\n"
+        "3️⃣ Send it here: `/link 123456`\n\n"
+        "Tap the button to get your code 👇"
+    ), keyboard)
+
+
+def _cmd_link_code(chat_id: int, tg_id: int, code: str,
+                   tg_username: Optional[str]) -> None:
+    """
+    User sent /link 123456 — verify the code in DB and link their account.
+    Security checks:
+      • code must exist and be unused
+      • code must not be expired (10-minute window)
+      • this Telegram ID must not already be linked to a different account
+    """
+    db = SessionLocal()
+    try:
+        vc = (db.query(models.TelegramVerificationCode)
+              .filter(models.TelegramVerificationCode.code == code)
+              .first())
+
+        if not vc:
+            _send(chat_id, "❌ Invalid code. Generate a new one on the platform.")
+            return
+
+        if vc.used:
+            _send(chat_id, "❌ This code was already used. Generate a new one.")
+            return
+
+        # Compare expiry — DB stores naive UTC; handle both cases
+        expires = vc.expires_at
+        if expires.tzinfo is not None:
+            expires = expires.replace(tzinfo=None)
+        if datetime.utcnow() > expires:
+            _send(chat_id, "❌ Code expired (10-minute limit). Generate a new one.")
+            return
+
+        # Conflict: this Telegram account linked to a *different* platform account
+        conflict = (db.query(models.User)
+                    .filter(models.User.telegram_id == tg_id,
+                            models.User.id != vc.user_id)
+                    .first())
+        if conflict:
+            _send(chat_id,
+                  "❌ This Telegram is already linked to a different account.\n"
+                  "Unlink it first from that account.")
+            return
+
+        user = db.query(models.User).filter(models.User.id == vc.user_id).first()
+        if not user:
+            _send(chat_id, "❌ Account not found. Please try again.")
+            return
+
+        # All good — link!
+        user.telegram_id       = tg_id
+        user.telegram_username = tg_username
+        vc.used                = True
+        db.commit()
+
+        keyboard = {"inline_keyboard": [[
+            {"text": "🚀 Open Dashboard", "url": f"{APP_URL}/dashboard.html"}
+        ]]}
+        _send(chat_id, (
+            f"✅ *Successfully linked!*\n\n"
+            f"Account: *{user.name}* ({user.email})\n\n"
+            f"You'll now receive:\n"
+            f"• 📊 Test results after each submission\n"
+            f"• ⏰ Study reminders\n"
+            f"• 📢 Teacher announcements\n"
+        ), keyboard)
+    finally:
+        db.close()
 
 
 def _cmd_status(chat_id: int, tg_id: int) -> None:
@@ -248,8 +323,15 @@ def _handle(update: dict) -> None:
         _cmd_start(chat_id, first_name)
     elif text == "/help":
         _cmd_help(chat_id)
-    elif text == "/link":
-        _cmd_link(chat_id)
+    elif text.startswith("/link"):
+        # /link       → show instructions
+        # /link 123456 → verify code and link account
+        parts = text.split()
+        if (len(parts) == 2 and parts[1].isdigit()
+                and len(parts[1]) == 6 and tg_id):
+            _cmd_link_code(chat_id, tg_id, parts[1], from_obj.get("username"))
+        else:
+            _cmd_link(chat_id)
     elif text == "/status" and tg_id:
         _cmd_status(chat_id, tg_id)
     elif text == "/progress" and tg_id:

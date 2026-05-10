@@ -4,6 +4,7 @@ import json
 import os
 import random
 import time
+from datetime import datetime, timezone, timedelta
 from urllib.parse import parse_qsl
 
 import requests as _req
@@ -1882,4 +1883,78 @@ def get_progress_summary(
         },
         "recent_results": recent[:8],
         "joined_tests":   joined,
+    }
+
+
+# ── Telegram Verification Code linking (Phase 8) ─────────────────────────────
+#
+# Simple flow:
+#   1. User clicks "Connect Telegram" on website → POST /telegram/generate-code
+#   2. Backend stores a 6-digit code with 10-minute expiry in DB
+#   3. User opens the Telegram bot and sends:  /link 123456
+#   4. Bot reads the code from DB, links user_id ↔ telegram_id, marks code used
+#   5. Website polls GET /telegram/status every 3s until linked = true
+#
+# Why this is secure:
+#   - Code expires in 10 minutes
+#   - Code is one-time use (used=True after first successful verification)
+#   - Only someone in control of the Telegram account can send the code to the bot
+#   - No HMAC or OAuth complexity needed
+# ─────────────────────────────────────────────────────────────────────────────
+
+@app.post("/telegram/generate-code")
+def generate_telegram_code(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Generate a 6-digit verification code for linking Telegram.
+    Deletes any existing unused codes for this user first (one active code per user).
+    Returns: { code, expires_at, expires_in_seconds }
+    """
+    # Delete old unused codes for this user so there's only one active at a time
+    db.query(models.TelegramVerificationCode).filter(
+        models.TelegramVerificationCode.user_id == current_user.id,
+        models.TelegramVerificationCode.used == False,
+    ).delete(synchronize_session=False)
+    db.commit()
+
+    # Generate a unique 6-digit code
+    for _ in range(20):  # safety limit — practically never loops
+        code = str(random.randint(100000, 999999))
+        clash = db.query(models.TelegramVerificationCode).filter(
+            models.TelegramVerificationCode.code == code,
+            models.TelegramVerificationCode.used == False,
+        ).first()
+        if not clash:
+            break
+
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+    db.add(models.TelegramVerificationCode(
+        user_id=current_user.id,
+        code=code,
+        expires_at=expires_at,
+        used=False,
+    ))
+    db.commit()
+
+    return {
+        "code":               code,
+        "expires_at":         expires_at.isoformat(),
+        "expires_in_seconds": 600,
+    }
+
+
+@app.get("/telegram/status")
+def get_telegram_status(
+    current_user: models.User = Depends(get_current_user),
+):
+    """
+    Lightweight endpoint polled by the frontend every few seconds
+    to detect when the bot has finished linking the account.
+    """
+    return {
+        "linked":             current_user.telegram_id is not None,
+        "telegram_id":        current_user.telegram_id,
+        "telegram_username":  current_user.telegram_username,
     }

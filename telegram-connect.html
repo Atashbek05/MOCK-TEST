@@ -4,14 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>Telegram Connect – IELTS Mock</title>
-<!--
-  Telegram Mini App SDK.
-  When this page is opened inside Telegram (via WebApp button),
-  window.Telegram.WebApp becomes available with the user's info.
-  When opened in a normal browser, the script is a harmless no-op.
--->
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<title>Connect Telegram – IELTS Mock</title>
 
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,37 +18,33 @@ body {
   color: #0f172a;
 }
 
-/* ── Top bar ── */
+/* ── Top bar ────────────────────────────────────────────────────────────── */
 .top-bar {
-  padding: 16px 28px;
+  padding: 15px 28px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: white;
   border-bottom: 1px solid #e2e8f0;
 }
-
-.logo { font-size: 15px; font-weight: 800; color: #0f172a; text-decoration: none; letter-spacing: -0.2px; }
+.logo { font-size: 15px; font-weight: 800; color: #0f172a; text-decoration: none; }
 .logo .accent { color: #2563eb; }
-
-.nav-btn {
+.back-btn {
   font-size: 13px; font-weight: 600; color: #64748b;
   text-decoration: none; padding: 7px 16px;
   border: 1.5px solid #e2e8f0; border-radius: 10px;
-  background: white; cursor: pointer; font-family: inherit;
-  transition: color 0.15s, border-color 0.15s;
+  background: white; transition: color 0.15s, border-color 0.15s;
 }
-.nav-btn:hover { color: #0f172a; border-color: #cbd5e1; }
+.back-btn:hover { color: #0f172a; border-color: #cbd5e1; }
 
-/* ── Card ── */
+/* ── Card ───────────────────────────────────────────────────────────────── */
 .page-center {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 32px 20px 60px;
+  padding: 36px 20px 60px;
 }
-
 .card {
   background: white;
   border-radius: 20px;
@@ -65,13 +54,7 @@ body {
   box-shadow: 0 4px 6px rgba(0,0,0,0.04), 0 16px 48px rgba(0,0,0,0.09);
 }
 
-/* ── Loading ── */
-.loading-wrap {
-  text-align: center;
-  padding: 32px 0;
-  color: #6b7280;
-  font-size: 14px;
-}
+/* ── Shared elements ────────────────────────────────────────────────────── */
 .spinner {
   width: 32px; height: 32px;
   border: 3px solid #e2e8f0;
@@ -82,7 +65,6 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Section title ── */
 .card-title {
   font-size: 22px;
   font-weight: 800;
@@ -97,118 +79,7 @@ body {
   margin-bottom: 28px;
 }
 
-/* ── Connected state ── */
-.connected-card {
-  background: #f0fdf4;
-  border: 1.5px solid #86efac;
-  border-radius: 14px;
-  padding: 20px 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-.tg-avatar {
-  width: 52px; height: 52px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb, #06b6d4);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 24px;
-  flex-shrink: 0;
-}
-.connected-info { flex: 1; min-width: 0; }
-.connected-name { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 2px; }
-.connected-handle { font-size: 13px; color: #059669; }
-
-.connected-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: #dcfce7; color: #15803d;
-  font-size: 11px; font-weight: 700;
-  padding: 4px 10px; border-radius: 20px;
-  text-transform: uppercase; letter-spacing: 0.4px;
-  margin-bottom: 16px;
-}
-
-/* ── Not connected state ── */
-.not-connected-card {
-  background: #fffbeb;
-  border: 1.5px solid #fde68a;
-  border-radius: 14px;
-  padding: 20px 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 24px;
-}
-.nc-icon { font-size: 28px; flex-shrink: 0; }
-.nc-text p { font-size: 14px; color: #92400e; line-height: 1.5; }
-
-/* ── How it works ── */
-.how-it-works {
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 16px 18px;
-  margin-bottom: 24px;
-}
-.how-title { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
-.how-step {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 10px;
-  font-size: 13px;
-  color: #374151;
-  line-height: 1.45;
-}
-.how-step:last-child { margin-bottom: 0; }
-.how-num {
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  background: #2563eb;
-  color: white;
-  font-size: 11px;
-  font-weight: 800;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-/* ── Widget container ── */
-.widget-wrap {
-  display: flex;
-  justify-content: center;
-  min-height: 56px;
-  margin-bottom: 16px;
-}
-
-/* ── Buttons ── */
-.btn-unlink {
-  width: 100%;
-  padding: 13px;
-  background: white;
-  color: #dc2626;
-  border: 1.5px solid #fca5a5;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-}
-.btn-unlink:hover { background: #fef2f2; border-color: #f87171; }
-
-.btn-back {
-  display: block;
-  text-align: center;
-  margin-top: 16px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #64748b;
-  text-decoration: none;
-}
-.btn-back:hover { color: #0f172a; }
-
-/* ── Toast ── */
+/* ── Toast ──────────────────────────────────────────────────────────────── */
 .toast {
   position: fixed; bottom: 28px; left: 50%;
   transform: translateX(-50%) translateY(80px);
@@ -217,73 +88,353 @@ body {
   padding: 12px 24px; border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.18);
   z-index: 100;
-  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
   white-space: nowrap;
 }
 .toast.show { transform: translateX(-50%) translateY(0); }
 
-/* ── Server error ── */
-.server-error {
-  display: none;
-  background: #fef2f2;
-  border: 1.5px solid #fecaca;
-  border-radius: 10px;
-  padding: 11px 16px;
-  font-size: 13px;
-  color: #dc2626;
-  margin-bottom: 16px;
-  text-align: center;
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONNECTED STATE
+═══════════════════════════════════════════════════════════════════════════ */
+.connected-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #dcfce7; color: #15803d;
+  font-size: 11px; font-weight: 700;
+  padding: 4px 12px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 18px;
 }
-.server-error.show { display: block; }
+.connected-card {
+  background: #f0fdf4;
+  border: 1.5px solid #86efac;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.tg-avatar {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0;
+}
+.connected-info { flex: 1; min-width: 0; }
+.connected-name { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
+.connected-handle { font-size: 13px; color: #059669; font-weight: 500; }
+.connected-desc {
+  font-size: 13px; color: #6b7280; margin-bottom: 20px; line-height: 1.55;
+}
+.btn-unlink {
+  width: 100%; padding: 13px;
+  background: white; color: #dc2626;
+  border: 1.5px solid #fca5a5; border-radius: 12px;
+  font-size: 14px; font-weight: 700; font-family: inherit;
+  cursor: pointer; transition: background 0.15s, border-color 0.15s;
+}
+.btn-unlink:hover { background: #fef2f2; border-color: #f87171; }
 
-/* ── Telegram not configured ── */
-.not-configured {
-  background: #f1f5f9;
+/* ═══════════════════════════════════════════════════════════════════════════
+   LINKING STATE — verification code flow
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* Step containers */
+.step {
+  margin-bottom: 22px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.step:last-child { border-bottom: none; margin-bottom: 0; }
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.step-num {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: white;
+  font-size: 12px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.step-title { font-size: 14px; font-weight: 700; color: #0f172a; }
+.step-sub   { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+/* ── Code display: 6 individual digit boxes ─────────────────────────────── */
+.code-display { text-align: center; }
+.digit-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-bottom: 10px;
+}
+.digit-box {
+  width: 48px; height: 58px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 800;
+  color: #2563eb;
+  letter-spacing: 0;
+  transition: border-color 0.2s, background 0.2s;
+}
+.digit-sep {
+  font-size: 20px; font-weight: 300;
+  color: #cbd5e1; margin: 0 2px;
+  user-select: none;
+}
+
+/* Timer + refresh */
+.code-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+.code-timer {
+  font-size: 12px; font-weight: 600;
+  color: #64748b;
+}
+.code-timer.expiring { color: #dc2626; }
+.btn-refresh {
+  font-size: 12px; font-weight: 600; color: #2563eb;
+  background: none; border: none; cursor: pointer;
+  font-family: inherit; padding: 0;
+  transition: opacity 0.15s;
+}
+.btn-refresh:hover { opacity: 0.7; }
+.btn-refresh:disabled { opacity: 0.4; cursor: default; }
+
+/* ── Command box ────────────────────────────────────────────────────────── */
+.command-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
   border: 1.5px solid #e2e8f0;
   border-radius: 12px;
-  padding: 20px;
-  text-align: center;
-  font-size: 13px;
-  color: #64748b;
-  line-height: 1.6;
+  padding: 12px 14px;
+  margin-bottom: 12px;
 }
+.command-text {
+  flex: 1;
+  font-family: 'SF Mono', 'Fira Mono', 'Monaco', Consolas, monospace;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+}
+.btn-copy {
+  background: #2563eb; color: white;
+  border: none; border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 12px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.btn-copy:hover  { background: #1d4ed8; }
+.btn-copy.copied { background: #059669; }
+
+/* ── Open Bot button ────────────────────────────────────────────────────── */
+.btn-open-bot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px;
+  background: #2563eb; color: white;
+  border: none; border-radius: 12px;
+  font-size: 15px; font-weight: 700; font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.btn-open-bot:hover { background: #1d4ed8; }
+.btn-open-bot .tg-logo { font-size: 18px; }
+
+/* ── Waiting indicator ──────────────────────────────────────────────────── */
+.waiting-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #eff6ff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+.waiting-spinner {
+  width: 18px; height: 18px;
+  border: 2.5px solid #bfdbfe;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+.waiting-text { font-size: 13px; color: #1e40af; font-weight: 500; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SUCCESS STATE
+═══════════════════════════════════════════════════════════════════════════ */
+.success-wrap { text-align: center; padding: 8px 0 16px; }
+.success-icon { font-size: 52px; margin-bottom: 14px; }
+.success-title { font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
+.success-desc  { font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 24px; }
+.btn-dashboard {
+  display: inline-block;
+  background: #2563eb; color: white;
+  padding: 13px 28px; border-radius: 12px;
+  font-size: 15px; font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.btn-dashboard:hover { background: #1d4ed8; }
 </style>
 </head>
 <body>
 
-<!-- Top bar -->
+<!-- ── Top bar ───────────────────────────────────────────────────────────── -->
 <div class="top-bar">
   <a class="logo" href="index.html">IELTS <span class="accent">MOCK</span></a>
-  <a class="nav-btn" id="back-btn" href="dashboard.html">← Dashboard</a>
+  <a class="back-btn" href="dashboard.html">← Dashboard</a>
 </div>
 
-<!-- Card -->
+<!-- ── Card ──────────────────────────────────────────────────────────────── -->
 <div class="page-center">
   <div class="card">
 
-    <h1 class="card-title">Telegram Connect</h1>
-    <p class="card-sub">
-      Link your Telegram account to sign in instantly via the bot
-      and receive exam reminders.
+    <h1 class="card-title" id="page-title">Telegram Connect</h1>
+    <p class="card-sub" id="page-sub">
+      Link your Telegram to receive results, reminders and notifications.
     </p>
 
-    <!-- Loading state -->
-    <div class="loading-wrap" id="loading-state">
+    <!-- ── Loading ── -->
+    <div id="state-loading" style="text-align:center;padding:32px 0">
       <div class="spinner"></div>
-      Loading…
+      <div style="font-size:14px;color:#64748b">Loading…</div>
     </div>
 
-    <!-- Error box -->
-    <div class="server-error" id="err-server"></div>
+    <!-- ════════════════════════════════════════════════════════════════════
+         CONNECTED STATE
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <div id="state-connected" style="display:none">
+      <div class="connected-badge">✅ Connected</div>
+      <div class="connected-card">
+        <div class="tg-avatar">✈️</div>
+        <div class="connected-info">
+          <div class="connected-name" id="c-name">—</div>
+          <div class="connected-handle" id="c-handle">—</div>
+        </div>
+      </div>
+      <p class="connected-desc">
+        Your Telegram is linked. You'll receive test results, study reminders
+        and teacher notifications directly in Telegram.
+      </p>
+      <button class="btn-unlink" onclick="unlink()">
+        🔗 Unlink Telegram Account
+      </button>
+    </div>
 
-    <!-- Content (rendered by JS after loading) -->
-    <div id="content" style="display:none;"></div>
+    <!-- ════════════════════════════════════════════════════════════════════
+         LINKING STATE — 3-step verification code flow
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <div id="state-linking" style="display:none">
 
-    <a class="btn-back" id="back-link" href="dashboard.html">← Back to Dashboard</a>
-  </div>
-</div>
+      <!-- Step 1: Your code -->
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">1</div>
+          <div>
+            <div class="step-title">Your verification code</div>
+            <div class="step-sub">Valid for 10 minutes · one-time use</div>
+          </div>
+        </div>
 
-<!-- Toast -->
+        <div class="code-display">
+          <!-- 6 digit boxes — filled by JS -->
+          <div class="digit-row" id="digit-row">
+            <div class="digit-box" id="d0">·</div>
+            <div class="digit-box" id="d1">·</div>
+            <div class="digit-box" id="d2">·</div>
+            <div class="digit-sep">—</div>
+            <div class="digit-box" id="d3">·</div>
+            <div class="digit-box" id="d4">·</div>
+            <div class="digit-box" id="d5">·</div>
+          </div>
+          <div class="code-meta">
+            <span class="code-timer" id="code-timer">⏱ Generating…</span>
+            <button class="btn-refresh" id="btn-refresh" onclick="generateCode()" disabled>
+              ↺ New code
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Send to bot -->
+      <div class="step">
+        <div class="step-header">
+          <div class="step-num">2</div>
+          <div>
+            <div class="step-title">Send this command to the bot</div>
+            <div class="step-sub">Copy the command below and paste it in Telegram</div>
+          </div>
+        </div>
+
+        <div class="command-row">
+          <span class="command-text" id="command-text">/link ······</span>
+          <button class="btn-copy" id="btn-copy" onclick="copyCommand()">Copy</button>
+        </div>
+
+        <a class="btn-open-bot" id="open-bot-btn" href="#" target="_blank">
+          <span class="tg-logo">✈️</span>
+          <span id="bot-btn-text">Open Telegram Bot</span>
+        </a>
+      </div>
+
+      <!-- Step 3: Waiting -->
+      <div class="step" style="padding-bottom:0">
+        <div class="step-header">
+          <div class="step-num">3</div>
+          <div>
+            <div class="step-title">Waiting for confirmation…</div>
+            <div class="step-sub">This updates automatically</div>
+          </div>
+        </div>
+        <div class="waiting-row">
+          <div class="waiting-spinner"></div>
+          <div class="waiting-text">Checking Telegram link status…</div>
+        </div>
+      </div>
+
+    </div><!-- /state-linking -->
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         SUCCESS STATE
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <div id="state-success" style="display:none">
+      <div class="success-wrap">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">Telegram Linked!</div>
+        <div class="success-desc">
+          Your Telegram is now connected.<br>
+          You'll receive test results and reminders directly in the bot.
+        </div>
+        <a class="btn-dashboard" href="dashboard.html">Go to Dashboard →</a>
+      </div>
+    </div>
+
+  </div><!-- /card -->
+</div><!-- /page-center -->
+
 <div class="toast" id="toast"></div>
 
 <script src="api.js"></script>
@@ -292,210 +443,223 @@ body {
 // ── Require login ─────────────────────────────────────────────────────────────
 const token = requireAuth();
 
-// State
-let currentUser = null;
-let botUsername = null;
+// ── State ─────────────────────────────────────────────────────────────────────
+let currentCode    = null;   // the 6-digit string
+let expiresAt      = null;   // Date object
+let timerInterval  = null;   // setInterval for countdown
+let pollInterval   = null;   // setInterval for status polling
+let botUsername    = null;   // fetched from /telegram/bot-info
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function showToast(msg, isSuccess = true) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.style.background = isSuccess ? "#059669" : "#dc2626";
-  t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 3500);
-}
-
-function showError(msg) {
-  const el = document.getElementById("err-server");
-  el.textContent = msg;
+function showToast(msg, ok = true) {
+  const el = document.getElementById("toast");
+  el.textContent   = msg;
+  el.style.background = ok ? "#059669" : "#dc2626";
   el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 3500);
 }
 
-function clearError() {
-  document.getElementById("err-server").classList.remove("show");
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
-// ── Render "connected" UI ─────────────────────────────────────────────────────
-function renderConnected(user) {
-  const handle = user.telegram_username ? `@${user.telegram_username}` : `ID ${user.telegram_id}`;
-  document.getElementById("content").innerHTML = `
-    <div class="connected-badge">✅ Connected</div>
-    <div class="connected-card">
-      <div class="tg-avatar">✈️</div>
-      <div class="connected-info">
-        <div class="connected-name">${escHtml(user.name)}</div>
-        <div class="connected-handle">${escHtml(handle)}</div>
-      </div>
-    </div>
-    <p style="font-size:13px;color:#6b7280;margin-bottom:20px;line-height:1.55;">
-      Your Telegram is linked. You can now sign in by clicking
-      <strong>Log in with Telegram</strong> on the login page.
-    </p>
-    <button class="btn-unlink" onclick="unlink()">🔗 Unlink Telegram Account</button>`;
+// ── Show a state ──────────────────────────────────────────────────────────────
+function showState(name) {
+  ["loading", "connected", "linking", "success"].forEach(s => {
+    document.getElementById(`state-${s}`).style.display = s === name ? "" : "none";
+  });
 }
 
-// ── Render "not connected" UI ─────────────────────────────────────────────────
-function renderNotConnected() {
-  let widgetHtml = "";
-  if (botUsername) {
-    widgetHtml = `
-      <div class="how-it-works">
-        <div class="how-title">How it works</div>
-        <div class="how-step"><span class="how-num">1</span> Click the button below and authorise in Telegram</div>
-        <div class="how-step"><span class="how-num">2</span> Your accounts are linked instantly</div>
-        <div class="how-step"><span class="how-num">3</span> Next time, log in with one click via Telegram</div>
-      </div>
-      <div class="not-connected-card">
-        <span class="nc-icon">⚠️</span>
-        <div class="nc-text"><p>Your Telegram is <strong>not linked</strong> yet. Use the button below to connect it.</p></div>
-      </div>
-      <div class="widget-wrap" id="tg-widget-wrap"></div>`;
-  } else {
-    widgetHtml = `
-      <div class="not-configured">
-        <p>🤖 Telegram integration is not configured on this server yet.<br>
-        Contact the administrator to enable it.</p>
-      </div>`;
+// ── On load ───────────────────────────────────────────────────────────────────
+async function init() {
+  // Fetch user status + bot info in parallel
+  const [meRes, botRes] = await Promise.all([
+    fetch(`${API_BASE}/me`, { headers: { Authorization: `Bearer ${token}` } }),
+    fetch(`${API_BASE}/telegram/bot-info`).catch(() => null),
+  ]);
+
+  if (!meRes.ok) { location.href = "login.html"; return; }
+  const me = await meRes.json();
+
+  // Grab bot username for the deep link
+  if (botRes && botRes.ok) {
+    const botData = await botRes.json();
+    botUsername = botData.username;
+    document.getElementById("bot-btn-text").textContent = `Open @${botUsername} in Telegram`;
+    document.getElementById("open-bot-btn").href = `https://t.me/${botUsername}`;
   }
-  document.getElementById("content").innerHTML = widgetHtml;
 
-  if (botUsername) loadWidget();
+  if (me.telegram_id) {
+    // Already connected
+    renderConnected(me);
+  } else {
+    // Not connected — generate code immediately
+    showState("linking");
+    await generateCode();
+    startPolling();
+  }
 }
 
-// ── Load Telegram Login Widget dynamically ────────────────────────────────────
-// Why dynamic? We need the bot username from the backend first.
-// The widget script creates an iframe with a "Log in with Telegram" button.
-function loadWidget() {
-  // Expose the callback globally so Telegram's script can find it
-  window.__tgLinkCallback__ = async function(tgUser) {
-    await linkAccount(tgUser);
-  };
+// ── Render connected state ────────────────────────────────────────────────────
+function renderConnected(me) {
+  document.getElementById("page-title").textContent = "Telegram Connected";
+  document.getElementById("page-sub").textContent   =
+    "Your Telegram account is linked to this platform account.";
 
-  const container = document.getElementById("tg-widget-wrap");
-  if (!container) return;
-
-  const script = document.createElement("script");
-  script.src = "https://telegram.org/js/telegram-widget.js?22";
-  script.setAttribute("data-telegram-login", botUsername);
-  script.setAttribute("data-size", "large");
-  script.setAttribute("data-radius", "10");
-  script.setAttribute("data-onauth", "__tgLinkCallback__(user)");
-  script.setAttribute("data-request-access", "write");
-  script.async = true;
-  container.appendChild(script);
+  const handle = me.telegram_username ? `@${me.telegram_username}` : `ID ${me.telegram_id}`;
+  document.getElementById("c-name").textContent   = escHtml(me.name);
+  document.getElementById("c-handle").textContent = handle;
+  showState("connected");
 }
 
-// ── Link account ──────────────────────────────────────────────────────────────
-async function linkAccount(tgUser) {
-  clearError();
+// ── Generate a new code ───────────────────────────────────────────────────────
+async function generateCode() {
+  // Disable the refresh button while generating
+  const btn = document.getElementById("btn-refresh");
+  btn.disabled = true;
+
+  // Reset digit boxes to loading state
+  for (let i = 0; i < 6; i++) {
+    document.getElementById(`d${i}`).textContent = "·";
+    document.getElementById(`d${i}`).style.borderColor = "#e2e8f0";
+  }
+  document.getElementById("code-timer").textContent = "⏱ Generating…";
+  document.getElementById("command-text").textContent = "/link ······";
+
+  // Clear existing timer
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+
   try {
-    const res = await fetch(`${API_BASE}/telegram/link`, {
+    const res = await fetch(`${API_BASE}/telegram/generate-code`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify(tgUser),
+      headers: { Authorization: `Bearer ${token}` },
     });
+    if (!res.ok) { showToast("Failed to generate code", false); return; }
+
+    const data = await res.json();
+    currentCode = data.code;
+    expiresAt   = new Date(data.expires_at);
+
+    // Fill digit boxes
+    for (let i = 0; i < 6; i++) {
+      document.getElementById(`d${i}`).textContent    = currentCode[i];
+      document.getElementById(`d${i}`).style.borderColor = "#bfdbfe";
+      document.getElementById(`d${i}`).style.background  = "#eff6ff";
+    }
+
+    // Update command text
+    document.getElementById("command-text").textContent = `/link ${currentCode}`;
+
+    // Start countdown
+    startTimer();
+    btn.disabled = false;
+
+  } catch (_) {
+    showToast("Network error", false);
+    btn.disabled = false;
+  }
+}
+
+// ── Countdown timer ───────────────────────────────────────────────────────────
+function startTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+
+  function tick() {
+    const secsLeft = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+    const mm = String(Math.floor(secsLeft / 60)).padStart(2, "0");
+    const ss = String(secsLeft % 60).padStart(2, "0");
+
+    const el = document.getElementById("code-timer");
+    el.textContent = `⏱ Expires in ${mm}:${ss}`;
+    el.classList.toggle("expiring", secsLeft < 60);
+
+    if (secsLeft <= 0) {
+      clearInterval(timerInterval);
+      el.textContent = "❌ Code expired — click 'New code'";
+      // Grey out digit boxes
+      for (let i = 0; i < 6; i++) {
+        document.getElementById(`d${i}`).style.borderColor = "#e2e8f0";
+        document.getElementById(`d${i}`).style.background  = "#f8fafc";
+        document.getElementById(`d${i}`).style.color       = "#94a3b8";
+      }
+    }
+  }
+
+  tick(); // immediate first tick
+  timerInterval = setInterval(tick, 1000);
+}
+
+// ── Copy command to clipboard ─────────────────────────────────────────────────
+async function copyCommand() {
+  const cmd = document.getElementById("command-text").textContent;
+  const btn = document.getElementById("btn-copy");
+  try {
+    await navigator.clipboard.writeText(cmd);
+    btn.textContent = "✓ Copied!";
+    btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+  } catch (_) {
+    showToast("Could not copy — copy manually", false);
+  }
+}
+
+// ── Poll for link status ──────────────────────────────────────────────────────
+function startPolling() {
+  if (pollInterval) clearInterval(pollInterval);
+  pollInterval = setInterval(checkStatus, 3000);
+}
+
+async function checkStatus() {
+  try {
+    const res = await fetch(`${API_BASE}/telegram/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return;
     const data = await res.json();
 
-    if (res.ok) {
-      // Update local user object and re-render as connected
-      currentUser.telegram_id = data.telegram_id;
-      currentUser.telegram_username = data.telegram_username;
-      document.getElementById("content").style.display = "block";
-      renderConnected(currentUser);
-      showToast("✅ Telegram linked successfully!");
-    } else {
-      showError(data.detail || "Could not link Telegram account.");
-      showToast("❌ " + (data.detail || "Link failed"), false);
+    if (data.linked) {
+      clearInterval(pollInterval);
+      clearInterval(timerInterval);
+      showState("success");
     }
-  } catch {
-    showError("Cannot connect to server. Please try again.");
-  }
+  } catch (_) {}
 }
 
-// ── Unlink account ────────────────────────────────────────────────────────────
+// ── Unlink ────────────────────────────────────────────────────────────────────
 async function unlink() {
-  if (!confirm("Unlink your Telegram account? You can re-link it at any time.")) return;
-  clearError();
+  if (!confirm("Unlink your Telegram account?")) return;
   try {
     const res = await fetch(`${API_BASE}/telegram/unlink`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
     if (res.ok) {
-      currentUser.telegram_id = null;
-      currentUser.telegram_username = null;
-      renderNotConnected();
-      showToast("✅ Telegram unlinked.");
+      showToast("Telegram unlinked");
+      showState("linking");
+      document.getElementById("page-title").textContent = "Connect Telegram";
+      document.getElementById("page-sub").textContent =
+        "Link your Telegram to receive results, reminders and notifications.";
+      await generateCode();
+      startPolling();
     } else {
-      const data = await res.json();
-      showError(data.detail || "Could not unlink.");
+      showToast("Failed to unlink", false);
     }
-  } catch {
-    showError("Cannot connect to server.");
+  } catch (_) {
+    showToast("Network error", false);
   }
 }
 
-function escHtml(str) {
-  const d = document.createElement("div");
-  d.textContent = str;
-  return d.innerHTML;
-}
+// ── Clean up intervals on page leave ─────────────────────────────────────────
+window.addEventListener("beforeunload", () => {
+  clearInterval(timerInterval);
+  clearInterval(pollInterval);
+});
 
-// ── Bootstrap ─────────────────────────────────────────────────────────────────
-async function load() {
-  try {
-    // Fetch current user and bot info in parallel
-    const [meRes, botRes] = await Promise.all([
-      fetch(`${API_BASE}/me`,                { headers: { Authorization: `Bearer ${token}` } }),
-      fetch(`${API_BASE}/telegram/bot-info`, { headers: { Authorization: `Bearer ${token}` } }),
-    ]);
-
-    if (meRes.status === 401) { logout(); return; }
-    currentUser = await meRes.json();
-
-    // Teacher → back button goes to teacher dashboard
-    if (currentUser.role === "teacher") {
-      document.getElementById("back-btn").href  = "teacher-dashboard.html";
-      document.getElementById("back-link").href = "teacher-dashboard.html";
-    }
-
-    if (botRes.ok) {
-      const botData = await botRes.json();
-      botUsername = botData.username;
-    }
-
-    document.getElementById("loading-state").style.display = "none";
-    document.getElementById("content").style.display = "block";
-
-    if (currentUser.telegram_id) {
-      renderConnected(currentUser);
-    } else {
-      renderNotConnected();
-    }
-
-    // ── Telegram Mini App detection ──────────────────────────────────────────
-    // If this page was opened inside Telegram (via the bot's WebApp button),
-    // window.Telegram.WebApp.initDataUnsafe.user contains the Telegram user info.
-    // We can use it to pre-fill or auto-link.
-    const tgWebApp = window.Telegram?.WebApp;
-    if (tgWebApp?.initDataUnsafe?.user && !currentUser.telegram_id) {
-      // Page is inside Telegram Mini App and account isn't linked yet
-      // Show a helpful hint — user can tap the widget to confirm
-      const hint = document.createElement("p");
-      hint.style.cssText = "font-size:13px;color:#2563eb;margin-top:12px;text-align:center;font-weight:600;";
-      hint.textContent = "📱 Detected: you're inside Telegram. Click the button above to link instantly!";
-      document.getElementById("tg-widget-wrap")?.after(hint);
-      tgWebApp.ready(); // tells Telegram the Mini App has loaded
-    }
-
-  } catch (err) {
-    console.error(err);
-    document.getElementById("loading-state").innerHTML =
-      '<p style="color:#dc2626;font-size:14px;">Cannot connect to server. Please refresh.</p>';
-  }
-}
-
-load();
+// ── Boot ──────────────────────────────────────────────────────────────────────
+init();
 </script>
 </body>
 </html>
