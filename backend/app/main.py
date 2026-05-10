@@ -21,6 +21,7 @@ from .bot import start_polling
 from .seed_data import READING_TESTS
 from .database import Base, SessionLocal, engine, get_db
 from .seed_ielts import seed as seed_ielts_content
+from .seed_listening import seed as seed_listening_content
 from .security import create_access_token, decode_access_token, hash_password, verify_password
 
 app = FastAPI(title="IELTS Mock Test API", version="0.1.0")
@@ -592,6 +593,10 @@ async def startup_event():
             seed_ielts_content(db)
         except Exception as _seed_err:
             print(f"[startup] IELTS seed skipped: {_seed_err}")
+        try:
+            seed_listening_content(db)
+        except Exception as _seed_err:
+            print(f"[startup] Listening seed skipped: {_seed_err}")
     finally:
         db.close()
     # Start Telegram bot polling (replaces the old webhook approach).
@@ -2529,3 +2534,270 @@ def admin_seed(
         db.commit()
     result = seed_ielts_content(db)
     return {"ok": True, **result}
+
+
+# ── Full Mock Test endpoints ──────────────────────────────────────────────────
+
+TOTAL_SLOTS = 20
+
+
+def _raw_score_to_band(raw: int) -> float:
+    """Convert listening/reading raw score (0-40) to IELTS band (0-9)."""
+    table = [
+        (39, 9.0), (37, 8.5), (35, 8.0), (32, 7.5), (30, 7.0),
+        (26, 6.5), (23, 6.0), (18, 5.5), (16, 5.0), (13, 4.5),
+        (10, 4.0), (6, 3.5), (4, 3.0), (3, 2.5), (0, 0.0),
+    ]
+    for threshold, band in table:
+        if raw >= threshold:
+            return band
+    return 0.0
+
+
+def _pick_random_content(db: Session, user_id: int, slot: int):
+    """Pick a random (but reproducible for this user+slot) set of content."""
+    seed_val = user_id * 1000 + slot
+    rng = random.Random(seed_val)
+
+    listening_ids = [r[0] for r in db.query(models.ListeningSection.id).filter_by(is_active=True).all()]
+    reading_ids   = [r[0] for r in db.query(models.IELTSTest.id).all()]
+    writing_ids   = [r[0] for r in db.query(models.WritingPrompt.id).all()]
+
+    if not listening_ids or not reading_ids or len(writing_ids) < 2:
+        raise HTTPException(status_code=503, detail="Not enough content seeded yet")
+
+    return {
+        "listening_section_id": rng.choice(listening_ids),
+        "reading_test_id":      rng.choice(reading_ids),
+        "writing_task1_id":     writing_ids[rng.randint(0, len(writing_ids) - 1)],
+        "writing_task2_id":     writing_ids[rng.randint(0, len(writing_ids) - 1)],
+    }
+
+
+@app.get("/mock/slots", response_model=List[schemas.MockSlotOut])
+def get_mock_slots(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return all 20 mock test slots with attempt status for the logged-in student."""
+    attempts = (
+        db.query(models.FullMockAttempt)
+        .filter_by(user_id=current_user.id)
+        .all()
+    )
+    attempt_map = {a.slot_number: a for a in attempts}
+    result = []
+    for slot in range(1, TOTAL_SLOTS + 1):
+        a = attempt_map.get(slot)
+        if a:
+            result.append(schemas.MockSlotOut(
+                slot_number=slot,
+                attempt_id=a.id,
+                status=a.status,
+                current_section=a.current_section,
+                listening_band=a.listening_band,
+                reading_band=a.reading_band,
+                writing_band=a.writing_band,
+                overall_band=a.overall_band,
+            ))
+        else:
+            result.append(schemas.MockSlotOut(slot_number=slot))
+    return result
+
+
+@app.post("/mock/slots/{slot}/start", response_model=schemas.MockAttemptOut)
+def start_mock_slot(
+    slot: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Start or resume a mock test slot. Idempotent — returns existing attempt if present."""
+    if slot < 1 or slot > TOTAL_SLOTS:
+        raise HTTPException(status_code=400, detail="slot must be 1-20")
+
+    existing = (
+        db.query(models.FullMockAttempt)
+        .filter_by(user_id=current_user.id, slot_number=slot)
+        .first()
+    )
+    if existing:
+        return existing
+
+    content = _pick_random_content(db, current_user.id, slot)
+    attempt = models.FullMockAttempt(
+        user_id=current_user.id,
+        slot_number=slot,
+        **content,
+    )
+    db.add(attempt)
+    db.commit()
+    db.refresh(attempt)
+    return attempt
+
+
+@app.get("/mock/attempts/{attempt_id}", response_model=schemas.MockAttemptOut)
+def get_mock_attempt(
+    attempt_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    attempt = db.query(models.FullMockAttempt).filter_by(id=attempt_id, user_id=current_user.id).first()
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+    return attempt
+
+
+# ── Listening endpoints ───────────────────────────────────────────────────────
+
+@app.get("/listening/section/{section_id}", response_model=schemas.ListeningSectionOut)
+def get_listening_section(
+    section_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    section = db.query(models.ListeningSection).filter_by(id=section_id).first()
+    if not section:
+        raise HTTPException(status_code=404, detail="Listening section not found")
+    return section
+
+
+@app.post("/listening/attempts/{attempt_id}/save")
+def save_listening_answers(
+    attempt_id: int,
+    body: schemas.ListeningSubmitIn,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Autosave listening answers (idempotent — upsert by question_id)."""
+    attempt = db.query(models.FullMockAttempt).filter_by(id=attempt_id, user_id=current_user.id).first()
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+    if attempt.listening_submitted_at:
+        raise HTTPException(status_code=409, detail="Listening already submitted")
+
+    now = datetime.now(timezone.utc)
+    existing = {
+        a.question_id: a
+        for a in db.query(models.ListeningStudentAnswer).filter_by(full_attempt_id=attempt_id).all()
+    }
+    for ans in body.answers:
+        if ans.question_id in existing:
+            existing[ans.question_id].answer_value = ans.answer_value
+            existing[ans.question_id].answered_at  = now
+        else:
+            db.add(models.ListeningStudentAnswer(
+                full_attempt_id=attempt_id,
+                question_id=ans.question_id,
+                answer_value=ans.answer_value,
+                answered_at=now,
+            ))
+    db.commit()
+    return {"ok": True}
+
+
+@app.post("/listening/attempts/{attempt_id}/submit")
+def submit_listening(
+    attempt_id: int,
+    body: schemas.ListeningSubmitIn,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Final submit — scores listening, advances attempt to reading section."""
+    attempt = db.query(models.FullMockAttempt).filter_by(id=attempt_id, user_id=current_user.id).first()
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+    if attempt.listening_submitted_at:
+        raise HTTPException(status_code=409, detail="Listening already submitted")
+
+    now = datetime.now(timezone.utc)
+
+    # Upsert answers
+    existing = {
+        a.question_id: a
+        for a in db.query(models.ListeningStudentAnswer).filter_by(full_attempt_id=attempt_id).all()
+    }
+    for ans in body.answers:
+        if ans.question_id in existing:
+            existing[ans.question_id].answer_value = ans.answer_value
+            existing[ans.question_id].answered_at  = now
+        else:
+            db.add(models.ListeningStudentAnswer(
+                full_attempt_id=attempt_id,
+                question_id=ans.question_id,
+                answer_value=ans.answer_value,
+                answered_at=now,
+            ))
+    db.flush()
+
+    # Fetch all questions for this section to grade
+    section = attempt.listening_section
+    all_q: dict[int, models.ListeningQuestion] = {}
+    for part in section.parts:
+        for q in part.questions:
+            all_q[q.id] = q
+
+    # Grade
+    raw_score = 0
+    answer_rows = db.query(models.ListeningStudentAnswer).filter_by(full_attempt_id=attempt_id).all()
+    for row in answer_rows:
+        q = all_q.get(row.question_id)
+        if not q or not row.answer_value:
+            continue
+        student_ans = row.answer_value.strip().lower()
+        correct     = q.correct_answer.strip().lower()
+        variants    = [v.strip().lower() for v in (q.answer_variants or [])]
+        if student_ans == correct or student_ans in variants:
+            raw_score += 1
+
+    band = _raw_score_to_band(raw_score)
+    attempt.listening_raw_score     = raw_score
+    attempt.listening_band          = band
+    attempt.listening_submitted_at  = now
+    attempt.current_section         = "reading"
+    db.commit()
+
+    return {"ok": True, "raw_score": raw_score, "band": band}
+
+
+@app.get("/listening/attempts/{attempt_id}/results")
+def get_listening_results(
+    attempt_id: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    attempt = db.query(models.FullMockAttempt).filter_by(id=attempt_id, user_id=current_user.id).first()
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+    if not attempt.listening_submitted_at:
+        raise HTTPException(status_code=400, detail="Listening not submitted yet")
+
+    answers = db.query(models.ListeningStudentAnswer).filter_by(full_attempt_id=attempt_id).all()
+    section = attempt.listening_section
+    all_q: dict[int, models.ListeningQuestion] = {}
+    for part in section.parts:
+        for q in part.questions:
+            all_q[q.id] = q
+
+    breakdown = []
+    for ans in answers:
+        q = all_q.get(ans.question_id)
+        if not q:
+            continue
+        student  = (ans.answer_value or "").strip().lower()
+        correct  = q.correct_answer.strip().lower()
+        variants = [v.strip().lower() for v in (q.answer_variants or [])]
+        is_correct = student == correct or student in variants
+        breakdown.append({
+            "question_id":    q.id,
+            "global_number":  q.global_number,
+            "stem":           q.stem,
+            "student_answer": ans.answer_value,
+            "correct_answer": q.correct_answer,
+            "is_correct":     is_correct,
+        })
+
+    return {
+        "raw_score":    attempt.listening_raw_score,
+        "band":         attempt.listening_band,
+        "breakdown":    breakdown,
+    }

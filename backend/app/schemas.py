@@ -478,3 +478,85 @@ class IELTSTestIn(BaseModel):
     component: str = "reading"
     time_limit: int = 60
     passages: List[IELTSPassageIn]
+
+
+# ── Full Mock Test schemas ────────────────────────────────────────────────────
+
+class ListeningQuestionOut(BaseModel):
+    id: int
+    global_number: int
+    local_order: int
+    question_type: str
+    stem: str
+    options: Optional[list] = None
+    group_instruction: Optional[str] = None
+    map_image_url: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+
+class ListeningPartOut(BaseModel):
+    id: int
+    part_number: int
+    context_description: Optional[str] = None
+    audio_url: Optional[str] = None
+    questions: List[ListeningQuestionOut] = []
+
+    class Config:
+        orm_mode = True
+
+
+class ListeningSectionOut(BaseModel):
+    id: int
+    title: str
+    difficulty: int
+    parts: List[ListeningPartOut] = []
+
+    class Config:
+        orm_mode = True
+
+
+class MockSlotOut(BaseModel):
+    slot_number: int
+    attempt_id: Optional[int] = None
+    status: Optional[str] = None          # None = not started
+    current_section: Optional[str] = None
+    listening_band: Optional[float] = None
+    reading_band: Optional[float] = None
+    writing_band: Optional[float] = None
+    overall_band: Optional[float] = None
+
+    class Config:
+        orm_mode = True
+
+
+class MockAttemptOut(BaseModel):
+    id: int
+    slot_number: int
+    status: str
+    current_section: str
+    listening_section_id: int
+    reading_test_id: int
+    writing_task1_id: int
+    writing_task2_id: int
+    listening_band: Optional[float] = None
+    reading_band: Optional[float] = None
+    writing_band: Optional[float] = None
+    overall_band: Optional[float] = None
+    listening_submitted_at: Optional[datetime] = None
+    reading_submitted_at: Optional[datetime] = None
+    writing_submitted_at: Optional[datetime] = None
+    ielts_attempt_id: Optional[int] = None
+
+    class Config:
+        orm_mode = True
+
+
+class ListeningAnswerIn(BaseModel):
+    question_id: int
+    answer_value: Optional[str] = None
+
+
+class ListeningSubmitIn(BaseModel):
+    answers: List[ListeningAnswerIn]

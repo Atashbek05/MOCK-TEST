@@ -398,3 +398,113 @@ class TeacherTestResult(Base):
 
     student = relationship("User", foreign_keys=[student_id])
     test = relationship("TeacherTest", back_populates="results")
+
+
+# ---------------------------------------------------------------------------
+# Full Mock Test — Listening layer
+# ---------------------------------------------------------------------------
+
+class ListeningSection(Base):
+    """One complete IELTS Listening section (4 parts, 40 questions)."""
+    __tablename__ = "listening_sections"
+
+    id:         Mapped[int]  = mapped_column(Integer, primary_key=True, index=True)
+    title:      Mapped[str]  = mapped_column(String(200), nullable=False)
+    difficulty: Mapped[int]  = mapped_column(Integer, default=3)          # 1-5
+    is_active:  Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    parts = relationship("ListeningPart", back_populates="section", order_by="ListeningPart.part_number")
+
+
+class ListeningPart(Base):
+    """One of four parts within a ListeningSection."""
+    __tablename__ = "listening_parts"
+
+    id:                  Mapped[int]           = mapped_column(Integer, primary_key=True, index=True)
+    section_id:          Mapped[int]           = mapped_column(ForeignKey("listening_sections.id"), nullable=False)
+    part_number:         Mapped[int]           = mapped_column(Integer, nullable=False)   # 1-4
+    context_description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    audio_url:           Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    transcript:          Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    section   = relationship("ListeningSection", back_populates="parts")
+    questions = relationship("ListeningQuestion", back_populates="part", order_by="ListeningQuestion.local_order")
+
+
+class ListeningQuestion(Base):
+    """Single question within a ListeningPart."""
+    __tablename__ = "listening_questions"
+
+    id:              Mapped[int]           = mapped_column(Integer, primary_key=True, index=True)
+    part_id:         Mapped[int]           = mapped_column(ForeignKey("listening_parts.id"), nullable=False)
+    global_number:   Mapped[int]           = mapped_column(Integer, nullable=False, index=True)  # 1-40
+    local_order:     Mapped[int]           = mapped_column(Integer, nullable=False)
+    question_type:   Mapped[str]           = mapped_column(String(50), nullable=False)
+    # form_completion | note_completion | mcq | map_labeling | matching | sentence_completion
+    stem:            Mapped[str]           = mapped_column(Text, nullable=False)
+    options:         Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)   # list for MCQ / matching
+    correct_answer:  Mapped[str]           = mapped_column(Text, nullable=False)
+    answer_variants: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)   # acceptable alternatives
+    group_instruction: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    map_image_url:   Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+
+    part = relationship("ListeningPart", back_populates="questions")
+
+
+class ListeningStudentAnswer(Base):
+    """Student answer for one ListeningQuestion inside a FullMockAttempt."""
+    __tablename__ = "listening_student_answers"
+
+    id:              Mapped[int]           = mapped_column(Integer, primary_key=True, index=True)
+    full_attempt_id: Mapped[int]           = mapped_column(ForeignKey("full_mock_attempts.id"), nullable=False)
+    question_id:     Mapped[int]           = mapped_column(ForeignKey("listening_questions.id"), nullable=False)
+    answer_value:    Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    answered_at:     Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    full_attempt = relationship("FullMockAttempt", back_populates="listening_answers")
+    question     = relationship("ListeningQuestion")
+
+
+# ---------------------------------------------------------------------------
+# Full Mock Test — attempt tracker
+# ---------------------------------------------------------------------------
+
+class FullMockAttempt(Base):
+    """Tracks one student's attempt at one of the 20 full mock test slots."""
+    __tablename__ = "full_mock_attempts"
+
+    id:                    Mapped[int]           = mapped_column(Integer, primary_key=True, index=True)
+    user_id:               Mapped[int]           = mapped_column(ForeignKey("users.id"), nullable=False)
+    slot_number:           Mapped[int]           = mapped_column(Integer, nullable=False)   # 1-20
+    # randomly-assigned content
+    listening_section_id:  Mapped[int]           = mapped_column(ForeignKey("listening_sections.id"), nullable=False)
+    reading_test_id:       Mapped[int]           = mapped_column(ForeignKey("ielts_tests.id"), nullable=False)
+    writing_task1_id:      Mapped[int]           = mapped_column(ForeignKey("writing_prompts.id"), nullable=False)
+    writing_task2_id:      Mapped[int]           = mapped_column(ForeignKey("writing_prompts.id"), nullable=False)
+    # progress
+    started_at:            Mapped[datetime]      = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    status:                Mapped[str]           = mapped_column(String(20), default="in_progress", server_default="in_progress")
+    # in_progress | completed
+    current_section:       Mapped[str]           = mapped_column(String(20), default="listening", server_default="listening")
+    # listening | reading | writing | done
+    listening_submitted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    reading_submitted_at:   Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    writing_submitted_at:   Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    # scores
+    listening_raw_score:   Mapped[Optional[int]]   = mapped_column(Integer, nullable=True)
+    listening_band:        Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    reading_raw_score:     Mapped[Optional[int]]   = mapped_column(Integer, nullable=True)
+    reading_band:          Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    writing_band:          Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    overall_band:          Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    # link to existing reading-section attempt (created when student enters reading)
+    ielts_attempt_id:      Mapped[Optional[int]]   = mapped_column(ForeignKey("ielts_attempts.id"), nullable=True)
+
+    user             = relationship("User")
+    listening_section = relationship("ListeningSection")
+    reading_test      = relationship("IELTSTest")
+    writing_task1     = relationship("WritingPrompt", foreign_keys=[writing_task1_id])
+    writing_task2     = relationship("WritingPrompt", foreign_keys=[writing_task2_id])
+    ielts_attempt     = relationship("IELTSAttempt", foreign_keys=[ielts_attempt_id])
+    listening_answers = relationship("ListeningStudentAnswer", back_populates="full_attempt")

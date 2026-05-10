@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Listening — IELTS Mock</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f8fafc; color: #0f172a; min-height: 100vh; }
+
+/* ── Header ── */
+.header { display: flex; align-items: center; justify-content: space-between; padding: 0 20px; height: 52px; background: white; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 200; }
+.logo { font-size: 16px; font-weight: 800; color: #0f172a; text-decoration: none; }
+.logo .accent { color: #059669; }
+.timer-box { font-size: 18px; font-weight: 800; color: #0f172a; font-variant-numeric: tabular-nums; }
+.timer-box.warning { color: #ef4444; }
+.btn-submit-top { background: #059669; color: white; font-size: 13px; font-weight: 700; padding: 7px 16px; border-radius: 9px; border: none; cursor: pointer; }
+.btn-submit-top:hover { background: #047857; }
+
+/* ── Layout ── */
+.layout { display: flex; height: calc(100vh - 52px); overflow: hidden; }
+.left-panel { width: 260px; flex-shrink: 0; background: white; border-right: 1px solid #e2e8f0; overflow-y: auto; padding: 16px 12px; display: flex; flex-direction: column; gap: 8px; }
+.right-panel { flex: 1; overflow-y: auto; padding: 24px 28px 80px; }
+
+/* ── Part nav ── */
+.part-tab { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; color: #64748b; border: 1.5px solid transparent; }
+.part-tab:hover { background: #f1f5f9; }
+.part-tab.active { background: #ecfdf5; border-color: #6ee7b7; color: #065f46; }
+.part-tab-num { width: 22px; height: 22px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex-shrink: 0; }
+.part-tab.active .part-tab-num { background: #059669; color: white; }
+
+/* ── Question palette ── */
+.palette-title { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .07em; margin: 12px 2px 6px; }
+.palette-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+.q-dot { width: 28px; height: 28px; border-radius: 7px; border: 1.5px solid #e2e8f0; background: white; font-size: 11px; font-weight: 700; color: #64748b; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color .1s, background .1s; }
+.q-dot:hover { border-color: #059669; }
+.q-dot.answered { background: #059669; border-color: #059669; color: white; }
+.q-dot.current { border-color: #f59e0b; box-shadow: 0 0 0 2px #fde68a; }
+
+/* ── Audio player ── */
+.audio-section { background: #0f172a; border-radius: 14px; padding: 18px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; }
+.audio-section audio { flex: 1; height: 36px; accent-color: #059669; }
+.audio-label { font-size: 12px; font-weight: 700; color: #94a3b8; white-space: nowrap; }
+
+/* ── Part header ── */
+.part-header { margin-bottom: 20px; }
+.part-number { font-size: 11px; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; }
+.part-context { font-size: 14px; color: #475569; line-height: 1.6; }
+
+/* ── Question group ── */
+.group-block { background: white; border: 1.5px solid #e2e8f0; border-radius: 14px; padding: 20px 22px; margin-bottom: 18px; }
+.group-instruction { font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 16px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border-left: 3px solid #059669; }
+
+/* ── Individual questions ── */
+.question-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+.q-number { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; background: #e2e8f0; color: #64748b; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+.q-number.answered { background: #059669; color: white; }
+.q-content { flex: 1; }
+.q-stem { font-size: 14px; color: #0f172a; margin-bottom: 8px; line-height: 1.6; }
+.q-input { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 14px; outline: none; transition: border-color .15s; }
+.q-input:focus { border-color: #059669; }
+
+/* ── MCQ ── */
+.option-list { display: flex; flex-direction: column; gap: 7px; }
+.option-label { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; cursor: pointer; font-size: 14px; transition: border-color .1s, background .1s; }
+.option-label:hover { border-color: #6ee7b7; background: #f0fdf4; }
+.option-label input[type="radio"] { accent-color: #059669; flex-shrink: 0; }
+.option-label.selected { border-color: #059669; background: #ecfdf5; }
+
+/* ── Map image ── */
+.map-img { max-width: 100%; border-radius: 10px; border: 1.5px solid #e2e8f0; margin-bottom: 14px; }
+
+/* ── Matching ── */
+.match-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.match-key { font-size: 13px; font-weight: 600; color: #475569; min-width: 120px; }
+.match-select { border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 7px 10px; font-size: 13px; outline: none; flex: 1; }
+.match-select:focus { border-color: #059669; }
+
+/* ── Part nav arrows ── */
+.part-nav { display: flex; gap: 10px; margin-top: 24px; }
+.btn-nav { background: white; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 9px 18px; font-size: 13px; font-weight: 700; color: #475569; cursor: pointer; }
+.btn-nav:hover { border-color: #059669; color: #059669; }
+
+/* ── Submit overlay ── */
+.submit-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.6); z-index: 500; align-items: center; justify-content: center; }
+.submit-overlay.show { display: flex; }
+.submit-modal { background: white; border-radius: 20px; padding: 32px 28px; max-width: 420px; width: 90%; text-align: center; }
+.submit-modal h2 { font-size: 20px; font-weight: 800; margin-bottom: 10px; }
+.submit-modal p { font-size: 14px; color: #475569; margin-bottom: 24px; line-height: 1.6; }
+.modal-btns { display: flex; gap: 10px; justify-content: center; }
+.btn-confirm { background: #059669; color: white; border: none; font-size: 14px; font-weight: 700; padding: 11px 22px; border-radius: 10px; cursor: pointer; }
+.btn-cancel-modal { background: #f1f5f9; color: #475569; border: none; font-size: 14px; font-weight: 600; padding: 11px 22px; border-radius: 10px; cursor: pointer; }
+
+.loading { text-align: center; padding: 60px 20px; color: #94a3b8; font-size: 15px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <a class="logo" href="dashboard.html">IELTS <span class="accent">MOCK</span></a>
+  <div class="timer-box" id="timer">30:00</div>
+  <button class="btn-submit-top" onclick="showSubmit()">Submit →</button>
+</header>
+
+<!-- Layout -->
+<div class="layout">
+  <!-- Left: part tabs + palette -->
+  <div class="left-panel" id="left-panel">
+    <div id="part-tabs"></div>
+    <div class="palette-title">Questions</div>
+    <div class="palette-grid" id="palette"></div>
+  </div>
+
+  <!-- Right: questions -->
+  <div class="right-panel" id="right-panel">
+    <div class="loading" id="loading">Loading listening section…</div>
+    <div id="part-content" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- Submit overlay -->
+<div class="submit-overlay" id="submit-overlay">
+  <div class="submit-modal">
+    <h2>Submit Listening?</h2>
+    <p id="submit-msg">You have answered <strong id="answered-count">0</strong> of <strong>40</strong> questions.<br>Once submitted you cannot change your answers.</p>
+    <div class="modal-btns">
+      <button class="btn-cancel-modal" onclick="hideSubmit()">Keep going</button>
+      <button class="btn-confirm" onclick="doSubmit()">Submit now</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = "https://mock-test-1.onrender.com";
+const token = localStorage.getItem("token");
+const params = new URLSearchParams(location.search);
+const attemptId = parseInt(params.get("attempt_id") || "0", 10);
+
+if (!token || !attemptId) location.href = "dashboard.html";
+
+function authH() { return { "Authorization": "Bearer " + token, "Content-Type": "application/json" }; }
+
+// ── State ──
+let sectionData = null;
+let currentPartIdx = 0;
+const answers = {};        // { question_id: value }
+let timerSecs = 30 * 60;
+let timerInterval = null;
+let autoSaveInterval = null;
+let submitting = false;
+
+// ── Timer ──
+function updateTimer() {
+  timerSecs--;
+  if (timerSecs <= 0) {
+    clearInterval(timerInterval);
+    doSubmit();
+    return;
+  }
+  const m = Math.floor(timerSecs / 60).toString().padStart(2, "0");
+  const s = (timerSecs % 60).toString().padStart(2, "0");
+  const el = document.getElementById("timer");
+  el.textContent = `${m}:${s}`;
+  el.className = "timer-box" + (timerSecs < 300 ? " warning" : "");
+}
+
+// ── Load section ──
+async function init() {
+  try {
+    // Get attempt to find section id
+    const aRes = await fetch(`${API_BASE}/mock/attempts/${attemptId}`, { headers: authH() });
+    if (!aRes.ok) throw new Error("Attempt not found");
+    const attempt = await aRes.json();
+
+    if (attempt.listening_submitted_at) {
+      // Already submitted — redirect back to hub
+      location.href = `ielts-mock-hub.html?slot=${attempt.slot_number}`;
+      return;
+    }
+
+    const sRes = await fetch(`${API_BASE}/listening/section/${attempt.listening_section_id}`, { headers: authH() });
+    if (!sRes.ok) throw new Error("Section not found");
+    sectionData = await sRes.json();
+
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("part-content").style.display = "block";
+
+    buildPartTabs();
+    renderPart(0);
+    buildPalette();
+
+    timerInterval = setInterval(updateTimer, 1000);
+    autoSaveInterval = setInterval(autoSave, 30000);  // autosave every 30s
+  } catch (e) {
+    document.getElementById("loading").textContent = "Error: " + e.message;
+  }
+}
+
+// ── Part tabs ──
+function buildPartTabs() {
+  const container = document.getElementById("part-tabs");
+  container.innerHTML = sectionData.parts.map((p, i) => `
+    <div class="part-tab${i === 0 ? " active" : ""}" id="tab-${i}" onclick="switchPart(${i})">
+      <div class="part-tab-num">${p.part_number}</div>
+      <span>Part ${p.part_number}</span>
+    </div>
+  `).join("");
+}
+
+function switchPart(idx) {
+  document.getElementById(`tab-${currentPartIdx}`).classList.remove("active");
+  currentPartIdx = idx;
+  document.getElementById(`tab-${idx}`).classList.add("active");
+  renderPart(idx);
+  buildPalette();
+  window.scrollTo(0, 0);
+  document.getElementById("right-panel").scrollTop = 0;
+}
+
+// ── Render current part ──
+function groupQuestions(questions) {
+  const groups = [];
+  let curGroup = null;
+  for (const q of questions) {
+    const key = (q.group_instruction || "") + "|" + q.question_type;
+    if (!curGroup || curGroup.key !== key) {
+      curGroup = { key, instruction: q.group_instruction, type: q.question_type, questions: [], mapUrl: q.map_image_url };
+      groups.push(curGroup);
+    }
+    curGroup.questions.push(q);
+  }
+  return groups;
+}
+
+function renderPart(idx) {
+  const part = sectionData.parts[idx];
+  const groups = groupQuestions(part.questions);
+
+  let html = `
+    <div class="part-header">
+      <div class="part-number">Part ${part.part_number}</div>
+      ${part.context_description ? `<div class="part-context">${part.context_description}</div>` : ""}
+    </div>`;
+
+  if (part.audio_url) {
+    html += `
+      <div class="audio-section">
+        <div class="audio-label">🎧 Audio</div>
+        <audio controls src="${part.audio_url}">Your browser does not support audio.</audio>
+      </div>`;
+  } else {
+    html += `
+      <div class="audio-section">
+        <div class="audio-label">🎧 Audio</div>
+        <span style="color:#475569;font-size:13px;flex:1;">[Audio file not yet available — answer from context]</span>
+      </div>`;
+  }
+
+  for (const g of groups) {
+    html += `<div class="group-block">`;
+    if (g.instruction) html += `<div class="group-instruction">${g.instruction}</div>`;
+    if (g.mapUrl) html += `<img class="map-img" src="${g.mapUrl}" alt="Map">`;
+
+    for (const q of g.questions) {
+      const answered = answers[q.id] !== undefined && answers[q.id] !== "";
+      html += `<div class="question-row" id="qrow-${q.id}">
+        <div class="q-number${answered ? " answered" : ""}" id="qnum-${q.id}">${q.global_number}</div>
+        <div class="q-content">
+          <div class="q-stem">${q.stem}</div>
+          ${renderInput(q)}
+        </div>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+
+  html += `
+    <div class="part-nav">
+      ${idx > 0 ? `<button class="btn-nav" onclick="switchPart(${idx - 1})">← Part ${idx}</button>` : ""}
+      ${idx < sectionData.parts.length - 1
+        ? `<button class="btn-nav" onclick="switchPart(${idx + 1})">Part ${idx + 2} →</button>`
+        : `<button class="btn-nav" style="background:#059669;color:white;border-color:#059669;" onclick="showSubmit()">Submit Listening →</button>`}
+    </div>`;
+
+  document.getElementById("part-content").innerHTML = html;
+}
+
+function renderInput(q) {
+  const val = answers[q.id] || "";
+  const type = q.question_type;
+
+  if (type === "mcq") {
+    const opts = q.options || [];
+    return `<div class="option-list">${opts.map((o, i) => {
+      const letter = String.fromCharCode(65 + i);
+      const sel = val === letter ? " selected" : "";
+      return `<label class="option-label${sel}">
+        <input type="radio" name="q${q.id}" value="${letter}" ${val === letter ? "checked" : ""} onchange="setAnswer(${q.id}, this.value)">
+        ${o}
+      </label>`;
+    }).join("")}</div>`;
+  }
+
+  if (type === "matching" && typeof q.options === "object" && !Array.isArray(q.options)) {
+    // options is a dict {key: label}
+    const entries = Object.entries(q.options);
+    const selectOpts = entries.map(([k, v]) => `<option value="${k}" ${val === k ? "selected" : ""}>${k} — ${v}</option>`).join("");
+    return `<select class="match-select" onchange="setAnswer(${q.id}, this.value)">
+      <option value="">— Select —</option>
+      ${selectOpts}
+    </select>`;
+  }
+
+  if (type === "map_labeling" && Array.isArray(q.options)) {
+    const opts = q.options;
+    const selectOpts = opts.map(o => `<option value="${o}" ${val === o ? "selected" : ""}>${o}</option>`).join("");
+    return `<select class="match-select" onchange="setAnswer(${q.id}, this.value)">
+      <option value="">— Select —</option>
+      ${selectOpts}
+    </select>`;
+  }
+
+  // Default: text input (form_completion, note_completion, sentence_completion)
+  return `<input class="q-input" type="text" value="${val}" placeholder="Write your answer…"
+    oninput="setAnswer(${q.id}, this.value)"
+    onblur="setAnswer(${q.id}, this.value)">`;
+}
+
+function setAnswer(qId, value) {
+  answers[qId] = value;
+  // Update dot
+  const dot = document.getElementById(`dot-${qId}`);
+  if (dot) dot.className = "q-dot" + (value ? " answered" : "");
+  // Update number circle in question
+  const num = document.getElementById(`qnum-${qId}`);
+  if (num) num.className = "q-number" + (value ? " answered" : "");
+  // Update radio label styles for MCQ
+  document.querySelectorAll(`[name="q${qId}"]`).forEach(el => {
+    el.closest(".option-label").classList.toggle("selected", el.value === value);
+  });
+}
+
+// ── Palette ──
+function buildPalette() {
+  const grid = document.getElementById("palette");
+  if (!sectionData) { grid.innerHTML = ""; return; }
+  let html = "";
+  for (const part of sectionData.parts) {
+    for (const q of part.questions) {
+      const answered = answers[q.id] ? " answered" : "";
+      html += `<div class="q-dot${answered}" id="dot-${q.id}" title="Q${q.global_number}" onclick="jumpToQuestion(${q.id}, ${sectionData.parts.indexOf(part)})">${q.global_number}</div>`;
+    }
+  }
+  grid.innerHTML = html;
+}
+
+function jumpToQuestion(qId, partIdx) {
+  if (partIdx !== currentPartIdx) switchPart(partIdx);
+  setTimeout(() => {
+    const el = document.getElementById(`qrow-${qId}`);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, 100);
+}
+
+// ── Autosave ──
+async function autoSave() {
+  if (submitting) return;
+  const answerList = Object.entries(answers).map(([qId, val]) => ({ question_id: parseInt(qId), answer_value: val || null }));
+  if (!answerList.length) return;
+  try {
+    await fetch(`${API_BASE}/listening/attempts/${attemptId}/save`, {
+      method: "POST",
+      headers: authH(),
+      body: JSON.stringify({ answers: answerList }),
+    });
+  } catch (_) {}
+}
+
+// ── Submit ──
+function showSubmit() {
+  const total = sectionData ? sectionData.parts.reduce((sum, p) => sum + p.questions.length, 0) : 40;
+  const answered = Object.values(answers).filter(v => v && v.trim()).length;
+  document.getElementById("answered-count").textContent = answered;
+  document.querySelector("#submit-msg strong:last-child").textContent = total;
+  document.getElementById("submit-overlay").classList.add("show");
+}
+
+function hideSubmit() {
+  document.getElementById("submit-overlay").classList.remove("show");
+}
+
+async function doSubmit() {
+  if (submitting) return;
+  submitting = true;
+  clearInterval(timerInterval);
+  clearInterval(autoSaveInterval);
+  hideSubmit();
+
+  const answerList = Object.entries(answers).map(([qId, val]) => ({
+    question_id: parseInt(qId),
+    answer_value: val || null,
+  }));
+
+  document.getElementById("right-panel").innerHTML = `<div class="loading">Submitting and grading…</div>`;
+
+  try {
+    const res = await fetch(`${API_BASE}/listening/attempts/${attemptId}/submit`, {
+      method: "POST",
+      headers: authH(),
+      body: JSON.stringify({ answers: answerList }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Submission failed");
+    }
+    const result = await res.json();
+
+    // Show score briefly then redirect
+    document.getElementById("right-panel").innerHTML = `
+      <div style="text-align:center;padding:80px 20px;">
+        <div style="font-size:48px;margin-bottom:16px;">🎧</div>
+        <div style="font-size:22px;font-weight:800;color:#0f172a;margin-bottom:8px;">Listening Complete!</div>
+        <div style="font-size:15px;color:#475569;margin-bottom:8px;">Raw score: ${result.raw_score}/40</div>
+        <div style="font-size:36px;font-weight:900;color:#059669;margin-bottom:24px;">Band ${result.band}</div>
+        <div style="font-size:13px;color:#94a3b8;">Redirecting to test hub…</div>
+      </div>`;
+
+    setTimeout(() => {
+      // Need slot — fetch attempt
+      fetch(`${API_BASE}/mock/attempts/${attemptId}`, { headers: authH() })
+        .then(r => r.json())
+        .then(a => { location.href = `ielts-mock-hub.html?slot=${a.slot_number}`; })
+        .catch(() => { location.href = "dashboard.html"; });
+    }, 3000);
+  } catch (e) {
+    submitting = false;
+    timerInterval = setInterval(updateTimer, 1000);
+    autoSaveInterval = setInterval(autoSave, 30000);
+    document.getElementById("right-panel").innerHTML = `
+      <div class="loading" style="color:#ef4444;">Error: ${e.message}<br><br>
+        <button class="btn-submit-top" onclick="init()" style="margin-top:12px;">Retry</button>
+      </div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>

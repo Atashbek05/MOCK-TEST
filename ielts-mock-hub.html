@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mock Test Hub — IELTS Mock</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f8fafc; color: #0f172a; min-height: 100vh; }
+
+.header { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 56px; background: white; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
+.header-left { display: flex; align-items: center; gap: 20px; }
+.logo { font-size: 17px; font-weight: 800; color: #0f172a; text-decoration: none; letter-spacing: -.02em; }
+.logo .accent { color: #059669; }
+.btn-back { font-size: 13px; color: #64748b; text-decoration: none; font-weight: 600; }
+.btn-back:hover { color: #059669; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.btn-logout { font-size: 13px; font-weight: 600; color: #64748b; background: #f1f5f9; border: none; padding: 7px 14px; border-radius: 8px; cursor: pointer; }
+.btn-logout:hover { background: #e2e8f0; }
+
+.main { max-width: 640px; margin: 0 auto; padding: 28px 16px 60px; }
+.slot-badge { display: inline-block; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; }
+h1 { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+.subtitle { font-size: 13px; color: #64748b; margin-bottom: 28px; }
+
+.section-card {
+  background: white;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px 22px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: box-shadow .15s, border-color .15s;
+}
+.section-card:hover { box-shadow: 0 4px 16px rgba(5,150,105,.12); border-color: #6ee7b7; }
+.section-icon { font-size: 32px; flex-shrink: 0; }
+.section-body { flex: 1; min-width: 0; }
+.section-name { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
+.section-meta { font-size: 12px; color: #64748b; }
+.section-status { flex-shrink: 0; }
+
+.btn-start {
+  display: inline-block;
+  background: #059669;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 18px;
+  border-radius: 10px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .15s;
+  border: none;
+  cursor: pointer;
+}
+.btn-start:hover { background: #047857; }
+.btn-start.locked { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; pointer-events: none; }
+.btn-start.done { background: #d1fae5; color: #065f46; cursor: default; pointer-events: none; }
+
+.band-pill {
+  display: inline-block;
+  background: #059669;
+  color: white;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.band-pill.pending { background: #fef3c7; color: #92400e; }
+
+.overall-card {
+  display: none;
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  border: 1.5px solid #6ee7b7;
+  border-radius: 16px;
+  padding: 22px 24px;
+  margin-top: 24px;
+  text-align: center;
+}
+.overall-label { font-size: 12px; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px; }
+.overall-band { font-size: 44px; font-weight: 900; color: #065f46; margin-bottom: 4px; }
+.overall-sub { font-size: 13px; color: #047857; }
+
+.loading { color: #94a3b8; font-size: 13px; padding: 20px 0; text-align: center; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <a class="logo" href="dashboard.html">IELTS <span class="accent">MOCK</span></a>
+    <a class="btn-back" href="dashboard.html">← Back</a>
+  </div>
+  <div class="header-right">
+    <span id="header-name" style="font-size:13px;font-weight:600;color:#64748b;"></span>
+    <button class="btn-logout" onclick="logout()">Sign out</button>
+  </div>
+</header>
+
+<main class="main">
+  <div id="content">
+    <div class="loading">Loading…</div>
+  </div>
+</main>
+
+<script>
+const API_BASE = "https://mock-test-1.onrender.com";
+const token = localStorage.getItem("token");
+
+function logout() {
+  localStorage.clear();
+  location.href = "login.html";
+}
+
+const params = new URLSearchParams(location.search);
+const slot = parseInt(params.get("slot") || "1", 10);
+
+function authH() {
+  return token ? { "Authorization": "Bearer " + token } : {};
+}
+
+async function init() {
+  if (!token) { location.href = "login.html"; return; }
+
+  // Load user name
+  fetch(`${API_BASE}/me`, { headers: authH() })
+    .then(r => r.json())
+    .then(u => { document.getElementById("header-name").textContent = u.name || ""; })
+    .catch(() => {});
+
+  // Load or create attempt
+  let attempt;
+  try {
+    const startRes = await fetch(`${API_BASE}/mock/slots/${slot}/start`, {
+      method: "POST",
+      headers: authH(),
+    });
+    if (!startRes.ok) {
+      if (startRes.status === 401) { location.href = "login.html"; return; }
+      throw new Error(await startRes.text());
+    }
+    attempt = await startRes.json();
+  } catch (e) {
+    document.getElementById("content").innerHTML =
+      `<div class="loading" style="color:#ef4444;">Failed to load: ${e.message}</div>`;
+    return;
+  }
+
+  render(attempt);
+}
+
+function sectionDone(attempt, section) {
+  if (section === "listening") return !!attempt.listening_submitted_at;
+  if (section === "reading")   return !!attempt.reading_submitted_at;
+  if (section === "writing")   return !!attempt.writing_submitted_at;
+  return false;
+}
+
+function sectionUnlocked(attempt, section) {
+  if (section === "listening") return true;
+  if (section === "reading")   return !!attempt.listening_submitted_at;
+  if (section === "writing")   return !!attempt.reading_submitted_at;
+  return false;
+}
+
+function render(attempt) {
+  const lisDone  = sectionDone(attempt, "listening");
+  const readDone = sectionDone(attempt, "reading");
+  const writDone = sectionDone(attempt, "writing");
+
+  const lisUrl  = `ielts-listening.html?attempt_id=${attempt.id}`;
+  const readUrl = `ielts-exam.html?attempt_id=${attempt.id}&test_id=${attempt.reading_test_id}`;
+  const writUrl = `writing.html?attempt_id=${attempt.id}`;
+
+  function sectionBtn(section, url, done, unlocked) {
+    if (done)      return `<span class="btn-start done">✓ Done</span>`;
+    if (!unlocked) return `<span class="btn-start locked">🔒 Locked</span>`;
+    return `<a class="btn-start" href="${url}">Start →</a>`;
+  }
+
+  function bandPill(band, done) {
+    if (!done)  return `<span class="band-pill pending">Pending</span>`;
+    if (band == null) return `<span class="band-pill pending">Grading…</span>`;
+    return `<span class="band-pill">Band ${band}</span>`;
+  }
+
+  const allDone = lisDone && readDone && writDone;
+  const overallHtml = allDone && attempt.overall_band != null ? `
+    <div class="overall-card" style="display:block;">
+      <div class="overall-label">Overall Band Score</div>
+      <div class="overall-band">${attempt.overall_band}</div>
+      <div class="overall-sub">Listening ${attempt.listening_band} · Reading ${attempt.reading_band} · Writing ${attempt.writing_band}</div>
+    </div>` : "";
+
+  document.getElementById("content").innerHTML = `
+    <div class="slot-badge">Mock Test ${slot}</div>
+    <h1>Full IELTS Mock Test</h1>
+    <p class="subtitle">Complete all three sections in order: Listening → Reading → Writing</p>
+
+    <div class="section-card">
+      <div class="section-icon">🎧</div>
+      <div class="section-body">
+        <div class="section-name">Listening</div>
+        <div class="section-meta">40 questions · ~30 min</div>
+        <div style="margin-top:6px;">${bandPill(attempt.listening_band, lisDone)}</div>
+      </div>
+      <div class="section-status">${sectionBtn("listening", lisUrl, lisDone, true)}</div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-icon">📖</div>
+      <div class="section-body">
+        <div class="section-name">Reading</div>
+        <div class="section-meta">40 questions · 60 min</div>
+        <div style="margin-top:6px;">${bandPill(attempt.reading_band, readDone)}</div>
+      </div>
+      <div class="section-status">${sectionBtn("reading", readUrl, readDone, sectionUnlocked(attempt, "reading"))}</div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-icon">✏️</div>
+      <div class="section-body">
+        <div class="section-name">Writing</div>
+        <div class="section-meta">2 tasks · 60 min · AI-graded</div>
+        <div style="margin-top:6px;">${bandPill(attempt.writing_band, writDone)}</div>
+      </div>
+      <div class="section-status">${sectionBtn("writing", writUrl, writDone, sectionUnlocked(attempt, "writing"))}</div>
+    </div>
+
+    ${overallHtml}
+  `;
+}
+
+init();
+</script>
+</body>
+</html>
