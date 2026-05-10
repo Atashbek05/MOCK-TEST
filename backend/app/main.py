@@ -3,6 +3,7 @@ import hmac as _hmac
 import json
 import os
 import random
+import threading
 import time
 from datetime import datetime, timezone, timedelta
 from urllib.parse import parse_qsl
@@ -581,6 +582,25 @@ def _seed_reading_tests(db: Session) -> None:
     db.commit()
 
 
+def _run_heavy_seeds():
+    db = SessionLocal()
+    try:
+        try:
+            seed_ielts_content(db)
+        except Exception as e:
+            print(f"[seed] IELTS skipped: {e}")
+        try:
+            seed_listening_content(db)
+        except Exception as e:
+            print(f"[seed] Listening skipped: {e}")
+        try:
+            seed_extra_content(db)
+        except Exception as e:
+            print(f"[seed] Extra skipped: {e}")
+    finally:
+        db.close()
+
+
 @app.on_event("startup")
 async def startup_event():
     db = SessionLocal()
@@ -590,20 +610,10 @@ async def startup_event():
         _migrate_users_telegram(db)     # Phase 6
         _seed_questions(db)
         _seed_reading_tests(db)
-        try:
-            seed_ielts_content(db)
-        except Exception as _seed_err:
-            print(f"[startup] IELTS seed skipped: {_seed_err}")
-        try:
-            seed_listening_content(db)
-        except Exception as _seed_err:
-            print(f"[startup] Listening seed skipped: {_seed_err}")
-        try:
-            seed_extra_content(db)
-        except Exception as _seed_err:
-            print(f"[startup] Extra seed skipped: {_seed_err}")
     finally:
         db.close()
+    # Heavy content seeds run in background so server is ready immediately
+    threading.Thread(target=_run_heavy_seeds, daemon=True).start()
     # Start Telegram bot polling (replaces the old webhook approach).
     start_polling()
 
