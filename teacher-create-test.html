@@ -381,7 +381,8 @@ body {
   font-weight: 500;
   color: #dc2626;
   margin-top: 16px;
-  text-align: center;
+  text-align: left;
+  white-space: pre-line;
 }
 
 .err-banner.show { display: block; }
@@ -578,22 +579,30 @@ function collectData() {
 }
 
 // ── Validate before sending ────────────────────────────────────────────────────
+// Mirrors the Pydantic constraints in schemas.py so errors appear instantly,
+// not as a confusing server response.
 function validate(data) {
-  if (!data.title) return "Please enter a test title.";
-  if (!data.passages.length) return "Add at least one passage.";
+  if (!data.title || data.title.length < 3)
+    return "Test title must be at least 3 characters.";
+  if (!data.passages.length)
+    return "Add at least one passage.";
 
   for (let pi = 0; pi < data.passages.length; pi++) {
     const p = data.passages[pi];
-    if (!p.title) return `Passage ${pi + 1}: please enter a title.`;
-    if (!p.text)  return `Passage ${pi + 1}: please enter the passage text.`;
-    if (!p.questions.length) return `Passage ${pi + 1}: add at least one question.`;
+    const pNum = `Passage ${pi + 1}`;
+    if (!p.title || p.title.length < 2) return `${pNum}: title must be at least 2 characters.`;
+    if (!p.text || p.text.length < 20)  return `${pNum}: passage text must be at least 20 characters.`;
+    if (!p.questions.length)            return `${pNum}: add at least one question.`;
 
     for (let qi = 0; qi < p.questions.length; qi++) {
       const q = p.questions[qi];
       const qNum = `Passage ${pi + 1}, Question ${qi + 1}`;
-      if (!q.question_text) return `${qNum}: please enter the question text.`;
-      if (!q.option_a || !q.option_b || !q.option_c || !q.option_d)
-        return `${qNum}: all four options (A, B, C, D) are required.`;
+      if (!q.question_text || q.question_text.length < 5)
+        return `${qNum}: question text must be at least 5 characters.`;
+      if (!q.option_a) return `${qNum}: option A is required.`;
+      if (!q.option_b) return `${qNum}: option B is required.`;
+      if (!q.option_c) return `${qNum}: option C is required.`;
+      if (!q.option_d) return `${qNum}: option D is required.`;
     }
   }
 
@@ -602,7 +611,7 @@ function validate(data) {
 
 function showError(msg) {
   const el = document.getElementById("err-banner");
-  el.textContent = msg;
+  el.innerText = msg;
   el.classList.add("show");
   el.scrollIntoView({ behavior: "smooth", block: "center" });
 }
@@ -623,6 +632,8 @@ async function submitTest() {
   btn.classList.add("loading");
   btn.querySelector(".btn-label").textContent = "Creating…";
 
+  console.log("[create-test] sending payload:", JSON.stringify(data, null, 2));
+
   try {
     const res = await fetch(`${API_BASE}/teacher/create-test`, {
       method: "POST",
@@ -637,17 +648,49 @@ async function submitTest() {
       window.location.replace("teacher-dashboard.html?created=1");
     } else {
       const body = await res.json().catch(() => ({}));
-      showError(body.detail || "Failed to create test. Please try again.");
+      console.error("[create-test] server error", res.status, body);
+      showError(parseServerError(body, res.status));
       btn.disabled = false;
       btn.classList.remove("loading");
       btn.querySelector(".btn-label").textContent = "Create Test";
     }
-  } catch {
+  } catch (e) {
+    console.error("[create-test] network error", e);
     showError("Cannot connect to server. Please check your connection.");
     btn.disabled = false;
     btn.classList.remove("loading");
     btn.querySelector(".btn-label").textContent = "Create Test";
   }
+}
+
+// Convert a FastAPI error body into a human-readable string.
+// FastAPI can return:
+//   { "detail": "some string" }          ← our own HTTPException messages
+//   { "detail": [{loc, msg, type}, ...] } ← Pydantic 422 validation errors
+function parseServerError(body, status) {
+  if (!body || !body.detail) {
+    return `Server error (${status}). Please try again.`;
+  }
+
+  // Plain string — our own HTTPException
+  if (typeof body.detail === "string") {
+    return body.detail;
+  }
+
+  // Array — Pydantic validation errors (HTTP 422)
+  if (Array.isArray(body.detail)) {
+    return body.detail.map(function(e) {
+      // e.loc is ["body", "passages", 0, "questions", 1, "question_text"]
+      // Drop the leading "body" and make it readable
+      var loc = (e.loc || []).slice(1).map(function(part) {
+        if (typeof part === "number") return "item " + (part + 1);
+        return part.replace(/_/g, " ");
+      }).join(" › ");
+      return loc ? loc + ": " + e.msg : e.msg;
+    }).join("\n");
+  }
+
+  return "Failed to create test. Please try again.";
 }
 
 // Start with one passage
