@@ -1958,3 +1958,107 @@ def get_telegram_status(
         "telegram_id":        current_user.telegram_id,
         "telegram_username":  current_user.telegram_username,
     }
+
+
+# ── Telegram Login / Recovery Flow ────────────────────────────────────────────
+# No JWT required — for users who forgot their email/password.
+# Flow:
+#   1. Site calls POST /telegram/login-code  → returns {code, expires_in_seconds}
+#   2. User sends /login CODE to the bot
+#   3. Bot finds account by telegram_id → sets user_id + verified = True
+#   4. Site polls GET /telegram/login-status?code=... → when verified, calls step 5
+#   5. Site calls POST /telegram/login-exchange  → receives JWT, logs in
+# ─────────────────────────────────────────────────────────────────────────────
+
+@app.post("/telegram/login-code")
+def telegram_login_code(db: Session = Depends(get_db)):
+    """
+    Generate a 6-digit login code (no auth required).
+    The bot will fill in user_id when the user sends /login CODE.
+    """
+    # Generate a unique 6-digit code
+    for _ in range(20):
+        code = str(random.randint(100000, 999999))
+        clash = db.query(models.TelegramLoginCode).filter(
+            models.TelegramLoginCode.code == code,
+            models.TelegramLoginCode.used == False,
+            models.TelegramLoginCode.verified == False,
+        ).first()
+        if not clash:
+            break
+
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+    db.add(models.TelegramLoginCode(
+        code=code,
+        user_id=None,
+        expires_at=expires_at,
+        verified=False,
+        used=False,
+    ))
+    db.commit()
+
+    return {
+        "code":               code,
+        "expires_in_seconds": 300,
+    }
+
+
+@app.get("/telegram/login-status")
+def telegram_login_status(code: str, db: Session = Depends(get_db)):
+    """
+    Poll whether the bot has verified the login code.
+    Returns {verified, expired}.
+    """
+    record = db.query(models.TelegramLoginCode).filter(
+        models.TelegramLoginCode.code == code,
+    ).first()
+
+    if not record:
+        raise HTTPException(status_code=404, detail="Code not found")
+
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    expires = record.expires_at
+    if expires.tzinfo is not None:
+        expires = expires.replace(tzinfo=None)
+
+    return {
+        "verified": record.verified,
+        "expired":  now > expires,
+    }
+
+
+@app.post("/telegram/login-exchange")
+def telegram_login_exchange(code: str = Body(..., embed=True), db: Session = Depends(get_db)):
+    """
+    Exchange a verified login code for a JWT.
+    Marks the code as used so it can't be replayed.
+    """
+    record = db.query(models.TelegramLoginCode).filter(
+        models.TelegramLoginCode.code == code,
+    ).first()
+
+    if not record:
+        raise HTTPException(status_code=404, detail="Code not found")
+
+    if record.used:
+        raise HTTPException(status_code=400, detail="Code already used")
+
+    if not record.verified:
+        raise HTTPException(status_code=400, detail="Code not yet verified")
+
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    expires = record.expires_at
+    if expires.tzinfo is not None:
+        expires = expires.replace(tzinfo=None)
+    if now > expires:
+        raise HTTPException(status_code=400, detail="Code expired")
+
+    user = db.query(models.User).filter(models.User.id == record.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    record.used = True
+    db.commit()
+
+    token = create_access_token(subject=user.email)
+    return {"token": token, "name": user.name, "role": user.role}

@@ -91,6 +91,7 @@ def _cmd_help(chat_id: int) -> None:
         "/starttest — Open a test in Mini App\n"
         "/dashboard — Open your dashboard\n"
         "/link — Link Telegram to your account\n"
+        "/login — Log in via Telegram (recovery)\n"
         "/status — Check account link status"
     ))
 
@@ -172,6 +173,66 @@ def _cmd_link_code(chat_id: int, tg_id: int, code: str,
             f"• 📊 Test results after each submission\n"
             f"• ⏰ Study reminders\n"
             f"• 📢 Teacher announcements\n"
+        ), keyboard)
+    finally:
+        db.close()
+
+
+def _cmd_login_code(chat_id: int, tg_id: int, code: str,
+                    tg_username: Optional[str]) -> None:
+    """
+    User sent /login 123456 — find their account by telegram_id,
+    mark the login code as verified, set user_id.
+    Security checks:
+      • code must exist, be unused and unverified
+      • code must not be expired (5-minute window)
+      • this Telegram ID must already be linked to a platform account
+    """
+    db = SessionLocal()
+    try:
+        lc = (db.query(models.TelegramLoginCode)
+              .filter(models.TelegramLoginCode.code == code)
+              .first())
+
+        if not lc:
+            _send(chat_id, "❌ Invalid code. Generate a new one on the login page.")
+            return
+
+        if lc.used:
+            _send(chat_id, "❌ This code was already used. Generate a new one.")
+            return
+
+        if lc.verified:
+            _send(chat_id, "❌ This code was already verified. Generate a new one.")
+            return
+
+        expires = lc.expires_at
+        if expires.tzinfo is not None:
+            expires = expires.replace(tzinfo=None)
+        if datetime.utcnow() > expires:
+            _send(chat_id, "❌ Code expired (5-minute limit). Generate a new one.")
+            return
+
+        user = db.query(models.User).filter(models.User.telegram_id == tg_id).first()
+        if not user:
+            _send(chat_id, (
+                "❌ No account linked to this Telegram.\n\n"
+                "First link your account: /link\n"
+                "Or log in with email/password and connect Telegram from the dashboard."
+            ))
+            return
+
+        lc.user_id  = user.id
+        lc.verified = True
+        db.commit()
+
+        keyboard = {"inline_keyboard": [[
+            {"text": "🚀 Open Dashboard", "web_app": {"url": f"{APP_URL}/tg-app.html"}}
+        ]]}
+        _send(chat_id, (
+            f"✅ *Login verified!*\n\n"
+            f"Welcome back, *{user.name}*!\n\n"
+            f"Switch back to the browser — you'll be logged in automatically."
         ), keyboard)
     finally:
         db.close()
@@ -332,6 +393,25 @@ def _handle(update: dict) -> None:
             _cmd_link_code(chat_id, tg_id, parts[1], from_obj.get("username"))
         else:
             _cmd_link(chat_id)
+    elif text.startswith("/login"):
+        # /login       → show instructions
+        # /login 123456 → verify login code
+        parts = text.split()
+        if (len(parts) == 2 and parts[1].isdigit()
+                and len(parts[1]) == 6 and tg_id):
+            _cmd_login_code(chat_id, tg_id, parts[1], from_obj.get("username"))
+        else:
+            keyboard = {"inline_keyboard": [[
+                {"text": "🔐 Get Login Code", "url": f"{APP_URL}/login.html"}
+            ]]}
+            _send(chat_id, (
+                "To log in via Telegram:\n\n"
+                "1️⃣ Go to the login page\n"
+                "2️⃣ Click *Sign in with Telegram*\n"
+                "3️⃣ Send the 6-digit code here: `/login 123456`\n\n"
+                "Your Telegram must already be linked to an account.\n"
+                "Tap the button to open the login page 👇"
+            ), keyboard)
     elif text == "/status" and tg_id:
         _cmd_status(chat_id, tg_id)
     elif text == "/progress" and tg_id:

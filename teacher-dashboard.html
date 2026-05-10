@@ -490,6 +490,28 @@ body {
   .hero         { padding: 28px 24px; }
   .hero h1      { font-size: 24px; }
 }
+
+/* ── Telegram banner ── */
+.tg-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+  border: 1.5px solid #bae6fd;
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  text-decoration: none;
+  transition: box-shadow .15s, transform .15s;
+}
+.tg-banner:hover { box-shadow: 0 4px 14px rgba(34,158,217,.15); transform: translateY(-1px); }
+.tg-banner.connected { background: linear-gradient(135deg, #d1fae5 0%, #f0fdf4 100%); border-color: #6ee7b7; }
+.tg-banner-icon { font-size: 28px; flex-shrink: 0; }
+.tg-banner-body { flex: 1; }
+.tg-banner-title { font-size: 14px; font-weight: 700; color: #0c4a6e; }
+.tg-banner.connected .tg-banner-title { color: #065f46; }
+.tg-banner-sub { font-size: 12px; color: #64748b; margin-top: 2px; }
+.tg-banner-arrow { font-size: 20px; color: #94a3b8; flex-shrink: 0; }
 </style>
 </head>
 
@@ -548,6 +570,16 @@ body {
       <div class="stat-sub">tests you created</div>
     </div>
   </div>
+
+  <!-- Telegram connect banner -->
+  <a class="tg-banner" id="tg-banner" href="telegram-connect.html">
+    <div class="tg-banner-icon" id="tg-banner-icon">✈️</div>
+    <div class="tg-banner-body">
+      <div class="tg-banner-title" id="tg-banner-title">Connect Telegram</div>
+      <div class="tg-banner-sub" id="tg-banner-sub">Get notifications when students complete your tests</div>
+    </div>
+    <div class="tg-banner-arrow">›</div>
+  </a>
 
   <!-- My Tests -->
   <div class="tests-section">
@@ -777,6 +809,17 @@ async function loadTeacherDashboard() {
 
     document.getElementById("header-name").textContent = user.name;
     document.getElementById("hero-name").textContent   = user.name.split(" ")[0];
+
+    // Update Telegram banner
+    if (user.telegram_id) {
+      const banner = document.getElementById("tg-banner");
+      banner.classList.add("connected");
+      banner.href = "telegram-connect.html";
+      document.getElementById("tg-banner-icon").textContent = "✅";
+      document.getElementById("tg-banner-title").textContent = "Telegram Connected";
+      document.getElementById("tg-banner-sub").textContent =
+        user.telegram_username ? `@${user.telegram_username}` : "Your account is linked";
+    }
 
     // Fetch stats and tests in parallel
     const [statsRes, testsRes] = await Promise.all([

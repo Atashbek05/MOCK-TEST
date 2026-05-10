@@ -304,23 +304,66 @@ body {
       Don't have an account? <a href="register.html">Register</a>
     </p>
 
-    <!-- ── Telegram Login ────────────────────────────────────────────────── -->
-    <div id="tg-section" style="margin-top:24px; display:none;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+    <!-- ── Telegram Login (code-based) ──────────────────────────────────── -->
+    <div id="tg-section" style="display:none;">
+      <div style="display:flex;align-items:center;gap:12px;margin:24px 0 16px;">
         <div style="flex:1;height:1px;background:#e2e8f0;"></div>
         <span style="font-size:12px;font-weight:600;color:#94a3b8;">or</span>
         <div style="flex:1;height:1px;background:#e2e8f0;"></div>
       </div>
-      <p style="font-size:13px;color:#64748b;text-align:center;margin-bottom:14px;">
-        Already linked your Telegram? Sign in instantly:
-      </p>
-      <!-- Widget injected here by JS -->
-      <div id="tg-widget-wrap" style="display:flex;justify-content:center;min-height:50px;"></div>
-      <!-- Error message for unlinked Telegram accounts -->
-      <div id="tg-error"
-           style="display:none;margin-top:14px;padding:11px 14px;background:#fef3c7;
-                  border:1.5px solid #fde68a;border-radius:10px;font-size:13px;
-                  color:#92400e;line-height:1.5;text-align:center;">
+
+      <!-- Step 1: button -->
+      <div id="tg-step-btn">
+        <button type="button" id="tg-login-btn" onclick="startTelegramLogin()"
+          style="width:100%;padding:12px;border:1.5px solid #e2e8f0;border-radius:12px;
+                 background:#fff;cursor:pointer;font-size:14px;font-weight:600;
+                 color:#334155;display:flex;align-items:center;justify-content:center;
+                 gap:10px;transition:background .15s,border-color .15s;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.93 7.02l-1.69 7.96c-.12.56-.46.7-.93.44l-2.58-1.9-1.24 1.2c-.14.14-.26.26-.53.26l.19-2.67 4.84-4.37c.21-.19-.05-.29-.32-.1L7.62 14.2l-2.54-.79c-.55-.17-.56-.55.12-.82l9.9-3.82c.46-.17.86.11.73.83z" fill="#229ED9"/>
+          </svg>
+          Sign in with Telegram
+        </button>
+        <p style="font-size:11px;color:#94a3b8;text-align:center;margin:8px 0 0;">
+          Requires Telegram linked to your account
+        </p>
+      </div>
+
+      <!-- Step 2: code + instructions -->
+      <div id="tg-step-code" style="display:none;">
+        <div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:12px;
+                    padding:16px;text-align:center;">
+          <p style="font-size:12px;color:#0369a1;margin:0 0 8px;font-weight:600;">
+            Open the bot and send this command:
+          </p>
+          <div id="tg-code-display"
+               style="font-size:26px;font-weight:800;letter-spacing:5px;color:#1e40af;
+                      font-family:monospace;margin-bottom:10px;">------</div>
+          <button type="button" onclick="copyLoginCommand()"
+            style="font-size:12px;color:#0369a1;background:none;border:1px solid #bae6fd;
+                   border-radius:8px;padding:5px 14px;cursor:pointer;margin-bottom:12px;">
+            📋 Copy command
+          </button>
+          <div>
+            <a id="tg-bot-link" href="#" target="_blank"
+              style="display:inline-flex;align-items:center;gap:6px;background:#229ED9;
+                     color:#fff;border-radius:10px;padding:9px 18px;font-size:13px;
+                     font-weight:600;text-decoration:none;">
+              Open Telegram Bot ↗
+            </a>
+          </div>
+          <div style="font-size:11px;color:#64748b;margin-top:10px;">
+            Expires in <b id="tg-timer-val">5:00</b>
+          </div>
+        </div>
+        <div id="tg-login-waiting"
+             style="font-size:13px;color:#64748b;text-align:center;margin-top:10px;">
+          ⏳ Waiting for bot confirmation...
+        </div>
+        <div id="tg-login-err"
+             style="display:none;margin-top:10px;padding:10px 14px;background:#fef3c7;
+                    border:1.5px solid #fde68a;border-radius:10px;font-size:13px;
+                    color:#92400e;text-align:center;"></div>
       </div>
     </div>
 
@@ -526,63 +569,122 @@ document.getElementById("password").addEventListener("input", function () {
 // ── Auto-focus the first field when the page loads ────────────────────────────
 document.getElementById("email").focus();
 
-// ── Telegram Login Widget ─────────────────────────────────────────────────────
-// We fetch the bot username from the backend first.
-// If Telegram is not configured, the section stays hidden.
+// ── Telegram Login (code-based) ───────────────────────────────────────────────
+let _tgLoginCode = null;
+let _tgLoginPoll = null;
+let _tgLoginTimer = null;
+let _tgLoginSecondsLeft = 300;
+let _tgBotUsername = null;
+
 (async function initTelegramLogin() {
   try {
     const res = await fetch(`${API_BASE}/telegram/bot-info`);
-    if (!res.ok) return; // Telegram not configured — hide section silently
-
+    if (!res.ok) return;
     const { username } = await res.json();
+    _tgBotUsername = username;
     document.getElementById("tg-section").style.display = "block";
+  } catch (e) {}
+})();
 
-    // Expose callback globally (Telegram widget calls it with user data)
-    window.__tgLoginCallback__ = async function(tgUser) {
-      const errEl = document.getElementById("tg-error");
-      errEl.style.display = "none";
+async function startTelegramLogin() {
+  const btn = document.getElementById("tg-login-btn");
+  btn.disabled = true;
+  btn.style.opacity = "0.6";
+
+  try {
+    const res = await fetch(`${API_BASE}/telegram/login-code`, { method: "POST" });
+    if (!res.ok) throw new Error("Server error");
+    const data = await res.json();
+    _tgLoginCode = data.code;
+    _tgLoginSecondsLeft = data.expires_in_seconds || 300;
+
+    // Set bot deep-link
+    const botLink = document.getElementById("tg-bot-link");
+    botLink.href = _tgBotUsername
+      ? `https://t.me/${_tgBotUsername}`
+      : "https://t.me/";
+
+    document.getElementById("tg-code-display").textContent = _tgLoginCode;
+    document.getElementById("tg-step-btn").style.display = "none";
+    document.getElementById("tg-step-code").style.display = "block";
+
+    // Countdown timer
+    _tgLoginTimer = setInterval(() => {
+      _tgLoginSecondsLeft--;
+      const m = Math.floor(_tgLoginSecondsLeft / 60);
+      const s = _tgLoginSecondsLeft % 60;
+      const timerEl = document.getElementById("tg-timer-val");
+      timerEl.textContent = `${m}:${s.toString().padStart(2, "0")}`;
+      if (_tgLoginSecondsLeft <= 60) timerEl.style.color = "#ef4444";
+      if (_tgLoginSecondsLeft <= 0) {
+        clearInterval(_tgLoginTimer);
+        clearInterval(_tgLoginPoll);
+        document.getElementById("tg-login-waiting").textContent =
+          "⏰ Code expired. Refresh the page to try again.";
+      }
+    }, 1000);
+
+    // Poll for bot confirmation
+    _tgLoginPoll = setInterval(async () => {
       try {
-        const authRes = await fetch(`${API_BASE}/telegram/auth`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(tgUser),
-        });
-        const data = await authRes.json();
+        const r = await fetch(`${API_BASE}/telegram/login-status?code=${_tgLoginCode}`);
+        if (!r.ok) return;
+        const d = await r.json();
 
-        if (authRes.ok) {
-          // Linked — store JWT and redirect
-          localStorage.setItem("token", data.access_token);
-          localStorage.setItem("userRole", data.role || "student");
-          localStorage.setItem("userName", data.name || "");
-          window.location.href = data.role === "teacher"
+        if (d.expired) {
+          clearInterval(_tgLoginPoll);
+          clearInterval(_tgLoginTimer);
+          document.getElementById("tg-login-waiting").textContent =
+            "⏰ Code expired. Refresh the page to try again.";
+          return;
+        }
+
+        if (d.verified) {
+          clearInterval(_tgLoginPoll);
+          clearInterval(_tgLoginTimer);
+          document.getElementById("tg-login-waiting").textContent = "✅ Verified! Logging you in...";
+
+          const ex = await fetch(`${API_BASE}/telegram/login-exchange`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: _tgLoginCode }),
+          });
+          if (!ex.ok) {
+            const err = await ex.json();
+            const errEl = document.getElementById("tg-login-err");
+            errEl.textContent = err.detail || "Login failed. Please try again.";
+            errEl.style.display = "block";
+            return;
+          }
+          const jwt = await ex.json();
+          localStorage.setItem("token", jwt.token);
+          localStorage.setItem("userRole", jwt.role || "student");
+          localStorage.setItem("userName", jwt.name || "");
+          window.location.href = jwt.role === "teacher"
             ? "teacher-dashboard.html"
             : "dashboard.html";
-        } else {
-          // Not linked — show helpful message
-          errEl.textContent = data.detail || "Your Telegram is not linked to any account. Log in with email, then connect Telegram in Settings.";
-          errEl.style.display = "block";
         }
-      } catch {
-        errEl.textContent = "Cannot connect to server. Please try again.";
-        errEl.style.display = "block";
-      }
-    };
-
-    // Inject Telegram Login Widget script
-    const script = document.createElement("script");
-    script.src = "https://telegram.org/js/telegram-widget.js?22";
-    script.setAttribute("data-telegram-login", username);
-    script.setAttribute("data-size", "medium");
-    script.setAttribute("data-radius", "10");
-    script.setAttribute("data-onauth", "__tgLoginCallback__(user)");
-    script.setAttribute("data-request-access", "write");
-    script.async = true;
-    document.getElementById("tg-widget-wrap").appendChild(script);
+      } catch (e) {}
+    }, 3000);
 
   } catch (e) {
-    // Silently fail — Telegram login is optional
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    const errEl = document.getElementById("tg-login-err");
+    errEl.textContent = "Failed to generate code. Please try again.";
+    errEl.style.display = "block";
   }
-})();
+}
+
+function copyLoginCommand() {
+  if (!_tgLoginCode) return;
+  navigator.clipboard.writeText(`/login ${_tgLoginCode}`).then(() => {
+    const btn = event.currentTarget;
+    const orig = btn.textContent;
+    btn.textContent = "✅ Copied!";
+    setTimeout(() => btn.textContent = orig, 1500);
+  }).catch(() => {});
+}
 
 </script>
 </body>

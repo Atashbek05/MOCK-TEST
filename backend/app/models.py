@@ -222,6 +222,27 @@ class StudentTestEnrollment(Base):
     test = relationship("TeacherTest", back_populates="enrollments")
 
 
+class TelegramLoginCode(Base):
+    """
+    Temporary codes for logging in (or recovering account) via Telegram.
+    Flow:
+      1. Website generates code — NO auth required, user_id is NULL at creation
+      2. User sends /login CODE to the bot
+      3. Bot finds account by Telegram ID → sets user_id + verified = True
+      4. Website polls /telegram/login-status → when verified, exchanges for JWT
+    Expires in 5 minutes (shorter than linking codes — login is more sensitive).
+    """
+    __tablename__ = "telegram_login_codes"
+
+    id:         Mapped[int]           = mapped_column(Integer, primary_key=True, index=True)
+    code:       Mapped[str]           = mapped_column(String(10), unique=True, index=True, nullable=False)
+    user_id:    Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)
+    expires_at: Mapped[datetime]      = mapped_column(DateTime, nullable=False)
+    verified:   Mapped[bool]          = mapped_column(Boolean, default=False, server_default="0")
+    used:       Mapped[bool]          = mapped_column(Boolean, default=False, server_default="0")
+    created_at: Mapped[datetime]      = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
 class TelegramVerificationCode(Base):
     """
     Temporary one-time codes used to link a platform account with a Telegram account.
