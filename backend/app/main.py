@@ -22,6 +22,7 @@ from .seed_data import READING_TESTS
 from .database import Base, SessionLocal, engine, get_db
 from .seed_ielts import seed as seed_ielts_content
 from .seed_listening import seed as seed_listening_content
+from .seed_extra import seed as seed_extra_content
 from .security import create_access_token, decode_access_token, hash_password, verify_password
 
 app = FastAPI(title="IELTS Mock Test API", version="0.1.0")
@@ -597,6 +598,10 @@ async def startup_event():
             seed_listening_content(db)
         except Exception as _seed_err:
             print(f"[startup] Listening seed skipped: {_seed_err}")
+        try:
+            seed_extra_content(db)
+        except Exception as _seed_err:
+            print(f"[startup] Extra seed skipped: {_seed_err}")
     finally:
         db.close()
     # Start Telegram bot polling (replaces the old webhook approach).
