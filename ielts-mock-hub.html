@@ -129,30 +129,42 @@ function showError(msg) {
     </div>`;
 }
 
-async function fetchWithTimeout(url, opts, ms = 40000) {
+async function fetchWithTimeout(url, opts, ms = 90000) {
   const ctrl = new AbortController();
   const id = setTimeout(() => ctrl.abort(), ms);
   try { return await fetch(url, { ...opts, signal: ctrl.signal }); }
   finally { clearTimeout(id); }
 }
 
+let _retryCount = 0;
+
 async function init() {
   if (!token) { location.href = "login.html"; return; }
   if (!attemptId) { location.href = "dashboard.html"; return; }
 
+  // Show loading state
+  document.getElementById("content").innerHTML = `
+    <div class="loading">
+      <div style="font-size:28px;margin-bottom:12px;">⏳</div>
+      Loading your IELTS Mock Test…
+      <div style="font-size:12px;color:#94a3b8;margin-top:8px;" id="loading-sub">Connecting to server…</div>
+    </div>`;
+
   // User name
   fetch(`${API_BASE}/me`, { headers: authH() })
     .then(r => r.json())
-    .then(u => { document.getElementById("header-name").textContent = u.name || ""; })
+    .then(u => { const el = document.getElementById("header-name"); if (el) el.textContent = u.name || ""; })
     .catch(() => {});
 
-  const subEl = document.getElementById("loading-sub");
-  const hint = setTimeout(() => { if (subEl) subEl.textContent = "Server is waking up — this may take 20-30 seconds…"; }, 5000);
+  const subEl = () => document.getElementById("loading-sub");
+  const t1 = setTimeout(() => { const el = subEl(); if (el) el.textContent = "Server is waking up — please wait…"; }, 5000);
+  const t2 = setTimeout(() => { const el = subEl(); if (el) el.textContent = "Almost there, server is starting…"; }, 25000);
+  const t3 = setTimeout(() => { const el = subEl(); if (el) el.textContent = "Taking longer than usual, still trying…"; }, 50000);
 
   let attempt;
   try {
     const res = await fetchWithTimeout(`${API_BASE}/mock/attempts/${attemptId}`, { headers: authH() });
-    clearTimeout(hint);
+    clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
     if (res.status === 401) { location.href = "login.html"; return; }
     if (!res.ok) {
       const body = await res.text();
@@ -163,13 +175,32 @@ async function init() {
     }
     attempt = await res.json();
   } catch (e) {
-    clearTimeout(hint);
+    clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
+    if (e.name === "AbortError" && _retryCount < 2) {
+      _retryCount++;
+      // auto-retry with countdown
+      let sec = 5;
+      const tick = () => {
+        const el = document.getElementById("loading-sub");
+        if (el) el.textContent = `Server is slow — auto-retrying in ${sec}s…`;
+        if (sec-- > 0) setTimeout(tick, 1000); else init();
+      };
+      document.getElementById("content").innerHTML = `
+        <div class="loading">
+          <div style="font-size:28px;margin-bottom:12px;">⏳</div>
+          Server is taking time to wake up…
+          <div style="font-size:12px;color:#94a3b8;margin-top:8px;" id="loading-sub"></div>
+        </div>`;
+      tick();
+      return;
+    }
     showError(e.name === "AbortError"
-      ? "Timed out — server may be starting up. Please retry."
+      ? "Server did not respond. Please click Retry."
       : `Network error: ${e.message}`);
     return;
   }
 
+  _retryCount = 0;
   render(attempt);
 }
 
