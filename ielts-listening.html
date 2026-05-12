@@ -139,25 +139,23 @@ const attemptId = parseInt(params.get("attempt_id") || "0", 10);
 
 if (!token || !attemptId) location.href = "dashboard.html";
 
-function authH() { return { "Authorization": "Bearer " + token, "Content-Type": "application/json" }; }
+function authH()     { return { "Authorization": "Bearer " + token }; }
+function authHJson() { return { "Authorization": "Bearer " + token, "Content-Type": "application/json" }; }
 
 // ── State ──
 let sectionData = null;
 let currentPartIdx = 0;
-const answers = {};        // { question_id: value }
+const answers = {};
 let timerSecs = 30 * 60;
 let timerInterval = null;
 let autoSaveInterval = null;
 let submitting = false;
+let _initRetries = 0;
 
 // ── Timer ──
 function updateTimer() {
   timerSecs--;
-  if (timerSecs <= 0) {
-    clearInterval(timerInterval);
-    doSubmit();
-    return;
-  }
+  if (timerSecs <= 0) { clearInterval(timerInterval); doSubmit(); return; }
   const m = Math.floor(timerSecs / 60).toString().padStart(2, "0");
   const s = (timerSecs % 60).toString().padStart(2, "0");
   const el = document.getElementById("timer");
@@ -165,22 +163,41 @@ function updateTimer() {
   el.className = "timer-box" + (timerSecs < 300 ? " warning" : "");
 }
 
+function showLoadingMsg(msg) {
+  const el = document.getElementById("loading");
+  if (el) el.textContent = msg;
+}
+
+async function fetchWithTimeout(url, opts, ms = 90000) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), ms);
+  try { return await fetch(url, { ...opts, signal: ctrl.signal }); }
+  finally { clearTimeout(id); }
+}
+
 // ── Load section ──
 async function init() {
+  showLoadingMsg("Loading your Listening exam…");
+
   try {
-    // Get attempt to find section id
-    const aRes = await fetch(`${API_BASE}/mock/attempts/${attemptId}`, { headers: authH() });
-    if (!aRes.ok) throw new Error("Attempt not found");
+    // 1. Get attempt
+    const aRes = await fetchWithTimeout(`${API_BASE}/mock/attempts/${attemptId}`, { headers: authH() });
+    if (aRes.status === 401) { location.href = "login.html"; return; }
+    if (!aRes.ok) throw new Error(`Attempt error ${aRes.status}`);
     const attempt = await aRes.json();
 
     if (attempt.listening_submitted_at) {
-      // Already submitted — redirect back to hub
-      location.href = `ielts-mock-hub.html?slot=${attempt.slot_number}`;
+      location.href = `ielts-mock-hub.html?attempt_id=${attempt.id}`;
       return;
     }
 
-    const sRes = await fetch(`${API_BASE}/listening/section/${attempt.listening_section_id}`, { headers: authH() });
-    if (!sRes.ok) throw new Error("Section not found");
+    // 2. Get listening section (no Content-Type on GET)
+    showLoadingMsg("Loading questions…");
+    const sRes = await fetchWithTimeout(
+      `${API_BASE}/listening/section/${attempt.listening_section_id}`,
+      { headers: authH() }
+    );
+    if (!sRes.ok) throw new Error(`Section error ${sRes.status}`);
     sectionData = await sRes.json();
 
     document.getElementById("loading").style.display = "none";
@@ -190,10 +207,26 @@ async function init() {
     renderPart(0);
     buildPalette();
 
-    timerInterval = setInterval(updateTimer, 1000);
-    autoSaveInterval = setInterval(autoSave, 30000);  // autosave every 30s
+    timerInterval    = setInterval(updateTimer, 1000);
+    autoSaveInterval = setInterval(autoSave, 30000);
+
   } catch (e) {
-    document.getElementById("loading").textContent = "Error: " + e.message;
+    if (e.name === "AbortError" && _initRetries < 2) {
+      _initRetries++;
+      let sec = 5;
+      const countdown = () => {
+        showLoadingMsg(`Server is waking up — retrying in ${sec}s…`);
+        if (sec-- > 0) setTimeout(countdown, 1000); else init();
+      };
+      countdown();
+      return;
+    }
+    const el = document.getElementById("loading");
+    if (el) el.innerHTML = `
+      <div style="text-align:center;color:#ef4444;font-weight:600;">Failed to load exam</div>
+      <div style="font-size:12px;color:#94a3b8;margin:6px 0 14px;">${e.message}</div>
+      <button onclick="init()" style="background:#059669;color:white;border:none;padding:8px 20px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">Retry</button>
+      <a href="dashboard.html" style="display:block;margin-top:10px;font-size:12px;color:#94a3b8;">← Back</a>`;
   }
 }
 
@@ -371,7 +404,7 @@ async function autoSave() {
   try {
     await fetch(`${API_BASE}/listening/attempts/${attemptId}/save`, {
       method: "POST",
-      headers: authH(),
+      headers: authHJson(),
       body: JSON.stringify({ answers: answerList }),
     });
   } catch (_) {}
@@ -407,7 +440,7 @@ async function doSubmit() {
   try {
     const res = await fetch(`${API_BASE}/listening/attempts/${attemptId}/submit`, {
       method: "POST",
-      headers: authH(),
+      headers: authHJson(),
       body: JSON.stringify({ answers: answerList }),
     });
     if (!res.ok) {
@@ -430,7 +463,7 @@ async function doSubmit() {
       // Need slot — fetch attempt
       fetch(`${API_BASE}/mock/attempts/${attemptId}`, { headers: authH() })
         .then(r => r.json())
-        .then(a => { location.href = `ielts-mock-hub.html?slot=${a.slot_number}`; })
+        .then(a => { location.href = `ielts-mock-hub.html?attempt_id=${a.id}`; })
         .catch(() => { location.href = "dashboard.html"; });
     }, 3000);
   } catch (e) {
