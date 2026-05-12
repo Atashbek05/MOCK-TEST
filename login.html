@@ -340,10 +340,13 @@ body {
           <div id="tg-code-display"
                style="font-size:26px;font-weight:800;letter-spacing:5px;color:#1e40af;
                       font-family:monospace;margin-bottom:10px;">------</div>
-          <button type="button" onclick="copyLoginCommand()"
-            style="font-size:12px;color:#0369a1;background:none;border:1px solid #bae6fd;
-                   border-radius:8px;padding:5px 14px;cursor:pointer;margin-bottom:12px;">
-            📋 Copy command
+          <button type="button" id="login-copy-btn" onclick="copyLoginCommand()"
+            style="font-size:13px;font-weight:600;color:#334155;background:white;
+                   border:1.5px solid #e2e8f0;border-radius:10px;padding:7px 20px;
+                   cursor:pointer;margin-bottom:12px;font-family:inherit;
+                   transition:background 0.15s,border-color 0.15s,color 0.15s,transform 0.1s;
+                   letter-spacing:0;">
+            Copy
           </button>
           <div>
             <a id="tg-bot-link" href="#" target="_blank"
@@ -682,8 +685,16 @@ function copyLoginCommand() {
   navigator.clipboard.writeText(`/login ${_tgLoginCode}`).then(() => {
     const btn = event.currentTarget;
     const orig = btn.textContent;
-    btn.textContent = "✅ Copied!";
-    setTimeout(() => btn.textContent = orig, 1500);
+    btn.textContent = "Copied";
+    btn.style.color = "#16a34a";
+    btn.style.borderColor = "#86efac";
+    btn.style.background = "#f0fdf4";
+    setTimeout(() => {
+      btn.textContent = "Copy";
+      btn.style.color = "";
+      btn.style.borderColor = "";
+      btn.style.background = "";
+    }, 1500);
   }).catch(() => {});
 }
 
