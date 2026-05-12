@@ -530,6 +530,14 @@ body {
 
   <div class="header-right">
     <span class="header-name" id="header-name">Loading…</span>
+    <a href="telegram-connect.html" id="tg-badge"
+       style="display:none;font-size:12px;font-weight:700;padding:5px 10px;border-radius:20px;
+              border:1.5px solid #e2e8f0;background:#f8fafc;color:#6b7280;
+              text-decoration:none;transition:border-color 0.15s,color 0.15s;
+              white-space:nowrap;align-items:center;gap:5px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><circle cx="12" cy="12" r="10" fill="#229ED9"/><path d="M16.93 9.02l-1.69 7.96c-.12.56-.46.7-.93.44l-2.58-1.9-1.24 1.2c-.14.14-.26.26-.53.26l.19-2.67 4.84-4.37c.21-.19-.05-.29-.32-.1L7.62 14.2l-2.54-.79c-.55-.17-.56-.55.12-.82l9.9-3.82c.46-.17.86.11.73.83z" fill="white"/></svg>
+      Connect
+    </a>
     <button class="btn-signout" onclick="logout()">Sign out</button>
   </div>
 </header>
@@ -811,6 +819,19 @@ async function loadTeacherDashboard() {
 
     document.getElementById("header-name").textContent = user.name;
     document.getElementById("hero-name").textContent   = user.name.split(" ")[0];
+
+    // Telegram badge in header
+    const tgBadge = document.getElementById("tg-badge");
+    const _tgSvg14 = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><circle cx="12" cy="12" r="10" fill="#229ED9"/><path d="M16.93 9.02l-1.69 7.96c-.12.56-.46.7-.93.44l-2.58-1.9-1.24 1.2c-.14.14-.26.26-.53.26l.19-2.67 4.84-4.37c.21-.19-.05-.29-.32-.1L7.62 14.2l-2.54-.79c-.55-.17-.56-.55.12-.82l9.9-3.82c.46-.17.86.11.73.83z" fill="white"/></svg>`;
+    if (user.telegram_id) {
+      const handle = user.telegram_username ? `@${user.telegram_username}` : "Telegram";
+      tgBadge.innerHTML    = `${_tgSvg14} ${handle}`;
+      tgBadge.title        = "Telegram connected — click to manage";
+      tgBadge.style.color  = "#059669";
+      tgBadge.style.borderColor = "#86efac";
+      tgBadge.style.background  = "#f0fdf4";
+    }
+    tgBadge.style.display = "inline-flex";
 
     // Update Telegram banner
     if (user.telegram_id) {
