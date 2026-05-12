@@ -506,7 +506,7 @@ body {
 }
 .tg-banner:hover { box-shadow: 0 4px 14px rgba(34,158,217,.15); transform: translateY(-1px); }
 .tg-banner.connected { background: linear-gradient(135deg, #d1fae5 0%, #f0fdf4 100%); border-color: #6ee7b7; }
-.tg-banner-icon { font-size: 28px; flex-shrink: 0; }
+.tg-banner-icon { flex-shrink: 0; display: flex; align-items: center; }
 .tg-banner-body { flex: 1; }
 .tg-banner-title { font-size: 14px; font-weight: 700; color: #0c4a6e; }
 .tg-banner.connected .tg-banner-title { color: #065f46; }
@@ -573,7 +573,9 @@ body {
 
   <!-- Telegram connect banner -->
   <a class="tg-banner" id="tg-banner" href="telegram-connect.html">
-    <div class="tg-banner-icon" id="tg-banner-icon">✈️</div>
+    <div class="tg-banner-icon" id="tg-banner-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#229ED9"/><path d="M16.93 9.02l-1.69 7.96c-.12.56-.46.7-.93.44l-2.58-1.9-1.24 1.2c-.14.14-.26.26-.53.26l.19-2.67 4.84-4.37c.21-.19-.05-.29-.32-.1L7.62 14.2l-2.54-.79c-.55-.17-.56-.55.12-.82l9.9-3.82c.46-.17.86.11.73.83z" fill="white"/></svg>
+    </div>
     <div class="tg-banner-body">
       <div class="tg-banner-title" id="tg-banner-title">Connect Telegram</div>
       <div class="tg-banner-sub" id="tg-banner-sub">Get notifications when students complete your tests</div>
@@ -815,7 +817,7 @@ async function loadTeacherDashboard() {
       const banner = document.getElementById("tg-banner");
       banner.classList.add("connected");
       banner.href = "telegram-connect.html";
-      document.getElementById("tg-banner-icon").textContent = "✅";
+      document.getElementById("tg-banner-icon").innerHTML = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#22c55e"/><path d="M7 12.5l3.5 3.5 6.5-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
       document.getElementById("tg-banner-title").textContent = "Telegram Connected";
       document.getElementById("tg-banner-sub").textContent =
         user.telegram_username ? `@${user.telegram_username}` : "Your account is linked";
