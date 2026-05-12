@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -488,7 +488,7 @@ class ListeningQuestionOut(BaseModel):
     local_order: int
     question_type: str
     stem: str
-    options: Optional[list] = None
+    options: Optional[Any] = None
     group_instruction: Optional[str] = None
     map_image_url: Optional[str] = None
 
