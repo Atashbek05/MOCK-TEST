@@ -123,7 +123,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
 <div class="submit-overlay" id="submit-overlay">
   <div class="submit-modal">
     <h2>Submit Listening?</h2>
-    <p id="submit-msg">You have answered <strong id="answered-count">0</strong> of <strong>40</strong> questions.<br>Once submitted you cannot change your answers.</p>
+    <p id="submit-msg">You have answered <strong id="answered-count">0</strong> of <strong id="total-count">40</strong> questions.<br>Once submitted you cannot change your answers.</p>
     <div class="modal-btns">
       <button class="btn-cancel-modal" onclick="hideSubmit()">Keep going</button>
       <button class="btn-confirm" onclick="doSubmit()">Submit now</button>
@@ -415,7 +415,7 @@ function showSubmit() {
   const total = sectionData ? sectionData.parts.reduce((sum, p) => sum + p.questions.length, 0) : 40;
   const answered = Object.values(answers).filter(v => v && v.trim()).length;
   document.getElementById("answered-count").textContent = answered;
-  document.querySelector("#submit-msg strong:last-child").textContent = total;
+  document.getElementById("total-count").textContent = total;
   document.getElementById("submit-overlay").classList.add("show");
 }
 
