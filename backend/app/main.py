@@ -930,13 +930,52 @@ def exam_history(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return (
+    sessions = (
         db.query(models.ExamSession)
         .filter(models.ExamSession.user_id == current_user.id)
-        .order_by(models.ExamSession.created_at.desc())
-        .limit(20)
         .all()
     )
+
+    mock_attempts = (
+        db.query(models.FullMockAttempt)
+        .filter(
+            models.FullMockAttempt.user_id == current_user.id,
+            models.FullMockAttempt.overall_band.isnot(None),
+        )
+        .all()
+    )
+
+    combined = []
+    for s in sessions:
+        combined.append({
+            "id": s.id,
+            "reading_band":   float(s.reading_band),
+            "listening_band": float(s.listening_band),
+            "writing_band":   float(s.writing_band),
+            "overall_band":   float(s.overall_band),
+            "duration_minutes": s.duration_minutes,
+            "created_at": s.created_at,
+        })
+    for a in mock_attempts:
+        dur = 0
+        if a.writing_submitted_at and a.started_at:
+            dur = int((a.writing_submitted_at - a.started_at).total_seconds() // 60)
+        overall = a.overall_band or (
+            round(((a.listening_band or 0) + (a.reading_band or 0) + (a.writing_band or 0)) / 3 * 2) / 2
+            if (a.listening_band and a.reading_band and a.writing_band) else 0.0
+        )
+        combined.append({
+            "id": a.id,
+            "reading_band":   float(a.reading_band or 0),
+            "listening_band": float(a.listening_band or 0),
+            "writing_band":   float(a.writing_band or 0),
+            "overall_band":   float(overall),
+            "duration_minutes": dur,
+            "created_at": a.started_at,
+        })
+
+    combined.sort(key=lambda x: x["created_at"], reverse=True)
+    return combined[:20]
 
 
 # ── Multiple Reading Tests Routes ──────────────────────────────────────────────
