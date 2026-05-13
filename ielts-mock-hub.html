@@ -35,7 +35,10 @@ h1 { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
   transition: box-shadow .15s, border-color .15s;
 }
 .section-card:hover { box-shadow: 0 4px 16px rgba(5,150,105,.12); border-color: #6ee7b7; }
-.section-icon { font-size: 32px; flex-shrink: 0; }
+.section-icon { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 14px; }
+.s-listen { background: #ecfdf5; }
+.s-read   { background: #eff6ff; }
+.s-write  { background: #fff7ed; }
 .section-body { flex: 1; min-width: 0; }
 .section-name { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
 .section-meta { font-size: 12px; color: #64748b; }
@@ -243,7 +246,7 @@ function render(attempt) {
     <p class="subtitle">Complete all three sections in order: Listening → Reading → Writing</p>
 
     <div class="section-card">
-      <div class="section-icon">🎧</div>
+      <div class="section-icon s-listen"><svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M4 13C4 8.6 7.6 5 12 5C16.4 5 20 8.6 20 13" stroke="#10b981" stroke-width="2" stroke-linecap="round"/><rect x="2" y="13" width="5" height="7" rx="2.5" fill="#a7f3d0" stroke="#10b981" stroke-width="1.5"/><rect x="17" y="13" width="5" height="7" rx="2.5" fill="#a7f3d0" stroke="#10b981" stroke-width="1.5"/><path d="M10 17.5C10 16.1 10.9 15 12 15C13.1 15 14 16.1 14 17.5" stroke="#10b981" stroke-width="1.3" stroke-linecap="round" fill="none" opacity="0.8"/><circle cx="12" cy="18.5" r="1.1" fill="#10b981" opacity="0.8"/></svg></div>
       <div class="section-body">
         <div class="section-name">Part 1 — Listening</div>
         <div class="section-meta">40 questions · ~30 min</div>
@@ -253,7 +256,7 @@ function render(attempt) {
     </div>
 
     <div class="section-card">
-      <div class="section-icon">📖</div>
+      <div class="section-icon s-read"><svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M3 5C3 4.4 3.6 4 4 4H11C11.6 4 12 4.4 12 5V20C9 19.4 5 19.6 4 20C3.4 20 3 19.6 3 19V5Z" fill="#bfdbfe" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><path d="M21 5C21 4.4 20.4 4 20 4H13C12.4 4 12 4.4 12 5V20C15 19.4 19 19.6 20 20C20.6 20 21 19.6 21 19V5Z" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><line x1="12" y1="4" x2="12" y2="20" stroke="#2563eb" stroke-width="1.5"/><line x1="5" y1="8.5" x2="10" y2="8.5" stroke="#3b82f6" stroke-width="1" stroke-linecap="round" opacity="0.6"/><line x1="5" y1="11.5" x2="10" y2="11.5" stroke="#3b82f6" stroke-width="1" stroke-linecap="round" opacity="0.6"/><line x1="5" y1="14.5" x2="8.5" y2="14.5" stroke="#3b82f6" stroke-width="1" stroke-linecap="round" opacity="0.6"/><line x1="14" y1="8.5" x2="19" y2="8.5" stroke="#3b82f6" stroke-width="1" stroke-linecap="round" opacity="0.6"/><line x1="14" y1="11.5" x2="19" y2="11.5" stroke="#3b82f6" stroke-width="1" stroke-linecap="round" opacity="0.6"/><line x1="14" y1="14.5" x2="17.5" y2="14.5" stroke="#3b82f6" stroke-width="1" stroke-linecap="round" opacity="0.6"/></svg></div>
       <div class="section-body">
         <div class="section-name">Part 2 — Reading</div>
         <div class="section-meta">40 questions · 60 min</div>
@@ -263,7 +266,7 @@ function render(attempt) {
     </div>
 
     <div class="section-card">
-      <div class="section-icon">✏️</div>
+      <div class="section-icon s-write"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M16 3.5L20.5 8L8.5 20L4 21L5 16.5L16 3.5Z" fill="#fde68a" stroke="#f59e0b" stroke-width="1.5" stroke-linejoin="round"/><path d="M14 5.5L18.5 10" stroke="#d97706" stroke-width="1.1" stroke-linecap="round" opacity="0.7"/><path d="M16 3.5L18 2C18.8 1.3 20.2 1.5 21 2.5L22 3.5C22.8 4.5 22.6 5.8 22 6.5L20.5 8" fill="#fb923c" stroke="#f59e0b" stroke-width="1.5" stroke-linejoin="round"/><path d="M4 21H12" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" opacity="0.45"/></svg></div>
       <div class="section-body">
         <div class="section-name">Part 3 — Writing</div>
         <div class="section-meta">2 tasks · 60 min · AI-graded</div>

@@ -40,7 +40,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
 /* ── Audio player ── */
 .audio-section { background: #0f172a; border-radius: 14px; padding: 18px 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; }
 .audio-section audio { flex: 1; height: 36px; accent-color: #059669; }
-.audio-label { font-size: 12px; font-weight: 700; color: #94a3b8; white-space: nowrap; }
+.audio-label { font-size: 12px; font-weight: 700; color: #94a3b8; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
 
 /* ── Part header ── */
 .part-header { margin-bottom: 20px; }
@@ -279,13 +279,13 @@ function renderPart(idx) {
   if (part.audio_url) {
     html += `
       <div class="audio-section">
-        <div class="audio-label">🎧 Audio</div>
+        <div class="audio-label"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 13C4 8.6 7.6 5 12 5C16.4 5 20 8.6 20 13" stroke="#64748b" stroke-width="2" stroke-linecap="round"/><rect x="2" y="13" width="5" height="7" rx="2.5" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/><rect x="17" y="13" width="5" height="7" rx="2.5" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/></svg>Audio</div>
         <audio controls src="${part.audio_url}">Your browser does not support audio.</audio>
       </div>`;
   } else {
     html += `
       <div class="audio-section">
-        <div class="audio-label">🎧 Audio</div>
+        <div class="audio-label"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 13C4 8.6 7.6 5 12 5C16.4 5 20 8.6 20 13" stroke="#64748b" stroke-width="2" stroke-linecap="round"/><rect x="2" y="13" width="5" height="7" rx="2.5" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/><rect x="17" y="13" width="5" height="7" rx="2.5" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/></svg>Audio</div>
         <span style="color:#475569;font-size:13px;flex:1;">[Audio file not yet available — answer from context]</span>
       </div>`;
   }
@@ -452,7 +452,7 @@ async function doSubmit() {
     // Show score briefly then redirect
     document.getElementById("right-panel").innerHTML = `
       <div style="text-align:center;padding:80px 20px;">
-        <div style="font-size:48px;margin-bottom:16px;">🎧</div>
+        <div style="margin-bottom:20px;display:flex;justify-content:center;"><div style="width:88px;height:88px;border-radius:24px;background:linear-gradient(135deg,#ecfdf5,#d1fae5);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(5,150,105,.18);"><svg width="50" height="50" viewBox="0 0 24 24" fill="none"><path d="M4 13C4 8.6 7.6 5 12 5C16.4 5 20 8.6 20 13" stroke="#059669" stroke-width="1.8" stroke-linecap="round"/><rect x="2" y="13" width="5" height="7" rx="2.5" fill="#a7f3d0" stroke="#059669" stroke-width="1.5"/><rect x="17" y="13" width="5" height="7" rx="2.5" fill="#a7f3d0" stroke="#059669" stroke-width="1.5"/><path d="M10 17.5C10 16.1 10.9 15 12 15C13.1 15 14 16.1 14 17.5" stroke="#059669" stroke-width="1.3" stroke-linecap="round" fill="none" opacity="0.85"/><circle cx="12" cy="18.5" r="1.2" fill="#059669"/></svg></div></div>
         <div style="font-size:22px;font-weight:800;color:#0f172a;margin-bottom:8px;">Listening Complete!</div>
         <div style="font-size:15px;color:#475569;margin-bottom:8px;">Raw score: ${result.raw_score}/40</div>
         <div style="font-size:36px;font-weight:900;color:#059669;margin-bottom:24px;">Band ${result.band}</div>
