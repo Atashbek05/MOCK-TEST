@@ -360,7 +360,7 @@ body {
 
 .bar-row { display: flex; align-items: center; gap: 10px; }
 
-.bar-icon { font-size: 15px; width: 22px; flex-shrink: 0; }
+.bar-icon { display: flex; align-items: center; width: 22px; flex-shrink: 0; }
 .bar-name { font-size: 13px; font-weight: 600; color: #475569; width: 70px; flex-shrink: 0; }
 
 .bar-track {
@@ -969,7 +969,7 @@ body {
         <!-- Section progress bars -->
         <div class="section-bars">
           <div class="bar-row">
-            <span class="bar-icon">📖</span>
+            <span class="bar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 5C3 4.4 3.6 4 4 4H11C11.6 4 12 4.4 12 5V20C9 19.4 5 19.6 4 20C3.4 20 3 19.6 3 19V5Z" fill="#bfdbfe" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><path d="M21 5C21 4.4 20.4 4 20 4H13C12.4 4 12 4.4 12 5V20C15 19.4 19 19.6 20 20C20.6 20 21 19.6 21 19V5Z" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><line x1="12" y1="4" x2="12" y2="20" stroke="#2563eb" stroke-width="1.5"/><line x1="5" y1="8.5" x2="10" y2="8.5" stroke="#3b82f6" stroke-width="1" stroke-linecap="round" opacity="0.6"/><line x1="5" y1="11.5" x2="10" y2="11.5" stroke="#3b82f6" stroke-width="1" stroke-linecap="round" opacity="0.6"/><line x1="5" y1="14.5" x2="8.5" y2="14.5" stroke="#3b82f6" stroke-width="1" stroke-linecap="round" opacity="0.6"/><line x1="14" y1="8.5" x2="19" y2="8.5" stroke="#3b82f6" stroke-width="1" stroke-linecap="round" opacity="0.6"/><line x1="14" y1="11.5" x2="19" y2="11.5" stroke="#3b82f6" stroke-width="1" stroke-linecap="round" opacity="0.6"/><line x1="14" y1="14.5" x2="17.5" y2="14.5" stroke="#3b82f6" stroke-width="1" stroke-linecap="round" opacity="0.6"/></svg></span>
             <span class="bar-name">Reading</span>
             <div class="bar-track">
               <div class="bar-fill" id="bar-reading" style="width:0%;"></div>
@@ -977,7 +977,7 @@ body {
             <span class="bar-score" id="score-reading">–</span>
           </div>
           <div class="bar-row">
-            <span class="bar-icon">🎧</span>
+            <span class="bar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 13C4 8.6 7.6 5 12 5C16.4 5 20 8.6 20 13" stroke="#10b981" stroke-width="2" stroke-linecap="round"/><rect x="2" y="13" width="5" height="7" rx="2.5" fill="#a7f3d0" stroke="#10b981" stroke-width="1.5"/><rect x="17" y="13" width="5" height="7" rx="2.5" fill="#a7f3d0" stroke="#10b981" stroke-width="1.5"/><path d="M10 17.5C10 16.1 10.9 15 12 15C13.1 15 14 16.1 14 17.5" stroke="#10b981" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.8"/><circle cx="12" cy="18.5" r="1" fill="#10b981" opacity="0.8"/></svg></span>
             <span class="bar-name">Listening</span>
             <div class="bar-track">
               <div class="bar-fill" id="bar-listening" style="width:0%;"></div>
@@ -985,7 +985,7 @@ body {
             <span class="bar-score" id="score-listening">–</span>
           </div>
           <div class="bar-row">
-            <span class="bar-icon">✏️</span>
+            <span class="bar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M16 3.5L20.5 8L8.5 20L4 21L5 16.5L16 3.5Z" fill="#fde68a" stroke="#f59e0b" stroke-width="1.5" stroke-linejoin="round"/><path d="M14 5.5L18.5 10" stroke="#d97706" stroke-width="1" stroke-linecap="round" opacity="0.7"/><path d="M16 3.5L18 2C18.8 1.3 20.2 1.5 21 2.5L22 3.5C22.8 4.5 22.6 5.8 22 6.5L20.5 8" fill="#fb923c" stroke="#f59e0b" stroke-width="1.5" stroke-linejoin="round"/><path d="M4 21H11" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" opacity="0.45"/></svg></span>
             <span class="bar-name">Writing</span>
             <div class="bar-track">
               <div class="bar-fill" id="bar-writing" style="width:0%;"></div>
@@ -1004,22 +1004,22 @@ body {
     </div>
     <div class="sections-grid">
       <div class="section-card">
-        <div class="s-icon-wrap s-reading">📖</div>
+        <div class="s-icon-wrap s-reading"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M3 5C3 4.4 3.6 4 4 4H11C11.6 4 12 4.4 12 5V20C9 19.4 5 19.6 4 20C3.4 20 3 19.6 3 19V5Z" fill="#bfdbfe" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><path d="M21 5C21 4.4 20.4 4 20 4H13C12.4 4 12 4.4 12 5V20C15 19.4 19 19.6 20 20C20.6 20 21 19.6 21 19V5Z" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5" stroke-linejoin="round"/><line x1="12" y1="4" x2="12" y2="20" stroke="#2563eb" stroke-width="1.5"/><line x1="5" y1="8.5" x2="10" y2="8.5" stroke="#3b82f6" stroke-width="1.1" stroke-linecap="round" opacity="0.6"/><line x1="5" y1="11.5" x2="10" y2="11.5" stroke="#3b82f6" stroke-width="1.1" stroke-linecap="round" opacity="0.6"/><line x1="5" y1="14.5" x2="8.5" y2="14.5" stroke="#3b82f6" stroke-width="1.1" stroke-linecap="round" opacity="0.6"/><line x1="14" y1="8.5" x2="19" y2="8.5" stroke="#3b82f6" stroke-width="1.1" stroke-linecap="round" opacity="0.6"/><line x1="14" y1="11.5" x2="19" y2="11.5" stroke="#3b82f6" stroke-width="1.1" stroke-linecap="round" opacity="0.6"/><line x1="14" y1="14.5" x2="17.5" y2="14.5" stroke="#3b82f6" stroke-width="1.1" stroke-linecap="round" opacity="0.6"/></svg></div>
         <div class="s-name">Reading</div>
         <div class="s-meta">60 minutes<br>40 questions<br>3 academic passages</div>
       </div>
       <div class="section-card">
-        <div class="s-icon-wrap s-listening">🎧</div>
+        <div class="s-icon-wrap s-listening"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M4 13C4 8.6 7.6 5 12 5C16.4 5 20 8.6 20 13" stroke="#10b981" stroke-width="2" stroke-linecap="round"/><rect x="2" y="13" width="5" height="7" rx="2.5" fill="#a7f3d0" stroke="#10b981" stroke-width="1.5"/><rect x="17" y="13" width="5" height="7" rx="2.5" fill="#a7f3d0" stroke="#10b981" stroke-width="1.5"/><path d="M10 17.5C10 16.1 10.9 15 12 15C13.1 15 14 16.1 14 17.5" stroke="#10b981" stroke-width="1.3" stroke-linecap="round" fill="none" opacity="0.8"/><circle cx="12" cy="18.5" r="1.1" fill="#10b981" opacity="0.8"/></svg></div>
         <div class="s-name">Listening</div>
         <div class="s-meta">30 minutes<br>40 questions<br>4 audio sections</div>
       </div>
       <div class="section-card">
-        <div class="s-icon-wrap s-writing">✏️</div>
+        <div class="s-icon-wrap s-writing"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M16 3.5L20.5 8L8.5 20L4 21L5 16.5L16 3.5Z" fill="#fde68a" stroke="#f59e0b" stroke-width="1.5" stroke-linejoin="round"/><path d="M14 5.5L18.5 10" stroke="#d97706" stroke-width="1.1" stroke-linecap="round" opacity="0.7"/><path d="M16 3.5L18 2C18.8 1.3 20.2 1.5 21 2.5L22 3.5C22.8 4.5 22.6 5.8 22 6.5L20.5 8" fill="#fb923c" stroke="#f59e0b" stroke-width="1.5" stroke-linejoin="round"/><path d="M4 21H12" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" opacity="0.45"/></svg></div>
         <div class="s-name">Writing</div>
         <div class="s-meta">60 minutes<br>2 tasks<br>AI-powered feedback</div>
       </div>
       <div class="section-card">
-        <div class="s-icon-wrap s-speaking">💬</div>
+        <div class="s-icon-wrap s-speaking"><svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="11" rx="3" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1.5"/><line x1="12" y1="5" x2="12" y2="9" stroke="#8b5cf6" stroke-width="1" stroke-linecap="round" opacity="0.45"/><path d="M5 11C5 15.4 8.1 19 12 19C15.9 19 19 15.4 19 11" stroke="#8b5cf6" stroke-width="1.8" stroke-linecap="round" fill="none"/><line x1="12" y1="19" x2="12" y2="22" stroke="#8b5cf6" stroke-width="1.8" stroke-linecap="round"/><line x1="8" y1="22" x2="16" y2="22" stroke="#8b5cf6" stroke-width="1.8" stroke-linecap="round"/><path d="M7 8C5.8 9.3 5.8 11.2 7 12.5" stroke="#8b5cf6" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.5"/><path d="M17 8C18.2 9.3 18.2 11.2 17 12.5" stroke="#8b5cf6" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.5"/></svg></div>
         <div class="s-name">Speaking</div>
         <div class="s-meta">11–14 minutes<br>3 parts<br><span class="s-coming">Coming soon</span></div>
       </div>
