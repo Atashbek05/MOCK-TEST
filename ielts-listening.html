@@ -456,14 +456,13 @@ async function doSubmit() {
         <div style="font-size:22px;font-weight:800;color:#0f172a;margin-bottom:8px;">Listening Complete!</div>
         <div style="font-size:15px;color:#475569;margin-bottom:8px;">Raw score: ${result.raw_score}/40</div>
         <div style="font-size:36px;font-weight:900;color:#059669;margin-bottom:24px;">Band ${result.band}</div>
-        <div style="font-size:13px;color:#94a3b8;">Redirecting to test hub…</div>
+        <div style="font-size:13px;color:#94a3b8;">Loading Reading section…</div>
       </div>`;
 
     setTimeout(() => {
-      // Need slot — fetch attempt
       fetch(`${API_BASE}/mock/attempts/${attemptId}`, { headers: authH() })
         .then(r => r.json())
-        .then(a => { location.href = `ielts-mock-hub.html?attempt_id=${a.id}`; })
+        .then(a => { location.href = `ielts-exam.html?attempt_id=${a.id}&test_id=${a.reading_test_id}`; })
         .catch(() => { location.href = "dashboard.html"; });
     }, 3000);
   } catch (e) {

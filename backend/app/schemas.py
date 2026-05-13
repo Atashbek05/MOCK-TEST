@@ -115,6 +115,7 @@ class SubmitResultOut(BaseModel):
 
 class SubmitWritingIn(BaseModel):
     essay: str = Field(..., min_length=50, max_length=6000)
+    mock_attempt_id: Optional[int] = None
 
 
 class WritingSubmitOut(BaseModel):

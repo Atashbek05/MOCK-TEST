@@ -1569,7 +1569,7 @@ async function startMockTest() {
       throw new Error(err.detail || "Server error");
     }
     const attempt = await res.json();
-    location.href = `ielts-mock-hub.html?attempt_id=${attempt.id}`;
+    location.href = `ielts-listening.html?attempt_id=${attempt.id}`;
   } catch (e) {
     btn.disabled = false;
     btn.innerHTML = origHtml;

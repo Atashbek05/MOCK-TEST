@@ -870,6 +870,20 @@ def submit_writing(
         word_count=word_count,
     )
     db.add(result)
+
+    if payload.mock_attempt_id:
+        mock_att = (db.query(models.FullMockAttempt)
+                    .filter(models.FullMockAttempt.id == payload.mock_attempt_id,
+                            models.FullMockAttempt.user_id == current_user.id)
+                    .first())
+        if mock_att and not mock_att.writing_submitted_at:
+            mock_att.writing_submitted_at = datetime.now(timezone.utc)
+            mock_att.writing_band = band_score
+            if mock_att.listening_band is not None and mock_att.reading_band is not None:
+                raw_avg = (mock_att.listening_band + mock_att.reading_band + band_score) / 3
+                mock_att.overall_band = round(raw_avg * 2) / 2
+                mock_att.status = "completed"
+
     db.commit()
     db.refresh(result)
     return result
@@ -2297,6 +2311,7 @@ def get_ielts_answers(
 def submit_ielts_attempt(
     attempt_id: int,
     time_spent: int = Body(0, embed=True),
+    mock_attempt_id: Optional[int] = Body(None, embed=True),
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -2343,6 +2358,16 @@ def submit_ielts_attempt(
     attempt.time_spent = time_spent
     attempt.raw_score = raw
     attempt.band_score = band
+
+    if mock_attempt_id:
+        mock_att = (db.query(models.FullMockAttempt)
+                    .filter(models.FullMockAttempt.id == mock_attempt_id,
+                            models.FullMockAttempt.user_id == current_user.id)
+                    .first())
+        if mock_att and not mock_att.reading_submitted_at:
+            mock_att.reading_submitted_at = datetime.now(timezone.utc)
+            mock_att.reading_band = band
+
     db.commit()
 
     return schemas.SubmitAttemptOut(
@@ -2556,7 +2581,7 @@ def admin_seed(
 def _raw_score_to_band(raw: int) -> float:
     """Convert listening/reading raw score (0-40) to IELTS band (0-9)."""
     table = [
-        (39, 9.0), (37, 8.5), (35, 8.0), (32, 7.5), (30, 7.0),
+        (39, 9.0), (37, 8.5), (     35, 8.0), (32, 7.5), (30, 7.0),
         (26, 6.5), (23, 6.0), (18, 5.5), (16, 5.0), (13, 4.5),
         (10, 4.0), (6, 3.5), (4, 3.0), (3, 2.5), (0, 0.0),
     ]

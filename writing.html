@@ -365,6 +365,7 @@ textarea:focus { border-color: #222; }
 <script>
 // ── Auth ──────────────────────────────────────────────────────────────────────
 const token = requireAuth();
+const MOCK_ATTEMPT_ID = new URLSearchParams(location.search).get("attempt_id");
 
 // ── Timer — 40 minutes ────────────────────────────────────────────────────────
 let secondsLeft   = 40 * 60;
@@ -473,13 +474,15 @@ async function submitEssay() {
   document.getElementById("error-banner").classList.remove("show");
 
   try {
+    const payload = { essay };
+    if (MOCK_ATTEMPT_ID) payload.mock_attempt_id = parseInt(MOCK_ATTEMPT_ID);
     const res = await fetch(`${API_BASE}/submit-writing`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`
       },
-      body: JSON.stringify({ essay })
+      body: JSON.stringify(payload)
     });
 
     if (res.status === 401) {
@@ -500,7 +503,11 @@ async function submitEssay() {
     localStorage.setItem("writingWordCount", data.word_count);
     localStorage.setItem("writingFeedback",  data.feedback);  // JSON string
 
-    window.location.href = "final-result.html";
+    if (MOCK_ATTEMPT_ID) {
+      window.location.href = `ielts-mock-hub.html?attempt_id=${MOCK_ATTEMPT_ID}`;
+    } else {
+      window.location.href = "final-result.html";
+    }
 
   } catch (err) {
     showError("Cannot connect to server. Please check your connection.");

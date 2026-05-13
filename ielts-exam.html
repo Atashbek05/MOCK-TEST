@@ -513,8 +513,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-s
       </table>
     </div>
     <div class="result-actions">
-      <button class="btn-try-again" onclick="location.reload()">Try Again</button>
-      <button class="btn-dashboard" onclick="goToDashboard()">Dashboard →</button>
+      <button class="btn-try-again" id="btn-try-again" onclick="location.reload()">Try Again</button>
+      <button class="btn-dashboard" id="btn-next" onclick="goToDashboard()">Dashboard →</button>
     </div>
   </div>
 </div>
@@ -529,8 +529,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-s
 const token = localStorage.getItem("token");
 if (!token) { window.location.replace("login.html"); }
 
-// URL param: ?test_id=1
+// URL param: ?test_id=1  (mock tests also pass ?attempt_id=X)
 const TEST_ID = new URLSearchParams(location.search).get("test_id") || 1;
+const MOCK_ATTEMPT_ID = new URLSearchParams(location.search).get("attempt_id");
 
 const S = {
   attemptId:       null,
@@ -1140,9 +1141,9 @@ async function autoSubmit() {
 async function doSubmit() {
   clearInterval(S.timerInterval);
   try {
-    const result = await apiPost(`/ielts/attempt/${S.attemptId}/submit`, {
-      time_spent: timeSpentSeconds()
-    });
+    const body = { time_spent: timeSpentSeconds() };
+    if (MOCK_ATTEMPT_ID) body.mock_attempt_id = parseInt(MOCK_ATTEMPT_ID);
+    const result = await apiPost(`/ielts/attempt/${S.attemptId}/submit`, body);
     S.perQuestion = result.per_question || [];
     showResult(result);
   } catch (e) {
@@ -1177,6 +1178,11 @@ function showResult(result) {
       </tr>`
     ).join("");
   }
+
+  if (MOCK_ATTEMPT_ID) {
+    document.getElementById("btn-try-again").style.display = "none";
+    document.getElementById("btn-next").textContent = "Next: Writing →";
+  }
 }
 
 function toggleDetail() {
@@ -1188,8 +1194,12 @@ function toggleDetail() {
 }
 
 function goToDashboard() {
-  const role = localStorage.getItem("userRole");
-  window.location.href = role === "teacher" ? "teacher-dashboard.html" : "dashboard.html";
+  if (MOCK_ATTEMPT_ID) {
+    window.location.href = `writing.html?attempt_id=${MOCK_ATTEMPT_ID}`;
+  } else {
+    const role = localStorage.getItem("userRole");
+    window.location.href = role === "teacher" ? "teacher-dashboard.html" : "dashboard.html";
+  }
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
