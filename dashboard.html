@@ -798,10 +798,40 @@ body {
 .tg-banner-sub { font-size: 12px; color: #64748b; margin-top: 2px; }
 .tg-banner.connected .tg-banner-sub { color: #059669; }
 .tg-banner-arrow { font-size: 16px; color: #94a3b8; flex-shrink: 0; }
+
+/* ── Dashboard Loading Overlay ──────────────────────────────────────────────── */
+#dash-loading {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #f1f5f9;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 16px; transition: opacity .3s;
+}
+#dash-loading.hidden { opacity: 0; pointer-events: none; }
+.dash-spinner {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 4px solid #e2e8f0; border-top-color: #059669;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.dash-load-title { font-size: 16px; font-weight: 700; color: #0f172a; }
+.dash-load-sub   { font-size: 13px; color: #94a3b8; min-height: 18px; text-align: center; }
+.dash-load-retry {
+  display: none; margin-top: 8px;
+  background: #059669; color: white; border: none;
+  padding: 9px 22px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer;
+}
 </style>
 </head>
 
 <body>
+
+<!-- Loading overlay shown while /me and /exam-history load on cold server start -->
+<div id="dash-loading">
+  <div class="dash-spinner"></div>
+  <div class="dash-load-title">Loading your dashboard…</div>
+  <div class="dash-load-sub" id="dash-load-sub">Connecting to server…</div>
+  <button class="dash-load-retry" id="dash-load-retry" onclick="loadDashboard()">Retry</button>
+</div>
 
 <!-- ══════════════════════════════════════ HEADER ══════════════════════════════ -->
 <header class="header">
@@ -1400,12 +1430,36 @@ function renderHistory(sessions) {
 }
 
 // ── Load Dashboard Data ───────────────────────────────────────────────────────
+let _dashRetry = 0;
+
+function _fetchDash(url) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), 90000);
+  return fetch(url, { headers: { Authorization: `Bearer ${token}` }, signal: ctrl.signal })
+    .finally(() => clearTimeout(id));
+}
+
 async function loadDashboard() {
+  const overlay  = document.getElementById("dash-loading");
+  const subEl    = document.getElementById("dash-load-sub");
+  const retryBtn = document.getElementById("dash-load-retry");
+
+  overlay.classList.remove("hidden");
+  retryBtn.style.display = "none";
+  subEl.textContent = "Connecting to server…";
+
+  const t1 = setTimeout(() => { subEl.textContent = "Server is waking up — please wait…"; }, 5000);
+  const t2 = setTimeout(() => { subEl.textContent = "Almost there, server is starting…"; }, 25000);
+  const t3 = setTimeout(() => { subEl.textContent = "Taking longer than usual, still trying…"; }, 50000);
+
+  const clearTimers = () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+
   try {
     const [meRes, histRes] = await Promise.all([
-      fetch(`${API_BASE}/me`,           { headers: { Authorization: `Bearer ${token}` } }),
-      fetch(`${API_BASE}/exam-history`, { headers: { Authorization: `Bearer ${token}` } })
+      _fetchDash(`${API_BASE}/me`),
+      _fetchDash(`${API_BASE}/exam-history`)
     ]);
+    clearTimers();
 
     if (meRes.status === 401 || histRes.status === 401) {
       logout();
@@ -1414,6 +1468,9 @@ async function loadDashboard() {
 
     const me       = await meRes.json();
     const sessions = histRes.ok ? await histRes.json() : [];
+
+    _dashRetry = 0;
+    overlay.classList.add("hidden");
 
     // Greeting
     document.getElementById("welcome-msg").textContent = `Hello, ${me.name}! 👋`;
@@ -1468,12 +1525,25 @@ async function loadDashboard() {
     loadJoinedTests();
 
   } catch (err) {
+    clearTimers();
     console.error(err);
-    document.getElementById("history-list").innerHTML =
-      `<div class="empty-card">
-         <p>Failed to load data.</p>
-         <small>Please check your connection and refresh the page.</small>
-       </div>`;
+
+    if (err.name === "AbortError" && _dashRetry < 2) {
+      _dashRetry++;
+      let sec = 5;
+      const tick = () => {
+        subEl.textContent = `Server slow — retrying in ${sec}s… (attempt ${_dashRetry}/2)`;
+        if (sec-- > 0) setTimeout(tick, 1000); else loadDashboard();
+      };
+      tick();
+      return;
+    }
+
+    subEl.textContent = err.name === "AbortError"
+      ? "Server did not respond. Please try again."
+      : "Connection error. Please check your internet.";
+    retryBtn.style.display = "inline-block";
+    _dashRetry = 0;
   }
 }
 
