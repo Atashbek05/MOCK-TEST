@@ -2846,6 +2846,61 @@ def _get_coach_ai_feedback(
         return _get_coach_fallback(band, correct, total)
 
 
+@app.get("/full-review")
+def get_full_review(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return full test review: score, wrong questions with options, and AI coaching feedback."""
+    latest = (
+        db.query(models.TeacherTestResult)
+        .filter(models.TeacherTestResult.student_id == current_user.id)
+        .order_by(models.TeacherTestResult.created_at.desc())
+        .first()
+    )
+    if not latest:
+        raise HTTPException(status_code=404, detail="No test results found. Complete a test first!")
+
+    test = db.query(models.TeacherTest).filter(models.TeacherTest.id == latest.test_id).first()
+    test_title = test.title if test else f"Test #{latest.test_id}"
+    test_type = test.test_type if test else "reading"
+
+    wrong_questions: list[dict] = []
+    if latest.wrong_question_ids and test:
+        all_q: dict[int, models.TeacherQuestion] = {}
+        for passage in test.passages:
+            for q in passage.questions:
+                all_q[q.id] = q
+        for qid in latest.wrong_question_ids:
+            q = all_q.get(qid)
+            if q:
+                opt_text = getattr(q, f"option_{q.correct_answer.lower()}", "")
+                wrong_questions.append({
+                    "question_text": q.question_text,
+                    "correct_answer": q.correct_answer,
+                    "correct_option_text": opt_text,
+                })
+
+    feedback = _get_coach_ai_feedback(
+        test_title=test_title,
+        test_type=test_type,
+        band=latest.band,
+        correct=latest.correct,
+        total=latest.total,
+        wrong_questions=wrong_questions,
+    )
+
+    return {
+        "test_title": test_title,
+        "band": latest.band,
+        "correct": latest.correct,
+        "total": latest.total,
+        "wrong_questions": wrong_questions,
+        "feedback": feedback,
+        "tested_at": latest.created_at.isoformat(),
+    }
+
+
 @app.get("/ai-coach")
 def get_ai_coach(
     current_user: models.User = Depends(get_current_user),
