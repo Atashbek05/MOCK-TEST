@@ -11,485 +11,177 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-  background: #f1f5f9;
-  min-height: 100vh;
-  color: #0f172a;
+  background: #f1f5f9; min-height: 100vh; color: #0f172a;
 }
 
 /* ── Header ── */
 .header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid #e2e8f0;
-  padding: 0 24px;
-  height: 58px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e2e8f0; padding: 0 24px; height: 58px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
 }
-
 .header-logo { font-size: 15px; font-weight: 800; color: #0f172a; letter-spacing: -0.2px; }
 .header-logo .accent { color: #2563eb; }
-
-.header-center {
-  flex: 1;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 700;
-  color: #374151;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.btn-back {
-  font-size: 13px;
-  font-weight: 600;
-  color: #64748b;
-  background: none;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 6px 14px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: color 0.15s, border-color 0.15s;
-  flex-shrink: 0;
-  font-family: inherit;
-}
-
+.header-center { flex: 1; text-align: center; font-size: 14px; font-weight: 700; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn-back { font-size: 13px; font-weight: 600; color: #64748b; background: none; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 14px; cursor: pointer; text-decoration: none; transition: color 0.15s, border-color 0.15s; flex-shrink: 0; font-family: inherit; }
 .btn-back:hover { color: #0f172a; border-color: #cbd5e1; }
 
 /* ── Loading / Error ── */
-.state-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  gap: 14px;
-  text-align: center;
-  padding: 24px;
-}
-
-.spinner {
-  width: 38px; height: 38px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #2563eb;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-
+.state-center { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 14px; text-align: center; padding: 24px; }
+.spinner { width: 38px; height: 38px; border: 3px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
 .state-icon { font-size: 44px; margin-bottom: 4px; }
 .state-title { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
 .state-sub { font-size: 14px; color: #6b7280; max-width: 340px; line-height: 1.5; }
 
 /* ── Passage tabs ── */
-.tabs-bar {
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 0 20px;
-  display: flex;
-  gap: 4px;
-  position: sticky;
-  top: 58px;
-  z-index: 40;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
+.tabs-bar { background: white; border-bottom: 1px solid #e2e8f0; padding: 0 20px; display: flex; gap: 4px; position: sticky; top: 58px; z-index: 40; overflow-x: auto; scrollbar-width: none; }
 .tabs-bar::-webkit-scrollbar { display: none; }
-
-.tab-btn {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 13px 16px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #6b7280;
-  border: none;
-  border-bottom: 3px solid transparent;
-  background: none;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color 0.15s, border-color 0.15s;
-  font-family: inherit;
-}
-
+.tab-btn { display: flex; align-items: center; gap: 7px; padding: 13px 16px; font-size: 13px; font-weight: 600; color: #6b7280; border: none; border-bottom: 3px solid transparent; background: none; cursor: pointer; white-space: nowrap; transition: color 0.15s, border-color 0.15s; font-family: inherit; }
 .tab-btn:hover { color: #2563eb; }
-
-.tab-btn.active {
-  color: #2563eb;
-  border-bottom-color: #2563eb;
-}
-
-.tab-badge {
-  background: #f1f5f9;
-  color: #6b7280;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 10px;
-}
-
+.tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
+.tab-badge { background: #f1f5f9; color: #6b7280; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
 .tab-btn.active .tab-badge { background: #dbeafe; color: #2563eb; }
 .tab-btn.complete .tab-badge { background: #dcfce7; color: #16a34a; }
 
 /* ── Main split layout ── */
-.test-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  min-height: calc(100vh - 58px - 53px);
-}
+.test-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 0; min-height: calc(100vh - 58px - 53px); }
 
 /* LEFT — passage text */
-.passage-panel {
-  background: white;
-  border-right: 1px solid #e2e8f0;
-  padding: 28px 28px 120px;
-  overflow-y: auto;
-  position: sticky;
-  top: 111px; /* header + tabs */
-  height: calc(100vh - 111px);
-}
+.passage-panel { background: white; border-right: 1px solid #e2e8f0; padding: 28px 28px 120px; overflow-y: auto; position: sticky; top: 111px; height: calc(100vh - 111px); }
+.passage-title { font-size: 18px; font-weight: 800; color: #0f172a; margin-bottom: 16px; letter-spacing: -0.3px; line-height: 1.3; }
+.passage-text { font-size: 14.5px; line-height: 1.8; color: #374151; white-space: pre-wrap; }
 
-.passage-title {
-  font-size: 18px;
-  font-weight: 800;
-  color: #0f172a;
-  margin-bottom: 16px;
-  letter-spacing: -0.3px;
-  line-height: 1.3;
-}
-
-.passage-text {
-  font-size: 14.5px;
-  line-height: 1.8;
-  color: #374151;
-  white-space: pre-wrap;
-}
+/* ── Audio player ── */
+.audio-section { margin-bottom: 20px; background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 12px; padding: 16px; }
+.audio-section audio { width: 100%; border-radius: 8px; }
+.audio-label { font-size: 12px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
 
 /* RIGHT — questions */
-.questions-panel {
-  padding: 24px 24px 160px;
-  overflow-y: auto;
-}
+.questions-panel { padding: 24px 24px 160px; overflow-y: auto; }
 
-.q-card {
-  background: white;
-  border-radius: 14px;
-  padding: 22px 22px 18px;
-  margin-bottom: 14px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.q-num {
-  font-size: 11px;
-  font-weight: 700;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-bottom: 8px;
-}
-
-.q-text {
-  font-size: 14.5px;
-  font-weight: 600;
-  color: #0f172a;
-  line-height: 1.55;
-  margin-bottom: 14px;
-}
-
+.q-card { background: white; border-radius: 14px; padding: 22px 22px 18px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04); }
+.q-num { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+.q-text { font-size: 14.5px; font-weight: 600; color: #0f172a; line-height: 1.55; margin-bottom: 14px; }
 .options { display: flex; flex-direction: column; gap: 8px; }
-
-.option-label {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 11px 14px;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-  font-size: 14px;
-  color: #374151;
-  line-height: 1.4;
-}
-
+.option-label { display: flex; align-items: flex-start; gap: 10px; padding: 11px 14px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: border-color 0.15s, background 0.15s; font-size: 14px; color: #374151; line-height: 1.4; }
 .option-label:hover { border-color: #93c5fd; background: #eff6ff; }
-
 .option-label input[type="radio"] { display: none; }
+.option-label.selected { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; font-weight: 600; }
+.option-label.correct { border-color: #16a34a; background: #f0fdf4; color: #15803d; font-weight: 600; }
+.option-label.wrong { border-color: #dc2626; background: #fef2f2; color: #dc2626; }
+.opt-letter { width: 22px; height: 22px; border-radius: 50%; background: #f1f5f9; border: 1.5px solid #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex-shrink: 0; margin-top: 1px; }
+.option-label.selected .opt-letter { background: #2563eb; border-color: #2563eb; color: white; }
+.option-label.correct .opt-letter { background: #16a34a; border-color: #16a34a; color: white; }
+.option-label.wrong .opt-letter { background: #dc2626; border-color: #dc2626; color: white; }
 
-.option-label.selected {
-  border-color: #2563eb;
-  background: #eff6ff;
-  color: #1d4ed8;
-  font-weight: 600;
-}
-
-/* Result states */
-.option-label.correct {
-  border-color: #16a34a;
-  background: #f0fdf4;
-  color: #15803d;
-  font-weight: 600;
-}
-
-.option-label.wrong {
-  border-color: #dc2626;
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-.opt-letter {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #f1f5f9;
-  border: 1.5px solid #cbd5e1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 800;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.option-label.selected .opt-letter {
-  background: #2563eb;
-  border-color: #2563eb;
-  color: white;
-}
-
-.option-label.correct .opt-letter {
-  background: #16a34a;
-  border-color: #16a34a;
-  color: white;
-}
-
-.option-label.wrong .opt-letter {
-  background: #dc2626;
-  border-color: #dc2626;
-  color: white;
-}
+/* ── Writing essay card ── */
+.writing-card { background: white; border-radius: 14px; padding: 24px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04); }
+.writing-card-title { font-size: 13px; font-weight: 800; color: #374151; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.writing-task-name { font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 12px; }
+.writing-hint-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #065f46; margin-bottom: 14px; }
+.essay-textarea { width: 100%; min-height: 220px; padding: 12px 14px; font-family: inherit; font-size: 14px; color: #0f172a; line-height: 1.7; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 10px; resize: vertical; outline: none; transition: border-color 0.2s, background 0.2s; }
+.essay-textarea:focus { border-color: #2563eb; background: white; box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+.word-counter { font-size: 12px; color: #94a3b8; margin-top: 6px; text-align: right; }
+.word-counter.ok { color: #16a34a; }
+.word-counter.warn { color: #dc2626; }
 
 /* ── Submit bar ── */
-.submit-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0; right: 0;
-  background: rgba(255,255,255,0.96);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid #e2e8f0;
-  padding: 14px 28px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  z-index: 30;
-}
-
-.submit-progress {
-  font-size: 13px;
-  color: #6b7280;
-}
-
+.submit-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.96); backdrop-filter: blur(10px); border-top: 1px solid #e2e8f0; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; z-index: 30; }
+.submit-progress { font-size: 13px; color: #6b7280; }
 .submit-progress strong { color: #0f172a; }
-
-.btn-submit {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #2563eb;
-  color: white;
-  font-size: 14px;
-  font-weight: 700;
-  font-family: inherit;
-  border: none;
-  border-radius: 10px;
-  padding: 12px 28px;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
-}
-
+.btn-submit { display: inline-flex; align-items: center; gap: 8px; background: #2563eb; color: white; font-size: 14px; font-weight: 700; font-family: inherit; border: none; border-radius: 10px; padding: 12px 28px; cursor: pointer; transition: background 0.2s, transform 0.15s; }
 .btn-submit:hover:not(:disabled) { background: #1d4ed8; transform: translateY(-1px); }
 .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.btn-spin {
-  display: none;
-  width: 15px; height: 15px;
-  border: 2.5px solid rgba(255,255,255,0.35);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.65s linear infinite;
-}
-
+.btn-spin { display: none; width: 15px; height: 15px; border: 2.5px solid rgba(255,255,255,0.35); border-top-color: white; border-radius: 50%; animation: spin 0.65s linear infinite; }
 .btn-submit.loading .btn-spin { display: block; }
 
-/* ── Result Overlay ── */
-.result-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(15,23,42,0.7);
-  z-index: 200;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  backdrop-filter: blur(4px);
-}
-
+/* ── Result Overlay (Reading/Listening) ── */
+.result-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.7); z-index: 200; align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(4px); }
 .result-overlay.show { display: flex; }
-
-.result-card {
-  background: white;
-  border-radius: 24px;
-  padding: 44px 40px 36px;
-  max-width: 420px;
-  width: 100%;
-  text-align: center;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.2);
-  animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
-}
-
-@keyframes popIn {
-  from { transform: scale(0.85); opacity: 0; }
-  to   { transform: scale(1);    opacity: 1; }
-}
-
+.result-card { background: white; border-radius: 24px; padding: 44px 40px 36px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 24px 64px rgba(0,0,0,0.2); animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes popIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .result-emoji { font-size: 52px; margin-bottom: 16px; }
-
-.result-band {
-  font-size: 64px;
-  font-weight: 800;
-  letter-spacing: -3px;
-  line-height: 1;
-  margin-bottom: 6px;
-}
-
-.result-band-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 18px;
-}
-
-.result-score {
-  font-size: 15px;
-  color: #6b7280;
-  margin-bottom: 28px;
-}
-
+.result-band { font-size: 64px; font-weight: 800; letter-spacing: -3px; line-height: 1; margin-bottom: 6px; }
+.result-band-label { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px; }
+.result-score { font-size: 15px; color: #6b7280; margin-bottom: 28px; }
 .result-score strong { color: #0f172a; }
-
-.result-msg {
-  font-size: 14px;
-  color: #6b7280;
-  line-height: 1.6;
-  margin-bottom: 28px;
-  padding: 0 8px;
-}
-
-.btn-done {
-  display: block;
-  width: 100%;
-  padding: 13px;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  text-decoration: none;
-  transition: background 0.2s;
-}
-
+.result-msg { font-size: 14px; color: #6b7280; line-height: 1.6; margin-bottom: 28px; padding: 0 8px; }
+.btn-done { display: block; width: 100%; padding: 13px; background: #2563eb; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; text-decoration: none; transition: background 0.2s; }
 .btn-done:hover { background: #1d4ed8; }
 
-/* ── Responsive ── */
+/* ── Writing Result Overlay ── */
+.writing-result-card { background: white; border-radius: 24px; padding: 36px 32px 28px; max-width: 560px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.2); animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+.wr-header { text-align: center; margin-bottom: 24px; }
+.wr-emoji { font-size: 44px; margin-bottom: 12px; }
+.wr-avg-band { font-size: 56px; font-weight: 800; letter-spacing: -2px; line-height: 1; margin-bottom: 4px; }
+.wr-avg-label { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+.wr-task { background: #f8fafc; border-radius: 14px; padding: 18px 18px 14px; margin-bottom: 14px; text-align: left; }
+.wr-task-name { font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+.wr-task-band { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+.wr-task-meta { font-size: 12px; color: #6b7280; margin-bottom: 12px; }
+.wr-criteria { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.wr-criterion { background: white; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; }
+.wr-criterion-name { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px; }
+.wr-criterion-score { font-size: 20px; font-weight: 800; color: #0f172a; }
+.wr-criterion-text { font-size: 11px; color: #6b7280; line-height: 1.4; margin-top: 3px; }
+.wr-overall-feedback { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #065f46; line-height: 1.6; }
+
 @media (max-width: 768px) {
   .test-layout { grid-template-columns: 1fr; }
-  .passage-panel {
-    position: static;
-    height: auto;
-    border-right: none;
-    border-bottom: 1px solid #e2e8f0;
-    max-height: 340px;
-    padding: 20px 20px 20px;
-  }
+  .passage-panel { position: static; height: auto; border-right: none; border-bottom: 1px solid #e2e8f0; max-height: 340px; padding: 20px; }
   .questions-panel { padding: 20px 16px 160px; }
-  .result-card { padding: 32px 24px 28px; }
+  .result-card, .writing-result-card { padding: 32px 24px 28px; }
+  .wr-criteria { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 
 <body>
 
-<!-- Header -->
 <header class="header">
   <div class="header-logo">IELTS <span class="accent">MOCK</span></div>
   <div class="header-center" id="test-title-header">Loading test…</div>
   <a class="btn-back" href="dashboard.html">← Dashboard</a>
 </header>
 
-<!-- Loading state -->
 <div class="state-center" id="loading-state">
   <div class="spinner"></div>
   <div style="color:#6b7280;font-size:14px;">Loading test…</div>
 </div>
 
-<!-- Previous score banner (shown if student has taken this test before) -->
-<div id="prev-score-banner" style="display:none;
-     background:#f0fdf4; border-bottom:1px solid #bbf7d0;
-     padding:10px 24px; display:none; align-items:center; gap:10px;
-     font-size:13px; color:#065f46;">
-  <span>📊</span>
-  <span id="prev-score-text"></span>
+<div id="prev-score-banner" style="display:none; background:#f0fdf4; border-bottom:1px solid #bbf7d0; padding:10px 24px; align-items:center; gap:10px; font-size:13px; color:#065f46;">
+  <span>📊</span><span id="prev-score-text"></span>
 </div>
 
-<!-- Error state (hidden by default) -->
 <div class="state-center" id="error-state" style="display:none;">
   <div class="state-icon">🔒</div>
   <div class="state-title" id="error-title">Access Denied</div>
-  <p class="state-sub" id="error-msg">You are not enrolled in this test. Return to dashboard and enter the PIN code.</p>
-  <a href="dashboard.html" class="btn-back" style="margin-top:16px; display:inline-block;">← Back to Dashboard</a>
+  <p class="state-sub" id="error-msg">You are not enrolled in this test.</p>
+  <a href="dashboard.html" class="btn-back" style="margin-top:16px;display:inline-block;">← Back to Dashboard</a>
 </div>
 
-<!-- Passage tabs (hidden until loaded) -->
 <div class="tabs-bar" id="tabs-bar" style="display:none;"></div>
 
-<!-- Test layout (hidden until loaded) -->
 <div class="test-layout" id="test-layout" style="display:none;">
   <div class="passage-panel" id="passage-panel">
+    <div id="audio-section-container"></div>
     <div class="passage-title" id="passage-title"></div>
     <div class="passage-text" id="passage-text"></div>
   </div>
   <div class="questions-panel" id="questions-panel"></div>
 </div>
 
-<!-- Submit bar (hidden until loaded) -->
 <div class="submit-bar" id="submit-bar" style="display:none;">
   <div class="submit-progress" id="submit-progress">Answered: <strong>0</strong> of <strong>0</strong></div>
-  <button class="btn-submit" id="btn-submit" onclick="submitTest()">
+  <button class="btn-submit" id="btn-submit" onclick="handleSubmit()">
     <span class="btn-spin"></span>
     <span id="btn-label">Submit Test</span>
   </button>
 </div>
 
-<!-- Result overlay -->
+<!-- Reading/Listening result overlay -->
 <div class="result-overlay" id="result-overlay">
   <div class="result-card">
     <div class="result-emoji" id="result-emoji">🎉</div>
@@ -508,50 +200,54 @@ body {
   </div>
 </div>
 
+<!-- Writing result overlay -->
+<div class="result-overlay" id="writing-result-overlay">
+  <div class="writing-result-card" id="writing-result-card">
+    <!-- populated by showWritingResult() -->
+  </div>
+</div>
+
 <script src="api.js"></script>
 <script src="auth.js"></script>
 <script>
 const token = requireAuth();
 
-// Get test_id from URL
-const urlParams = new URLSearchParams(location.search);
-const testId = parseInt(urlParams.get("test_id"), 10);
+const urlParams  = new URLSearchParams(location.search);
+const testId     = parseInt(urlParams.get("test_id"), 10);
 if (!testId) window.location.replace("dashboard.html");
 
-// State
-let testData = null;         // full test object from API
-let currentPassageIdx = 0;   // index into testData.passages
-let answers = {};            // { "questionId": "A" }
+let testData           = null;
+let currentPassageIdx  = 0;
+let answers            = {};   // reading/listening: { questionId: "A" }
+let essays             = {};   // writing: { passageId: essayText }
 
-// ── Load test + previous score in parallel ────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 async function loadTest() {
   try {
     const [testRes, scoresRes] = await Promise.all([
-      fetch(`${API_BASE}/student/teacher-test/${testId}`, { headers: { Authorization: `Bearer ${token}` } }),
-      fetch(`${API_BASE}/student/my-teacher-results`,     { headers: { Authorization: `Bearer ${token}` } }),
+      fetch(API_BASE + "/student/teacher-test/" + testId, { headers: { Authorization: "Bearer " + token } }),
+      fetch(API_BASE + "/student/my-teacher-results",     { headers: { Authorization: "Bearer " + token } }),
     ]);
 
     if (testRes.status === 401) { logout(); return; }
 
     if (!testRes.ok) {
-      const body = await testRes.json().catch(() => ({}));
-      showError(
-        testRes.status === 403 ? "Access Denied" : "Test Not Found",
-        body.detail || "Cannot load this test."
-      );
+      const body = await testRes.json().catch(function() { return {}; });
+      showError(testRes.status === 403 ? "Access Denied" : "Test Not Found", body.detail || "Cannot load this test.");
       return;
     }
 
     testData = await testRes.json();
 
-    // Show previous score banner if student has attempted before
     if (scoresRes.ok) {
       const scores = await scoresRes.json();
       const my = scores[String(testId)];
       if (my) {
-        const banner  = document.getElementById("prev-score-banner");
+        const banner = document.getElementById("prev-score-banner");
         document.getElementById("prev-score-text").textContent =
-          `Your best score: Band ${my.best_band.toFixed(1)}  ·  ${my.attempts} previous attempt${my.attempts !== 1 ? "s" : ""}  ·  Last: ${new Date(my.latest_at).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" })}`;
+          "Your best score: Band " + my.best_band.toFixed(1) + "  ·  " + my.attempts +
+          " previous attempt" + (my.attempts !== 1 ? "s" : "") + "  ·  Last: " +
+          new Date(my.latest_at).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
         banner.style.display = "flex";
       }
     }
@@ -560,10 +256,10 @@ async function loadTest() {
     buildTabs();
     showPassage(0);
 
-    document.getElementById("loading-state").style.display  = "none";
-    document.getElementById("tabs-bar").style.display       = "";
-    document.getElementById("test-layout").style.display    = "";
-    document.getElementById("submit-bar").style.display     = "";
+    document.getElementById("loading-state").style.display = "none";
+    document.getElementById("tabs-bar").style.display      = "";
+    document.getElementById("test-layout").style.display   = "";
+    document.getElementById("submit-bar").style.display    = "";
 
   } catch (err) {
     console.error(err);
@@ -573,203 +269,341 @@ async function loadTest() {
 
 function showError(title, msg) {
   document.getElementById("loading-state").style.display = "none";
-  document.getElementById("error-title").textContent = title;
-  document.getElementById("error-msg").textContent   = msg;
-  document.getElementById("error-state").style.display = "flex";
+  document.getElementById("error-title").textContent     = title;
+  document.getElementById("error-msg").textContent       = msg;
+  document.getElementById("error-state").style.display   = "flex";
 }
 
-// ── Build tabs ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 function buildTabs() {
+  const isWriting   = testData.test_type === "writing";
+  const isListening = testData.test_type === "listening";
   const bar = document.getElementById("tabs-bar");
-  bar.innerHTML = testData.passages.map((p, i) => `
-    <button class="tab-btn ${i === 0 ? "active" : ""}"
-            id="tab-${i}"
-            onclick="showPassage(${i})">
-      Passage ${i + 1}: ${escHtml(truncate(p.title, 28))}
-      <span class="tab-badge" id="badge-${i}">0/${p.questions.length}</span>
-    </button>`
-  ).join("");
+
+  bar.innerHTML = testData.passages.map(function(p, i) {
+    var label = isWriting   ? "Task " + (i + 1)    :
+                isListening ? "Section " + (i + 1) :
+                              "Passage " + (i + 1);
+    var badgeText = isWriting ? "0 words" : "0/" + p.questions.length;
+    return '<button class="tab-btn ' + (i === 0 ? "active" : "") + '" id="tab-' + i + '" onclick="showPassage(' + i + ')">' +
+      label + ": " + escHtml(truncate(p.title, 26)) +
+      '<span class="tab-badge" id="badge-' + i + '">' + badgeText + '</span>' +
+      '</button>';
+  }).join("");
 }
 
-function truncate(str, max) {
-  return str.length > max ? str.slice(0, max) + "…" : str;
-}
+function truncate(str, max) { return str.length > max ? str.slice(0, max) + "…" : str; }
+function escHtml(str) { var d = document.createElement("div"); d.textContent = str; return d.innerHTML; }
 
-function escHtml(str) {
-  const d = document.createElement("div");
-  d.textContent = str;
-  return d.innerHTML;
-}
-
-// ── Show a passage + its questions ────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 function showPassage(idx) {
-  // Update tab active state
-  testData.passages.forEach((_, i) => {
-    const tab = document.getElementById("tab-" + i);
-    tab.classList.toggle("active", i === idx);
+  testData.passages.forEach(function(_, i) {
+    document.getElementById("tab-" + i).classList.toggle("active", i === idx);
   });
 
   currentPassageIdx = idx;
-  const passage = testData.passages[idx];
+  var passage = testData.passages[idx];
 
   document.getElementById("passage-title").textContent = passage.title;
   document.getElementById("passage-text").textContent  = passage.text;
 
-  // Scroll passage to top
-  const panel = document.getElementById("passage-panel");
-  panel.scrollTop = 0;
+  // Audio player for listening tests
+  var audioContainer = document.getElementById("audio-section-container");
+  if (testData.test_type === "listening" && passage.audio_url) {
+    audioContainer.innerHTML =
+      '<div class="audio-section">' +
+        '<div class="audio-label">🎧 Listen to the audio</div>' +
+        '<audio controls src="' + API_BASE + passage.audio_url + '">' +
+          'Your browser does not support the audio element.' +
+        '</audio>' +
+      '</div>';
+  } else {
+    audioContainer.innerHTML = "";
+  }
 
-  // Render questions
-  renderQuestions(passage, idx);
+  document.getElementById("passage-panel").scrollTop = 0;
+
+  if (testData.test_type === "writing") {
+    renderEssayPanel(passage, idx);
+  } else {
+    renderQuestions(passage, idx);
+  }
   updateProgress();
 }
 
-// ── Render questions for a passage ───────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 function renderQuestions(passage, passageIdx) {
-  const panel = document.getElementById("questions-panel");
-  panel.innerHTML = passage.questions.map((q, qi) => {
-    const qNum = passageIdx * 100 + qi; // unique number across passages (display only)
-    return `
-    <div class="q-card" id="qcard-${q.id}">
-      <div class="q-num">Question ${qi + 1}</div>
-      <div class="q-text">${escHtml(q.question_text)}</div>
-      <div class="options" id="opts-${q.id}">
-        ${["A","B","C","D"].map(letter => {
-          const text = q["option_" + letter.toLowerCase()];
-          const isSelected = answers[q.id] === letter;
-          return `
-          <label class="option-label ${isSelected ? "selected" : ""}" id="opt-${q.id}-${letter}">
-            <input type="radio" name="q-${q.id}" value="${letter}"
-                   ${isSelected ? "checked" : ""}
-                   onchange="selectAnswer(${q.id}, '${letter}', ${passage.questions.length}, ${passageIdx})">
-            <span class="opt-letter">${letter}</span>
-            <span>${escHtml(text)}</span>
-          </label>`;
-        }).join("")}
-      </div>
-    </div>`;
+  var panel = document.getElementById("questions-panel");
+  panel.innerHTML = passage.questions.map(function(q, qi) {
+    return '<div class="q-card" id="qcard-' + q.id + '">' +
+      '<div class="q-num">Question ' + (qi + 1) + '</div>' +
+      '<div class="q-text">' + escHtml(q.question_text) + '</div>' +
+      '<div class="options" id="opts-' + q.id + '">' +
+      ["A","B","C","D"].map(function(letter) {
+        var text       = q["option_" + letter.toLowerCase()];
+        var isSelected = answers[q.id] === letter;
+        return '<label class="option-label ' + (isSelected ? "selected" : "") + '" id="opt-' + q.id + '-' + letter + '">' +
+          '<input type="radio" name="q-' + q.id + '" value="' + letter + '" ' + (isSelected ? "checked" : "") +
+          ' onchange="selectAnswer(' + q.id + ',\'' + letter + '\',' + passage.questions.length + ',' + passageIdx + ')">' +
+          '<span class="opt-letter">' + letter + '</span>' +
+          '<span>' + escHtml(text) + '</span>' +
+          '</label>';
+      }).join("") +
+      '</div></div>';
   }).join("");
 }
 
-// ── Handle answer selection ───────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+function renderEssayPanel(passage, passageIdx) {
+  var panel      = document.getElementById("questions-panel");
+  var savedText  = essays[passage.id] || "";
+  var minWords   = passageIdx === 0 ? 150 : 250;
+
+  panel.innerHTML =
+    '<div class="writing-card">' +
+      '<div class="writing-card-title">Your Essay</div>' +
+      '<div class="writing-task-name">' + escHtml(passage.title) + '</div>' +
+      '<div class="writing-hint-box">Write at least <strong>' + minWords + '</strong> words. AI will grade your essay and provide detailed feedback.</div>' +
+      '<textarea class="essay-textarea" id="essay-' + passage.id + '" placeholder="Start writing your essay here…" oninput="onEssayInput(' + passage.id + ',' + passageIdx + ',' + minWords + ')">' + escHtml(savedText) + '</textarea>' +
+      '<div class="word-counter" id="wc-' + passage.id + '">Words: 0</div>' +
+    '</div>';
+
+  // Restore word count display
+  if (savedText) {
+    var wc = savedText.trim() ? savedText.trim().split(/\s+/).length : 0;
+    var wcEl = document.getElementById("wc-" + passage.id);
+    if (wcEl) {
+      wcEl.textContent = "Words: " + wc;
+      wcEl.className   = "word-counter " + (wc >= minWords ? "ok" : "warn");
+    }
+  }
+}
+
+function onEssayInput(passageId, passageIdx, minWords) {
+  var ta   = document.getElementById("essay-" + passageId);
+  var text = ta.value;
+  essays[passageId] = text;
+  var wc   = text.trim() ? text.trim().split(/\s+/).length : 0;
+  var wcEl = document.getElementById("wc-" + passageId);
+  wcEl.textContent = "Words: " + wc;
+  wcEl.className   = "word-counter " + (wc >= minWords ? "ok" : "warn");
+  updateBadgeWriting(passageIdx, wc);
+  updateProgress();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 function selectAnswer(questionId, letter, totalInPassage, passageIdx) {
   answers[questionId] = letter;
-
-  // Update visual state of all options for this question
-  ["A","B","C","D"].forEach(l => {
-    const el = document.getElementById(`opt-${questionId}-${l}`);
+  ["A","B","C","D"].forEach(function(l) {
+    var el = document.getElementById("opt-" + questionId + "-" + l);
     if (el) el.classList.toggle("selected", l === letter);
   });
-
   updateBadge(passageIdx);
   updateProgress();
 }
 
-// ── Update the answered count badge on a tab ─────────────────────────────────
 function updateBadge(passageIdx) {
-  const passage = testData.passages[passageIdx];
-  const answered = passage.questions.filter(q => answers[q.id]).length;
-  const total    = passage.questions.length;
-  const badge    = document.getElementById("badge-" + passageIdx);
+  var passage  = testData.passages[passageIdx];
+  var answered = passage.questions.filter(function(q) { return answers[q.id]; }).length;
+  var total    = passage.questions.length;
+  var badge    = document.getElementById("badge-" + passageIdx);
   badge.textContent = answered + "/" + total;
-
-  const tab = document.getElementById("tab-" + passageIdx);
-  tab.classList.toggle("complete", answered === total);
+  document.getElementById("tab-" + passageIdx).classList.toggle("complete", answered === total);
 }
 
-// ── Update bottom progress bar ────────────────────────────────────────────────
+function updateBadgeWriting(passageIdx, wordCount) {
+  var badge = document.getElementById("badge-" + passageIdx);
+  badge.textContent = wordCount + " words";
+  document.getElementById("tab-" + passageIdx).classList.toggle("complete", wordCount >= (passageIdx === 0 ? 150 : 250));
+}
+
 function updateProgress() {
-  const allQs   = testData.passages.flatMap(p => p.questions);
-  const answered = allQs.filter(q => answers[q.id]).length;
-  document.getElementById("submit-progress").innerHTML =
-    `Answered: <strong>${answered}</strong> of <strong>${allQs.length}</strong>`;
+  var progressEl = document.getElementById("submit-progress");
+  if (testData.test_type === "writing") {
+    var total     = 0;
+    var minTarget = 0;
+    testData.passages.forEach(function(p, i) {
+      var text = essays[p.id] || "";
+      var wc   = text.trim() ? text.trim().split(/\s+/).length : 0;
+      total    += wc;
+      minTarget += (i === 0 ? 150 : 250);
+    });
+    progressEl.innerHTML = "Total words: <strong>" + total + "</strong> / <strong>" + minTarget + "</strong> minimum";
+  } else {
+    var allQs    = testData.passages.flatMap(function(p) { return p.questions; });
+    var answered = allQs.filter(function(q) { return answers[q.id]; }).length;
+    progressEl.innerHTML = "Answered: <strong>" + answered + "</strong> of <strong>" + allQs.length + "</strong>";
+  }
 }
 
-// ── Submit ────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+function handleSubmit() {
+  if (testData.test_type === "writing") {
+    submitWriting();
+  } else {
+    submitTest();
+  }
+}
+
 async function submitTest() {
-  const allQs = testData.passages.flatMap(p => p.questions);
-  const answered = allQs.filter(q => answers[q.id]).length;
+  var allQs    = testData.passages.flatMap(function(p) { return p.questions; });
+  var answered = allQs.filter(function(q) { return answers[q.id]; }).length;
 
   if (answered < allQs.length) {
-    const unanswered = allQs.length - answered;
-    if (!confirm(`You have ${unanswered} unanswered question${unanswered > 1 ? "s" : ""}. Submit anyway?`)) return;
+    var unanswered = allQs.length - answered;
+    if (!confirm("You have " + unanswered + " unanswered question" + (unanswered > 1 ? "s" : "") + ". Submit anyway?")) return;
   }
 
-  const btn = document.getElementById("btn-submit");
-  btn.disabled = true;
-  btn.classList.add("loading");
+  var btn = document.getElementById("btn-submit");
+  btn.disabled = true; btn.classList.add("loading");
   document.getElementById("btn-label").textContent = "Submitting…";
 
-  // Build answer payload using string keys
-  const payload = { test_id: testId, answers: {} };
-  for (const [id, letter] of Object.entries(answers)) {
-    payload.answers[id] = letter;
-  }
+  var payload = { test_id: testId, answers: {} };
+  Object.entries(answers).forEach(function(kv) { payload.answers[kv[0]] = kv[1]; });
 
   try {
-    const res = await fetch(`${API_BASE}/submit-teacher-test`, {
+    var res = await fetch(API_BASE + "/submit-teacher-test", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
       body: JSON.stringify(payload)
     });
-
     if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
+      var body = await res.json().catch(function() { return {}; });
       alert(body.detail || "Submission failed. Please try again.");
-      btn.disabled = false;
-      btn.classList.remove("loading");
+      btn.disabled = false; btn.classList.remove("loading");
       document.getElementById("btn-label").textContent = "Submit Test";
       return;
     }
-
-    const result = await res.json();
-    showResult(result);
-
-  } catch {
+    showResult(await res.json());
+  } catch(e) {
     alert("Cannot connect to server. Please check your connection.");
-    btn.disabled = false;
-    btn.classList.remove("loading");
+    btn.disabled = false; btn.classList.remove("loading");
     document.getElementById("btn-label").textContent = "Submit Test";
   }
 }
 
-// ── Show result overlay ───────────────────────────────────────────────────────
-function showResult(result) {
-  const { correct, total, band } = result;
-  const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+async function submitWriting() {
+  var essaysList = testData.passages.map(function(p) {
+    return { passage_id: p.id, essay_text: (essays[p.id] || "").trim() };
+  }).filter(function(e) { return e.essay_text.length > 0; });
 
-  // Choose emoji & colour based on band
-  let emoji = "🎉", color = "#16a34a";
+  if (!essaysList.length) { alert("Please write at least one essay before submitting."); return; }
+
+  var hasShort = essaysList.some(function(e) { return e.essay_text.split(/\s+/).length < 50; });
+  if (hasShort) { if (!confirm("Some essays are very short. Submit anyway?")) return; }
+
+  var btn = document.getElementById("btn-submit");
+  btn.disabled = true; btn.classList.add("loading");
+  document.getElementById("btn-label").textContent = "Grading…";
+
+  try {
+    var res = await fetch(API_BASE + "/submit-teacher-writing", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+      body: JSON.stringify({ test_id: testId, essays: essaysList })
+    });
+    if (!res.ok) {
+      var body = await res.json().catch(function() { return {}; });
+      alert(body.detail || "Submission failed. Please try again.");
+      btn.disabled = false; btn.classList.remove("loading");
+      document.getElementById("btn-label").textContent = "Submit Test";
+      return;
+    }
+    showWritingResult(await res.json());
+  } catch(e) {
+    alert("Cannot connect to server. Please check your connection.");
+    btn.disabled = false; btn.classList.remove("loading");
+    document.getElementById("btn-label").textContent = "Submit Test";
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+function showResult(result) {
+  var correct = result.correct, total = result.total, band = result.band;
+  var pct = total > 0 ? Math.round(correct / total * 100) : 0;
+  var emoji = "🎉", color = "#16a34a";
   if (band < 5.0) { emoji = "📚"; color = "#dc2626"; }
   else if (band < 6.5) { emoji = "👍"; color = "#d97706"; }
   else if (band < 8.0) { emoji = "🌟"; color = "#2563eb"; }
-
-  let msg = "Well done! Keep practising to improve your band score.";
-  if (band >= 8.0) msg = "Excellent work! You have a very strong command of English.";
-  else if (band >= 6.5) msg = "Great job! You're at an upper-intermediate level. Keep it up!";
-  else if (band >= 5.0) msg = "Good effort! Focus on the question types you found difficult.";
-  else msg = "Keep practising! Each test brings you closer to your target score.";
-
-  document.getElementById("result-emoji").textContent    = emoji;
-  document.getElementById("result-band").textContent     = band.toFixed(1);
-  document.getElementById("result-band").style.color     = color;
-  document.getElementById("result-score").innerHTML      = `<strong>${correct}</strong> correct out of <strong>${total}</strong> (${pct}%)`;
-  document.getElementById("result-msg").textContent      = msg;
-
+  var msg = band >= 8.0 ? "Excellent work! You have a very strong command of English." :
+            band >= 6.5 ? "Great job! You're at an upper-intermediate level. Keep it up!" :
+            band >= 5.0 ? "Good effort! Focus on the question types you found difficult." :
+                          "Keep practising! Each test brings you closer to your target score.";
+  document.getElementById("result-emoji").textContent = emoji;
+  document.getElementById("result-band").textContent  = band.toFixed(1);
+  document.getElementById("result-band").style.color  = color;
+  document.getElementById("result-score").innerHTML   = "<strong>" + correct + "</strong> correct out of <strong>" + total + "</strong> (" + pct + "%)";
+  document.getElementById("result-msg").textContent   = msg;
   document.getElementById("result-overlay").classList.add("show");
 }
 
-// ── Retry — reset state and reload the test ───────────────────────────────────
-function retryTest() {
-  answers = {};
-  currentPassageIdx = 0;
-  document.getElementById("result-overlay").classList.remove("show");
-  // Reset all option selections visually and re-render current passage
-  buildTabs();
-  showPassage(0);
+function showWritingResult(results) {
+  if (!results || !results.length) { alert("No results returned."); return; }
+
+  var avgBand  = results.reduce(function(s, r) { return s + r.band; }, 0) / results.length;
+  var emoji    = avgBand >= 8.0 ? "🌟" : avgBand >= 6.5 ? "🎉" : avgBand >= 5.0 ? "👍" : "📚";
+  var bandColor = avgBand >= 7.0 ? "#16a34a" : avgBand >= 5.5 ? "#d97706" : "#dc2626";
+
+  var tasksHtml = results.map(function(r) {
+    var fb = {};
+    try { fb = JSON.parse(r.feedback); } catch(e) {}
+    var taskBandColor = r.band >= 7.0 ? "#16a34a" : r.band >= 5.5 ? "#d97706" : "#dc2626";
+    var criteriaHtml = [
+      ["Task Achievement", "task_achievement"],
+      ["Coherence & Cohesion", "coherence_cohesion"],
+      ["Lexical Resource", "lexical_resource"],
+      ["Grammar Range", "grammatical_range"]
+    ].map(function(cr) {
+      var crData = fb[cr[1]] || {};
+      return '<div class="wr-criterion">' +
+        '<div class="wr-criterion-name">' + cr[0] + '</div>' +
+        '<div class="wr-criterion-score">' + (crData.score ? crData.score.toFixed(1) : "—") + '</div>' +
+        '<div class="wr-criterion-text">' + escHtml((crData.feedback || "").slice(0, 80)) + (crData.feedback && crData.feedback.length > 80 ? "…" : "") + '</div>' +
+      '</div>';
+    }).join("");
+
+    return '<div class="wr-task">' +
+      '<div class="wr-task-name">' + escHtml(r.passage_title) + '</div>' +
+      '<div class="wr-task-band" style="color:' + taskBandColor + '">Band ' + r.band.toFixed(1) + '</div>' +
+      '<div class="wr-task-meta">' + r.word_count + ' words</div>' +
+      '<div class="wr-criteria">' + criteriaHtml + '</div>' +
+      (fb.overall_feedback ? '<div class="wr-overall-feedback">' + escHtml(fb.overall_feedback) + '</div>' : '') +
+    '</div>';
+  }).join("");
+
+  var card = document.getElementById("writing-result-card");
+  card.innerHTML =
+    '<div class="wr-header">' +
+      '<div class="wr-emoji">' + emoji + '</div>' +
+      '<div class="wr-avg-band" style="color:' + bandColor + '">' + avgBand.toFixed(1) + '</div>' +
+      '<div class="wr-avg-label">Average Band Score</div>' +
+    '</div>' +
+    tasksHtml +
+    '<div style="display:flex;flex-direction:column;gap:10px;margin-top:20px;">' +
+      '<button class="btn-done" onclick="retryWriting()">↺ Try Again</button>' +
+      '<a class="btn-done" href="dashboard.html" style="background:#f1f5f9;color:#374151;font-weight:600;text-align:center;display:block;padding:13px;border-radius:12px;text-decoration:none;font-size:14px;">← Back to Dashboard</a>' +
+    '</div>';
+
+  document.getElementById("writing-result-overlay").classList.add("show");
 }
 
-// ── Start ─────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+function retryTest() {
+  answers = {}; currentPassageIdx = 0;
+  document.getElementById("result-overlay").classList.remove("show");
+  buildTabs(); showPassage(0);
+}
+
+function retryWriting() {
+  essays = {}; currentPassageIdx = 0;
+  document.getElementById("writing-result-overlay").classList.remove("show");
+  var btn = document.getElementById("btn-submit");
+  btn.disabled = false; btn.classList.remove("loading");
+  document.getElementById("btn-label").textContent = "Submit Test";
+  buildTabs(); showPassage(0);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 loadTest();
 </script>
 

@@ -23,7 +23,10 @@
       "Bash(git commit -m 'Remove duplicate mock section from dashboard; wire hero button to startMockTest *)",
       "Bash(Get-ChildItem -Path \"d:\\\\MOCK-TEST\" -Recurse -Directory)",
       "PowerShell(head -30)",
-      "PowerShell(Get-ChildItem -Path \"d:\\\\MOCK-TEST\" -Force | Where-Object {$_.PSIsContainer -eq $false} | Select-Object -ExpandProperty Name)"
+      "PowerShell(Get-ChildItem -Path \"d:\\\\MOCK-TEST\" -Force | Where-Object {$_.PSIsContainer -eq $false} | Select-Object -ExpandProperty Name)",
+      "Bash(Get-ChildItem -Path \"d:\\\\MOCK-TEST\" -Recurse -Force)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\MOCK-TEST\" -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { -not $_.FullName.Contains\\('\\\\.git'\\) } | Select-Object -ExpandProperty FullName)"
     ]
   }
 }

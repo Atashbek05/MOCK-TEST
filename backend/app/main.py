@@ -5,14 +5,17 @@ import os
 import random
 import threading
 import time
+import uuid
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
 from urllib.parse import parse_qsl
 
 import requests as _req
 from openai import OpenAI
-from fastapi import Body, Depends, FastAPI, HTTPException, Request, status
+from fastapi import Body, Depends, FastAPI, File, HTTPException, Request, UploadFile, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -45,6 +48,10 @@ app.add_middleware(
 )
 
 Base.metadata.create_all(bind=engine)
+
+_UPLOAD_AUDIO_DIR = Path("uploads/audio")
+_UPLOAD_AUDIO_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # ── Telegram config ───────────────────────────────────────────────────────────
 TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
@@ -1076,6 +1083,22 @@ def teacher_stats(
     }
 
 
+@app.post("/upload/audio")
+async def upload_audio(
+    file: UploadFile = File(...),
+    current_user: models.User = Depends(get_teacher_user),
+):
+    if not (file.content_type or "").startswith("audio/"):
+        raise HTTPException(status_code=400, detail="Only audio files are allowed")
+    ext = Path(file.filename).suffix.lower() if file.filename else ".mp3"
+    if ext not in {".mp3", ".wav", ".ogg", ".m4a", ".aac"}:
+        ext = ".mp3"
+    filename = f"{uuid.uuid4()}{ext}"
+    dest = _UPLOAD_AUDIO_DIR / filename
+    dest.write_bytes(await file.read())
+    return {"url": f"/uploads/audio/{filename}"}
+
+
 @app.post("/teacher/create-test", response_model=schemas.TeacherTestOut, status_code=status.HTTP_201_CREATED)
 def create_teacher_test(
     payload: schemas.TeacherTestIn,
@@ -1097,13 +1120,14 @@ def create_teacher_test(
     db.flush()
 
     for p_data in payload.passages:
-        if not p_data.questions:
+        if payload.test_type != "writing" and not p_data.questions:
             raise HTTPException(status_code=400, detail=f"Passage '{p_data.title}' must have at least one question")
         passage = models.TeacherPassage(
             test_id=test.id,
             order=p_data.order,
             title=p_data.title.strip(),
             text=p_data.text.strip(),
+            audio_url=p_data.audio_url,
         )
         db.add(passage)
         db.flush()
@@ -1205,6 +1229,54 @@ def toggle_teacher_test(
     test.is_active = not bool(test.is_active)
     db.commit()
     return {"id": test_id, "is_active": test.is_active}
+
+
+@app.post("/submit-teacher-writing", response_model=List[schemas.TeacherWritingTaskResult])
+def submit_teacher_writing(
+    payload: schemas.TeacherWritingSubmitIn,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    test = db.query(models.TeacherTest).filter(
+        models.TeacherTest.id == payload.test_id
+    ).first()
+    if not test or test.test_type != "writing":
+        raise HTTPException(status_code=404, detail="Writing test not found")
+
+    enrollment = db.query(models.StudentTestEnrollment).filter_by(
+        student_id=current_user.id, test_id=payload.test_id
+    ).first()
+    if not enrollment:
+        raise HTTPException(status_code=403, detail="Not enrolled in this test")
+
+    results = []
+    for essay_in in payload.essays:
+        passage = db.query(models.TeacherPassage).filter_by(
+            id=essay_in.passage_id, test_id=payload.test_id
+        ).first()
+        if not passage:
+            continue
+        wc = len(essay_in.essay_text.split())
+        feedback_dict = _get_ai_feedback(essay_in.essay_text, wc)
+        band = float(feedback_dict.get("band_score", 0.0))
+        db.add(models.TeacherWritingResult(
+            student_id=current_user.id,
+            test_id=payload.test_id,
+            passage_id=essay_in.passage_id,
+            essay_text=essay_in.essay_text,
+            feedback=json.dumps(feedback_dict),
+            band=band,
+            word_count=wc,
+        ))
+        results.append(schemas.TeacherWritingTaskResult(
+            passage_id=passage.id,
+            passage_title=passage.title,
+            band=band,
+            word_count=wc,
+            feedback=json.dumps(feedback_dict),
+        ))
+    db.commit()
+    return results
 
 
 # ── PIN / Student Test Access Routes ──────────────────────────────────────────

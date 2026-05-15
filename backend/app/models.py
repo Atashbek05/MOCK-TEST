@@ -176,6 +176,7 @@ class TeacherTest(Base):
     )
     enrollments = relationship("StudentTestEnrollment", back_populates="test", cascade="all, delete-orphan")
     results = relationship("TeacherTestResult", back_populates="test", cascade="all, delete-orphan")
+    writing_results = relationship("TeacherWritingResult", cascade="all, delete-orphan")
 
 
 class TeacherPassage(Base):
@@ -186,6 +187,7 @@ class TeacherPassage(Base):
     order: Mapped[int] = mapped_column(Integer, nullable=False)
     title: Mapped[str] = mapped_column(String(300), nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
+    audio_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 
     test = relationship("TeacherTest", back_populates="passages")
     questions = relationship(
@@ -220,6 +222,23 @@ class StudentTestEnrollment(Base):
 
     student = relationship("User", foreign_keys=[student_id])
     test = relationship("TeacherTest", back_populates="enrollments")
+
+
+class TeacherWritingResult(Base):
+    """Stores one student's essay submission for a teacher-created writing test task."""
+    __tablename__ = "teacher_writing_results"
+
+    id:         Mapped[int]             = mapped_column(Integer, primary_key=True, index=True)
+    student_id: Mapped[int]             = mapped_column(ForeignKey("users.id"), nullable=False)
+    test_id:    Mapped[int]             = mapped_column(ForeignKey("teacher_tests.id"), nullable=False)
+    passage_id: Mapped[int]             = mapped_column(ForeignKey("teacher_passages.id"), nullable=False)
+    essay_text: Mapped[str]             = mapped_column(Text, nullable=False)
+    feedback:   Mapped[Optional[str]]   = mapped_column(Text, nullable=True)   # JSON string from AI
+    band:       Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    word_count: Mapped[int]             = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime]        = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    student = relationship("User", foreign_keys=[student_id])
 
 
 class TelegramLoginCode(Base):

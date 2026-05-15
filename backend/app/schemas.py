@@ -206,8 +206,9 @@ class TeacherQuestionIn(BaseModel):
 class TeacherPassageIn(BaseModel):
     order: int = Field(..., ge=1)
     title: str = Field(..., min_length=2)
-    text: str = Field(..., min_length=20)
-    questions: List[TeacherQuestionIn]
+    text: str = Field(..., min_length=5)
+    audio_url: Optional[str] = None
+    questions: List[TeacherQuestionIn] = []
 
 
 class TeacherTestIn(BaseModel):
@@ -237,6 +238,7 @@ class TeacherPassageOut(BaseModel):
     order: int
     title: str
     text: str
+    audio_url: Optional[str] = None
     questions: List[TeacherQuestionOut]
 
     class Config:
@@ -271,6 +273,24 @@ class TeacherTestSummary(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class TeacherWritingEssayIn(BaseModel):
+    passage_id: int
+    essay_text: str = Field(..., min_length=50, max_length=6000)
+
+
+class TeacherWritingSubmitIn(BaseModel):
+    test_id: int
+    essays: List[TeacherWritingEssayIn]
+
+
+class TeacherWritingTaskResult(BaseModel):
+    passage_id: int
+    passage_title: str
+    band: float
+    word_count: int
+    feedback: str   # JSON string
 
 
 class JoinTestIn(BaseModel):
