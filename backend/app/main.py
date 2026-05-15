@@ -143,6 +143,15 @@ def _migrate_users_telegram(db: Session) -> None:
             db.rollback()
 
 
+def _migrate_teacher_passage_audio(db: Session) -> None:
+    """Add audio_url column to teacher_passages if it doesn't exist yet."""
+    try:
+        db.execute(text("ALTER TABLE teacher_passages ADD COLUMN audio_url VARCHAR(500)"))
+        db.commit()
+    except Exception:
+        db.rollback()
+
+
 # ── Telegram helpers ──────────────────────────────────────────────────────────
 
 def _tg_api(method: str, payload: dict) -> dict:
@@ -615,6 +624,7 @@ async def startup_event():
         _migrate_add_role_column(db)
         _migrate_teacher_tests_pin(db)
         _migrate_users_telegram(db)     # Phase 6
+        _migrate_teacher_passage_audio(db)
         _seed_questions(db)
         _seed_reading_tests(db)
     finally:
