@@ -20,7 +20,10 @@
       "PowerShell(pip show fastapi)",
       "PowerShell(pip show psycopg)",
       "PowerShell(python -c \"from passlib.context import CryptContext; ctx = CryptContext\\(schemes=['bcrypt']\\); ctx.hash\\('test'\\)\" 2>&1)",
-      "Bash(git commit -m 'Remove duplicate mock section from dashboard; wire hero button to startMockTest *)"
+      "Bash(git commit -m 'Remove duplicate mock section from dashboard; wire hero button to startMockTest *)",
+      "Bash(Get-ChildItem -Path \"d:\\\\MOCK-TEST\" -Recurse -Directory)",
+      "PowerShell(head -30)",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\MOCK-TEST\" -Force | Where-Object {$_.PSIsContainer -eq $false} | Select-Object -ExpandProperty Name)"
     ]
   }
 }

@@ -210,6 +210,23 @@ body {
 .btn-start .arrow { font-style: normal; transition: transform 0.2s; }
 .btn-start:hover .arrow { transform: translateX(4px); }
 
+.btn-start-alt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 24px;
+  background: rgba(255,255,255,0.12);
+  color: white;
+  border: 1.5px solid rgba(255,255,255,0.28);
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.btn-start-alt:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.45); }
+
 .hero-meta {
   font-size: 13px;
   color: rgba(255,255,255,0.55);
@@ -850,6 +867,7 @@ body {
     <nav class="nav-links">
       <a class="nav-link active" href="dashboard.html">Dashboard</a>
       <a class="nav-link" href="history.html">History</a>
+      <a class="nav-link" href="join.html">Join Test</a>
     </nav>
   </div>
   <div class="header-right">
@@ -875,13 +893,15 @@ body {
     <div class="hero-body">
       <div class="level-badge" id="level-badge"></div>
       <h1 class="hero-title" id="welcome-msg">Welcome back!</h1>
-      <p class="hero-subtitle">Ready for your next IELTS practice session?</p>
+      <p class="hero-subtitle">Join your teacher's test or create one for your students</p>
       <div class="hero-actions">
-        <button class="btn-start" id="btn-start-mock" onclick="startMockTest()">
-          Start Full IELTS Mock Test
+        <a class="btn-start" href="join.html">
+          Join a Test
           <span class="arrow">→</span>
-        </button>
-        <span class="hero-meta">~2h 45min &nbsp;·&nbsp; Reading · Listening · Writing</span>
+        </a>
+        <a class="btn-start-alt" href="teacher-create-test.html">
+          Host a Test →
+        </a>
       </div>
     </div>
   </section>
@@ -1364,7 +1384,7 @@ function renderHistory(sessions) {
       <div class="empty-card">
         <div class="empty-icon">📊</div>
         <p>No mock tests yet.</p>
-        <small>Take your first IELTS Mock Test to see your progress chart.</small>
+        <small>Join a teacher's test to see your progress chart.</small>
       </div>`;
     return;
   }

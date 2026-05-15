@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Join a Test – IELTS Mock</title>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  padding: 20px;
+}
+
+/* ── Animated gradient background ────────────────────────────────────────── */
+.bg {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #1e3a8a 0%, #4338ca 35%, #0ea5e9 70%, #1e3a8a 100%);
+  background-size: 300% 300%;
+  animation: gradShift 9s ease infinite;
+  z-index: 0;
+}
+
+@keyframes gradShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── Floating blobs ───────────────────────────────────────────────────────── */
+.blob {
+  position: fixed;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+  animation: floatBlob ease-in-out infinite alternate;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes floatBlob {
+  0%   { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-40px) scale(1.06); }
+}
+
+/* ── Card ─────────────────────────────────────────────────────────────────── */
+.card {
+  position: relative;
+  z-index: 10;
+  background: white;
+  border-radius: 28px;
+  padding: 52px 56px 44px;
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.38), 0 0 0 1px rgba(255,255,255,0.08);
+  animation: cardIn 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(48px) scale(0.95); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Logo ─────────────────────────────────────────────────────────────────── */
+.logo {
+  font-size: 17px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+  margin-bottom: 36px;
+}
+.logo .accent { color: #2563eb; }
+
+/* ── Headings ─────────────────────────────────────────────────────────────── */
+.card-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.6px;
+  margin-bottom: 8px;
+  line-height: 1.15;
+}
+
+.card-sub {
+  font-size: 14px;
+  color: #94a3b8;
+  margin-bottom: 40px;
+  line-height: 1.5;
+}
+
+/* ── PIN boxes ────────────────────────────────────────────────────────────── */
+.pin-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.pin-box {
+  width: 54px;
+  height: 66px;
+  border: 2.5px solid #e2e8f0;
+  border-radius: 14px;
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: center;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s, transform 0.15s;
+  font-family: 'SF Mono', 'Courier New', monospace;
+  caret-color: transparent;
+  cursor: text;
+  -webkit-appearance: none;
+}
+
+.pin-box:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
+  background: white;
+  transform: scale(1.04);
+}
+
+.pin-box.filled {
+  border-color: #4338ca;
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+.pin-box.err {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 4px rgba(239,68,68,0.12) !important;
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+  animation: shake 0.38s;
+}
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%     { transform: translateX(-7px); }
+  40%     { transform: translateX(7px); }
+  60%     { transform: translateX(-4px); }
+  80%     { transform: translateX(4px); }
+}
+
+/* ── Error text ───────────────────────────────────────────────────────────── */
+.err-msg {
+  font-size: 13px;
+  font-weight: 600;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1.5px solid #fecaca;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  display: none;
+  text-align: left;
+}
+
+/* ── Enter button ─────────────────────────────────────────────────────────── */
+.btn-enter {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #4338ca 0%, #0ea5e9 100%);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.15s;
+  box-shadow: 0 6px 24px rgba(67,56,202,0.35);
+  font-family: inherit;
+  letter-spacing: 0.2px;
+  margin-top: 16px;
+}
+
+.btn-enter:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(67,56,202,0.45);
+}
+
+.btn-enter:active:not(:disabled) { transform: translateY(0); }
+.btn-enter:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ── Preview section ──────────────────────────────────────────────────────── */
+.preview-wrap {
+  display: none;
+  text-align: left;
+  animation: fadeUp 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.preview-box {
+  background: linear-gradient(135deg, #eff6ff 0%, #eef2ff 100%);
+  border: 1.5px solid #c7d2fe;
+  border-radius: 16px;
+  padding: 22px 24px;
+  margin-bottom: 18px;
+}
+
+.preview-head {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #6366f1;
+  margin-bottom: 8px;
+}
+
+.preview-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 4px;
+  line-height: 1.25;
+}
+
+.preview-by {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 14px;
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: white;
+  color: #4338ca;
+  border: 1.5px solid #c7d2fe;
+}
+
+.chip.joined {
+  color: #059669;
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+}
+
+/* ── Join button ──────────────────────────────────────────────────────────── */
+.btn-join-confirm {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #059669 0%, #0ea5e9 100%);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.15s;
+  box-shadow: 0 6px 24px rgba(5,150,105,0.3);
+  font-family: inherit;
+  margin-bottom: 10px;
+}
+
+.btn-join-confirm:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(5,150,105,0.4);
+}
+
+.btn-join-confirm:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.btn-change-pin {
+  width: 100%;
+  padding: 13px;
+  background: transparent;
+  color: #94a3b8;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.15s, border-color 0.15s;
+}
+.btn-change-pin:hover { color: #ef4444; border-color: #fca5a5; }
+
+/* ── Inline spinner ───────────────────────────────────────────────────────── */
+.spin {
+  display: inline-block;
+  width: 17px; height: 17px;
+  border: 2.5px solid rgba(255,255,255,0.35);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: rot 0.65s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+@keyframes rot { to { transform: rotate(360deg); } }
+
+/* ── Back link ────────────────────────────────────────────────────────────── */
+.back {
+  position: relative;
+  z-index: 10;
+  display: inline-block;
+  margin-top: 22px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.72);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.back:hover { color: white; }
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .card { padding: 40px 22px 36px; border-radius: 22px; }
+  .pin-box { width: 44px; height: 56px; font-size: 22px; border-radius: 11px; }
+  .pin-row { gap: 8px; }
+  .card-title { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Animated gradient background -->
+<div class="bg"></div>
+
+<!-- Floating blobs -->
+<div class="blob" style="width:380px;height:380px;top:-120px;left:-100px;animation-duration:6s;"></div>
+<div class="blob" style="width:260px;height:260px;bottom:40px;right:-80px;animation-duration:8s;animation-delay:-2s;"></div>
+<div class="blob" style="width:160px;height:160px;top:38%;left:8%;animation-duration:10s;animation-delay:-4s;opacity:0.5;"></div>
+<div class="blob" style="width:110px;height:110px;top:18%;right:12%;animation-duration:7s;animation-delay:-1s;opacity:0.45;"></div>
+<div class="blob" style="width:80px;height:80px;bottom:22%;left:14%;animation-duration:9s;animation-delay:-3s;opacity:0.35;"></div>
+
+<!-- Card -->
+<div class="card">
+
+  <div class="logo">IELTS <span class="accent">MOCK</span></div>
+
+  <!-- Step 1: Enter PIN -->
+  <div id="step-pin">
+    <div class="card-title">Join a Test</div>
+    <div class="card-sub">Enter the 6-digit PIN code<br>your teacher gave you</div>
+
+    <div class="pin-row" id="pin-row">
+      <input class="pin-box" type="tel" maxlength="1" inputmode="numeric" data-idx="0" autocomplete="off">
+      <input class="pin-box" type="tel" maxlength="1" inputmode="numeric" data-idx="1" autocomplete="off">
+      <input class="pin-box" type="tel" maxlength="1" inputmode="numeric" data-idx="2" autocomplete="off">
+      <input class="pin-box" type="tel" maxlength="1" inputmode="numeric" data-idx="3" autocomplete="off">
+      <input class="pin-box" type="tel" maxlength="1" inputmode="numeric" data-idx="4" autocomplete="off">
+      <input class="pin-box" type="tel" maxlength="1" inputmode="numeric" data-idx="5" autocomplete="off">
+    </div>
+
+    <div class="err-msg" id="err-msg"></div>
+
+    <button class="btn-enter" id="btn-enter" onclick="lookupPin()">Enter →</button>
+  </div>
+
+  <!-- Step 2: Preview & join -->
+  <div class="preview-wrap" id="step-preview">
+    <div class="card-title" style="text-align:center;margin-bottom:24px;">Ready to join?</div>
+
+    <div class="preview-box">
+      <div class="preview-head">Test found</div>
+      <div class="preview-title" id="pv-title">—</div>
+      <div class="preview-by" id="pv-by">—</div>
+      <div class="chips" id="pv-chips"></div>
+    </div>
+
+    <button class="btn-join-confirm" id="btn-join-confirm" onclick="doJoin()">Join Test →</button>
+    <button class="btn-change-pin" onclick="resetPin()">← Change PIN</button>
+  </div>
+
+</div>
+
+<a class="back" href="dashboard.html">← Back to Dashboard</a>
+
+<script src="api.js"></script>
+<script src="auth.js"></script>
+<script>
+const token = requireAuth();
+const boxes = Array.from(document.querySelectorAll('.pin-box'));
+let validPin = null;
+
+// Auto-focus first box
+boxes[0].focus();
+
+// ── PIN box event wiring ───────────────────────────────────────────────────
+boxes.forEach((box, i) => {
+
+  box.addEventListener('input', e => {
+    const digit = e.target.value.replace(/\D/g, '');
+    e.target.value = digit ? digit[digit.length - 1] : '';
+    syncStyles();
+    hideErr();
+    if (digit && i < 5) boxes[i + 1].focus();
+    if (boxes.every(b => b.value)) lookupPin();
+  });
+
+  box.addEventListener('keydown', e => {
+    if (e.key === 'Backspace') {
+      if (box.value) {
+        box.value = '';
+        syncStyles();
+      } else if (i > 0) {
+        boxes[i - 1].focus();
+        boxes[i - 1].value = '';
+        syncStyles();
+      }
+    }
+    if (e.key === 'Enter') lookupPin();
+    if (e.key === 'ArrowLeft'  && i > 0) { e.preventDefault(); boxes[i-1].focus(); }
+    if (e.key === 'ArrowRight' && i < 5) { e.preventDefault(); boxes[i+1].focus(); }
+    if (!/^\d$/.test(e.key) && !['Backspace','Tab','Delete','ArrowLeft','ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+    }
+  });
+
+  box.addEventListener('paste', e => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+    text.slice(0, 6).split('').forEach((ch, j) => { if (boxes[j]) boxes[j].value = ch; });
+    syncStyles();
+    const nxt = boxes.findIndex(b => !b.value);
+    (nxt >= 0 ? boxes[nxt] : boxes[5]).focus();
+    if (boxes.every(b => b.value)) lookupPin();
+  });
+
+  box.addEventListener('click', () => box.select());
+});
+
+function syncStyles() {
+  boxes.forEach(b => {
+    b.classList.toggle('filled', !!b.value);
+    b.classList.remove('err');
+  });
+}
+
+function getPin() { return boxes.map(b => b.value).join(''); }
+
+function showErr(msg) {
+  const el = document.getElementById('err-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  boxes.forEach(b => b.classList.add('err'));
+  setTimeout(() => boxes.forEach(b => b.classList.remove('err')), 500);
+}
+
+function hideErr() {
+  document.getElementById('err-msg').style.display = 'none';
+}
+
+// ── Step 1: look up PIN ────────────────────────────────────────────────────
+async function lookupPin() {
+  const pin = getPin();
+  if (pin.length < 6) {
+    showErr('Please fill in all 6 digits');
+    const nxt = boxes.findIndex(b => !b.value);
+    if (nxt >= 0) boxes[nxt].focus();
+    return;
+  }
+
+  const btn = document.getElementById('btn-enter');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Checking…';
+  hideErr();
+
+  try {
+    const res  = await fetch(`${API_BASE}/join-test/${encodeURIComponent(pin)}`,
+                             { headers: { Authorization: `Bearer ${token}` } });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showErr(data.detail || 'Invalid PIN — please check with your teacher');
+      btn.disabled  = false;
+      btn.innerHTML = 'Enter →';
+      boxes[0].focus();
+      return;
+    }
+
+    // Populate preview
+    validPin = pin;
+    document.getElementById('pv-title').textContent = data.title;
+    document.getElementById('pv-by').textContent    = 'by ' + data.teacher_name;
+    document.getElementById('pv-chips').innerHTML   =
+      `<span class="chip">${data.passage_count} passage${data.passage_count !== 1 ? 's' : ''}</span>` +
+      `<span class="chip">${data.question_count} question${data.question_count !== 1 ? 's' : ''}</span>` +
+      (data.already_joined ? '<span class="chip joined">Already joined</span>' : '');
+
+    document.getElementById('btn-join-confirm').textContent =
+      data.already_joined ? 'Open Test →' : 'Join Test →';
+
+    document.getElementById('step-pin').style.display     = 'none';
+    document.getElementById('step-preview').style.display = 'block';
+
+  } catch {
+    showErr('Cannot connect to server — please try again');
+    btn.disabled  = false;
+    btn.innerHTML = 'Enter →';
+  }
+}
+
+// ── Step 2: join and redirect ──────────────────────────────────────────────
+async function doJoin() {
+  if (!validPin) return;
+
+  const btn = document.getElementById('btn-join-confirm');
+  btn.disabled  = true;
+  btn.innerHTML = '<span class="spin"></span>Joining…';
+
+  try {
+    const res  = await fetch(`${API_BASE}/join-test`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body:    JSON.stringify({ pin: validPin })
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      window.location.href = `student-teacher-test.html?test_id=${data.test_id}`;
+    } else {
+      showErr(data.detail || 'Could not join — please try again');
+      btn.disabled  = false;
+      btn.textContent = 'Join Test →';
+      document.getElementById('step-preview').style.display = 'none';
+      document.getElementById('step-pin').style.display     = 'block';
+    }
+  } catch {
+    showErr('Cannot connect to server — please try again');
+    btn.disabled    = false;
+    btn.textContent = 'Join Test →';
+  }
+}
+
+// ── Reset back to PIN entry ────────────────────────────────────────────────
+function resetPin() {
+  validPin = null;
+  document.getElementById('step-preview').style.display = 'none';
+  document.getElementById('step-pin').style.display     = 'block';
+  const btn = document.getElementById('btn-enter');
+  btn.disabled  = false;
+  btn.innerHTML = 'Enter →';
+  boxes.forEach(b => { b.value = ''; b.classList.remove('filled', 'err'); });
+  hideErr();
+  boxes[0].focus();
+}
+</script>
+
+</body>
+</html>
