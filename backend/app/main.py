@@ -152,6 +152,15 @@ def _migrate_teacher_passage_audio(db: Session) -> None:
         db.rollback()
 
 
+def _migrate_teacher_result_wrong_ids(db: Session) -> None:
+    """Add wrong_question_ids JSON column to teacher_test_results if not present."""
+    try:
+        db.execute(text("ALTER TABLE teacher_test_results ADD COLUMN wrong_question_ids TEXT"))
+        db.commit()
+    except Exception:
+        db.rollback()
+
+
 # ── Telegram helpers ──────────────────────────────────────────────────────────
 
 def _tg_api(method: str, payload: dict) -> dict:
@@ -625,6 +634,7 @@ async def startup_event():
         _migrate_teacher_tests_pin(db)
         _migrate_users_telegram(db)     # Phase 6
         _migrate_teacher_passage_audio(db)
+        _migrate_teacher_result_wrong_ids(db)
         _seed_questions(db)
         _seed_reading_tests(db)
     finally:
@@ -1409,10 +1419,11 @@ def submit_teacher_test(
     for p in test.passages:
         all_questions.extend(p.questions)
 
-    correct = sum(
-        1 for q in all_questions
-        if payload.answers.get(str(q.id), "").upper() == q.correct_answer
-    )
+    wrong_ids = [
+        q.id for q in all_questions
+        if payload.answers.get(str(q.id), "").upper() != q.correct_answer
+    ]
+    correct = len(all_questions) - len(wrong_ids)
     total = len(all_questions)
     band = _calculate_band(correct, total)
 
@@ -1423,6 +1434,7 @@ def submit_teacher_test(
         correct=correct,
         total=total,
         band=band,
+        wrong_question_ids=wrong_ids,
     ))
     db.commit()
 
@@ -2969,4 +2981,166 @@ def get_listening_results(
         "raw_score":    attempt.listening_raw_score,
         "band":         attempt.listening_band,
         "breakdown":    breakdown,
+    }
+
+
+# ── AI Coach ──────────────────────────────────────────────────────────────────
+
+_AI_COACH_PROMPT = """You are an expert IELTS tutor. A student just completed a teacher-created test.
+
+Test title: {test_title}
+Test type: {test_type}
+Score: {correct}/{total} (Band {band})
+
+Wrong questions ({wrong_count}):
+{wrong_questions_text}
+
+Give a concise, encouraging review in English. Focus on:
+1. What specific topics/skills the student struggled with (based on the wrong questions)
+2. 2-3 concrete actionable tips to improve
+
+Return ONLY valid JSON with no extra text or code blocks:
+{{
+  "summary": "<1-2 sentences about the student's performance>",
+  "weak_areas": ["<topic 1>", "<topic 2>"],
+  "tips": [
+    "<specific actionable tip 1>",
+    "<specific actionable tip 2>",
+    "<specific actionable tip 3>"
+  ],
+  "encouragement": "<short motivating closing sentence>"
+}}"""
+
+
+def _get_coach_fallback(band: float, correct: int, total: int) -> dict:
+    """Rule-based coaching when no OpenAI key is configured."""
+    wrong = total - correct
+    if band >= 7.0:
+        summary = f"Great performance! You scored Band {band} with {correct}/{total} correct."
+        weak_areas = ["Fine-tuning details", "Advanced vocabulary"]
+        tips = [
+            "Review the questions you missed — look for patterns in your mistakes.",
+            "Practice skimming and scanning techniques for faster passage reading.",
+            "Focus on expanding your academic vocabulary with word lists.",
+        ]
+        encouragement = "You're close to an excellent band — keep up the great work!"
+    elif band >= 5.5:
+        summary = f"Good effort! You scored Band {band} with {correct}/{total} correct. You missed {wrong} questions."
+        weak_areas = ["Reading comprehension", "Vocabulary", "Inference skills"]
+        tips = [
+            "Re-read the passages related to your wrong answers carefully — identify where you misunderstood.",
+            "Practice paraphrasing: IELTS answers are often paraphrased in the text.",
+            "Build your vocabulary by studying 10 new academic words daily.",
+        ]
+        encouragement = "You're making solid progress — consistent practice will push you higher!"
+    else:
+        summary = f"You scored Band {band} with {correct}/{total} correct. There is clear room for improvement."
+        weak_areas = ["Core comprehension", "Grammar", "Test strategy"]
+        tips = [
+            "Start with shorter practice passages to build confidence before tackling full tests.",
+            "Focus on understanding question types (True/False/Not Given, Multiple Choice) and their strategies.",
+            "Review grammar fundamentals — strong grammar helps you understand complex sentences.",
+        ]
+        encouragement = "Every mistake is a learning opportunity — you're building the foundation for success!"
+
+    return {
+        "summary": summary,
+        "weak_areas": weak_areas,
+        "tips": tips,
+        "encouragement": encouragement,
+    }
+
+
+def _get_coach_ai_feedback(
+    test_title: str,
+    test_type: str,
+    band: float,
+    correct: int,
+    total: int,
+    wrong_questions: list[dict],
+) -> dict:
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key or not wrong_questions:
+        return _get_coach_fallback(band, correct, total)
+
+    wrong_text = "\n".join(
+        f"  Q{i+1}: {q['question_text']} (Correct: {q['correct_answer']})"
+        for i, q in enumerate(wrong_questions[:10])
+    )
+    prompt = _AI_COACH_PROMPT.format(
+        test_title=test_title,
+        test_type=test_type,
+        correct=correct,
+        total=total,
+        band=band,
+        wrong_count=len(wrong_questions),
+        wrong_questions_text=wrong_text or "No details available",
+    )
+
+    client = OpenAI(api_key=api_key)
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are an expert IELTS tutor. Respond only with valid JSON."},
+                {"role": "user", "content": prompt},
+            ],
+            max_tokens=800,
+            temperature=0.4,
+            response_format={"type": "json_object"},
+        )
+        return json.loads(response.choices[0].message.content)
+    except Exception:
+        return _get_coach_fallback(band, correct, total)
+
+
+@app.get("/ai-coach")
+def get_ai_coach(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return AI coaching feedback based on the student's most recent teacher test."""
+    latest = (
+        db.query(models.TeacherTestResult)
+        .filter(models.TeacherTestResult.student_id == current_user.id)
+        .order_by(models.TeacherTestResult.created_at.desc())
+        .first()
+    )
+    if not latest:
+        raise HTTPException(status_code=404, detail="No test results found. Complete a test first!")
+
+    test = db.query(models.TeacherTest).filter(models.TeacherTest.id == latest.test_id).first()
+    test_title = test.title if test else f"Test #{latest.test_id}"
+    test_type = test.test_type if test else "reading"
+
+    wrong_questions: list[dict] = []
+    if latest.wrong_question_ids and test:
+        all_q: dict[int, models.TeacherQuestion] = {}
+        for passage in test.passages:
+            for q in passage.questions:
+                all_q[q.id] = q
+        for qid in latest.wrong_question_ids:
+            q = all_q.get(qid)
+            if q:
+                wrong_questions.append({
+                    "question_text": q.question_text,
+                    "correct_answer": q.correct_answer,
+                })
+
+    feedback = _get_coach_ai_feedback(
+        test_title=test_title,
+        test_type=test_type,
+        band=latest.band,
+        correct=latest.correct,
+        total=latest.total,
+        wrong_questions=wrong_questions,
+    )
+
+    return {
+        "test_title": test_title,
+        "band": latest.band,
+        "correct": latest.correct,
+        "total": latest.total,
+        "feedback": feedback,
+        "tested_at": latest.created_at.isoformat(),
     }
