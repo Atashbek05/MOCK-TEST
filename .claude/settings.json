@@ -28,7 +28,9 @@
       "Bash(Select-Object -ExpandProperty FullName)",
       "PowerShell(Get-ChildItem -Path \"d:\\\\MOCK-TEST\" -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { -not $_.FullName.Contains\\('\\\\.git'\\) } | Select-Object -ExpandProperty FullName)",
       "Bash(git -C d:\\\\MOCK-TEST log --oneline -10)",
-      "Bash(git -C d:\\\\MOCK-TEST diff HEAD~3 HEAD -- backend/app/main.py)"
+      "Bash(git -C d:\\\\MOCK-TEST diff HEAD~3 HEAD -- backend/app/main.py)",
+      "Bash(Get-ChildItem -Path \"d:\\\\MOCK-TEST\" -Recurse -Name)",
+      "Bash(Select-Object -First 30)"
     ]
   }
 }

@@ -8,7 +8,6 @@ import time
 import uuid
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from urllib.parse import parse_qsl
 
 import requests as _req
 from openai import OpenAI
@@ -215,31 +214,6 @@ def _tg_is_fresh(auth_date: int, max_age_seconds: int = 86400) -> bool:
     return (time.time() - auth_date) < max_age_seconds
 
 
-def _tg_validate_init_data(init_data: str) -> dict | None:
-    """
-    Validate Telegram Mini App initData string.
-    Secret derivation differs from Login Widget:
-      secret = HMAC-SHA256("WebAppData", bot_token)   ← Mini App
-      secret = SHA256(bot_token)                       ← Login Widget
-    Returns parsed params dict on success, None on failure.
-    """
-    if not TELEGRAM_BOT_TOKEN:
-        return None
-    try:
-        params = dict(parse_qsl(init_data, keep_blank_values=True))
-        received_hash = params.pop("hash", None)
-        if not received_hash:
-            return None
-        check_string = "\n".join(f"{k}={v}" for k, v in sorted(params.items()))
-        secret = _hmac.new(b"WebAppData", TELEGRAM_BOT_TOKEN.encode(), hashlib.sha256).digest()
-        computed = _hmac.new(secret, check_string.encode(), hashlib.sha256).hexdigest()
-        if not _hmac.compare_digest(computed, received_hash):
-            return None
-        return params
-    except Exception:
-        return None
-
-
 def _tg_send(chat_id: int, text_body: str, reply_markup: dict | None = None, parse_mode: str = "Markdown") -> None:
     payload: dict = {"chat_id": chat_id, "text": text_body, "parse_mode": parse_mode}
     if reply_markup:
@@ -247,136 +221,6 @@ def _tg_send(chat_id: int, text_body: str, reply_markup: dict | None = None, par
     _tg_api("sendMessage", payload)
 
 
-def _register_telegram_webhook() -> None:
-    """Auto-register the webhook URL with Telegram on server startup."""
-    if not TELEGRAM_BOT_TOKEN:
-        return
-    base_url = (
-        os.getenv("WEBHOOK_URL")             # manually set override
-        or os.getenv("RENDER_EXTERNAL_URL", "").rstrip("/")
-    )
-    if not base_url:
-        return
-    webhook_url = f"{base_url}/telegram/webhook"
-    _tg_api("setWebhook", {"url": webhook_url, "drop_pending_updates": True})
-
-
-# ── Telegram bot command handlers ─────────────────────────────────────────────
-
-def _bot_start(chat_id: int, first_name: str) -> None:
-    text_body = (
-        f"👋 Привет, *{first_name}*\\!\n\n"
-        f"🎯 *IELTS Mock Test Platform*\n\n"
-        f"Практикуй IELTS Reading, Listening и Writing с AI\\-фидбэком\\.\n\n"
-        f"📌 *Что умеет платформа:*\n"
-        f"• 🔑 Вступить в тест по PIN от учителя\n"
-        f"• 📊 Смотреть свои результаты\n"
-        f"• ✏️ Writing с AI\\-оценкой\n"
-        f"• 👨‍🏫 Учителям: создавать тесты и видеть аналитику\n\n"
-        f"👇 Нажми кнопку, чтобы открыть платформу:"
-    )
-    keyboard = {
-        "inline_keyboard": [
-            [{"text": "🚀 Открыть IELTS Mock", "web_app": {"url": FRONTEND_URL}}],
-            [{"text": "🔗 Связать аккаунт с Telegram", "url": f"{FRONTEND_URL}/telegram-connect.html"}],
-        ]
-    }
-    _tg_api("sendMessage", {"chat_id": chat_id, "text": text_body, "parse_mode": "MarkdownV2", "reply_markup": keyboard})
-
-
-def _bot_help(chat_id: int) -> None:
-    _tg_send(chat_id, (
-        "📚 *Доступные команды:*\n\n"
-        "/start — Главное меню и открыть платформу\n"
-        "/help — Список команд\n"
-        "/link — Связать Telegram с аккаунтом\n"
-        "/status — Твой текущий статус\n"
-        "/progress — Твоя статистика и прогресс\n"
-        "/latestscore — Последний результат теста\n"
-        "/starttest — Начать тест\n"
-        "/dashboard — Открыть дашборд"
-    ))
-
-
-def _bot_link(chat_id: int) -> None:
-    keyboard = {"inline_keyboard": [[
-        {"text": "🔗 Связать аккаунт", "web_app": {"url": f"{FRONTEND_URL}/telegram-connect.html"}}
-    ]]}
-    _tg_send(
-        chat_id,
-        "Чтобы связать Telegram с аккаунтом на платформе, нажми кнопку ниже.",
-        reply_markup=keyboard,
-    )
-
-
-def _bot_status(chat_id: int, telegram_id: int, db) -> None:
-    user = db.query(models.User).filter(models.User.telegram_id == telegram_id).first()
-    if user:
-        _tg_send(chat_id, f"✅ Ты связан с аккаунтом *{user.name}* \\({user.email}\\)\\.", parse_mode="MarkdownV2")
-    else:
-        _tg_send(chat_id, "❌ Твой Telegram ещё не связан с аккаунтом на платформе\\.\n\nИспользуй /link чтобы связать\\.", parse_mode="MarkdownV2")
-
-
-def _bot_progress(chat_id: int, tg_id: int, db) -> None:
-    user = db.query(models.User).filter(models.User.telegram_id == tg_id).first()
-    if not user:
-        _tg_send(chat_id, "❌ Аккаунт не связан. Открой платформу: /start")
-        return
-    results = (db.query(models.TeacherTestResult)
-               .filter(models.TeacherTestResult.student_id == user.id)
-               .order_by(models.TeacherTestResult.created_at.desc())
-               .limit(5).all())
-    writing = (db.query(models.WritingResult)
-               .filter(models.WritingResult.user_id == user.id)
-               .order_by(models.WritingResult.created_at.desc())
-               .first())
-    if not results and not writing:
-        _tg_send(chat_id, "📊 Нет результатов ещё.\n\nНачни тест: /starttest")
-        return
-    text = f"📊 *Прогресс — {user.name}*\n\n"
-    if results:
-        bands = [r.band for r in results]
-        text += f"🎯 Лучший band: *{max(bands)}*\n"
-        text += f"📈 Средний: *{round(sum(bands)/len(bands), 1)}*\n"
-        text += f"📝 Попыток: *{len(results)}*\n"
-    if writing:
-        text += f"\n✏️ Последний Writing: *{writing.band_score}* band\n"
-    text += f"\n[Открыть дашборд]({FRONTEND_URL}/tg-app.html)"
-    _tg_send(chat_id, text)
-
-
-def _bot_latestscore(chat_id: int, tg_id: int, db) -> None:
-    user = db.query(models.User).filter(models.User.telegram_id == tg_id).first()
-    if not user:
-        _tg_send(chat_id, "❌ Аккаунт не связан. Открой платформу: /start")
-        return
-    r = (db.query(models.TeacherTestResult)
-         .filter(models.TeacherTestResult.student_id == user.id)
-         .order_by(models.TeacherTestResult.created_at.desc())
-         .first())
-    if not r:
-        _tg_send(chat_id, "❌ Нет результатов. Пройди тест: /starttest")
-        return
-    test = db.query(models.TeacherTest).filter(models.TeacherTest.id == r.test_id).first()
-    _tg_send(chat_id, (
-        f"🏆 *Последний результат*\n\n"
-        f"📝 {test.title if test else 'Test'}\n"
-        f"🎯 Band: *{r.band}*\n"
-        f"✔️ {r.correct}/{r.total} правильных\n"
-        f"📅 {r.created_at.strftime('%d.%m.%Y')}\n\n"
-        f"[Все результаты]({FRONTEND_URL}/tg-app.html)"
-    ))
-
-
-def _bot_open_app(chat_id: int, command: str) -> None:
-    url = f"{FRONTEND_URL}/tg-app.html"
-    label = "📊 Мой Дашборд" if command == "/dashboard" else "🚀 Начать тест"
-    _tg_api("sendMessage", {
-        "chat_id": chat_id,
-        "text": "Открываю платформу...",
-        "parse_mode": "HTML",
-        "reply_markup": {"inline_keyboard": [[{"text": label, "web_app": {"url": url}}]]},
-    })
 
 
 def get_current_user(
@@ -1446,7 +1290,7 @@ def submit_teacher_test(
             f"📝 {test.title}\n"
             f"🎯 Band Score: *{band}*\n"
             f"✔️ Правильных: {correct}/{total}\n\n"
-            f"[Открыть дашборд]({FRONTEND_URL}/tg-app.html)",
+            f"🧠 Ваш AI Review готов — отправьте /review для разбора ошибок",
         )
 
     return schemas.ReadingResultOut(correct=correct, total=total, band=band)
@@ -1790,50 +1634,6 @@ def get_teacher_leaderboard(
     return submitted[:20]
 
 
-# ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║  PHASE 6 — Telegram Bot + Mini App                                         ║
-# ╚══════════════════════════════════════════════════════════════════════════════╝
-
-@app.post("/telegram/webhook", include_in_schema=False)
-async def telegram_webhook(request: Request, db: Session = Depends(get_db)):
-    """
-    Telegram sends every update (message, callback, etc.) here via POST.
-    Endpoint is excluded from OpenAPI docs — it's not called by the frontend.
-    Security: only Telegram can reach this URL (they use HTTPS).
-    """
-    try:
-        update = await request.json()
-    except Exception:
-        return {"ok": True}
-
-    message = update.get("message") or update.get("edited_message")
-    if not message:
-        return {"ok": True}
-
-    chat_id   = message["chat"]["id"]
-    text_body = message.get("text", "")
-    from_user = message.get("from", {})
-    tg_id     = from_user.get("id")
-    first_name = from_user.get("first_name", "Student")
-
-    if text_body.startswith("/start"):
-        _bot_start(chat_id, first_name)
-    elif text_body == "/help":
-        _bot_help(chat_id)
-    elif text_body == "/link":
-        _bot_link(chat_id)
-    elif text_body == "/status":
-        _bot_status(chat_id, tg_id, db)
-    elif text_body == "/progress":
-        _bot_progress(chat_id, tg_id, db)
-    elif text_body == "/latestscore":
-        _bot_latestscore(chat_id, tg_id, db)
-    elif text_body in ("/starttest", "/dashboard"):
-        _bot_open_app(chat_id, text_body)
-
-    return {"ok": True}
-
-
 @app.get("/telegram/bot-info")
 def telegram_bot_info():
     """
@@ -1940,54 +1740,6 @@ def telegram_unlink(
     current_user.telegram_username = None
     db.commit()
     return {"status": "unlinked"}
-
-
-# ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║  PHASE 7 — Telegram Mini App Ecosystem                                     ║
-# ╚══════════════════════════════════════════════════════════════════════════════╝
-
-@app.post("/telegram/miniapp-auth")
-def telegram_miniapp_auth(
-    payload: schemas.TelegramMiniAppAuthIn,
-    db: Session = Depends(get_db),
-):
-    """
-    Authenticate a Telegram Mini App user via initData.
-
-    Flow:
-      1. Frontend sends window.Telegram.WebApp.initData as {init_data: "..."}
-      2. Backend validates HMAC-SHA256 signature (using "WebAppData" as key prefix)
-      3. Extracts Telegram user ID from the validated data
-      4. Finds the platform account linked to that Telegram ID
-      5. Returns JWT so the Mini App can call all normal API endpoints
-
-    Security: Mini App secret = HMAC-SHA256("WebAppData", bot_token) — different
-    from Login Widget which uses SHA256(bot_token) directly.
-    """
-    params = _tg_validate_init_data(payload.init_data)
-    if params is None:
-        raise HTTPException(status_code=400, detail="Invalid Telegram initData — signature mismatch")
-
-    try:
-        tg_user = json.loads(params.get("user", "{}"))
-    except Exception:
-        raise HTTPException(status_code=400, detail="Cannot parse user from initData")
-
-    tg_id = tg_user.get("id")
-    if not tg_id:
-        raise HTTPException(status_code=400, detail="No user ID in initData")
-
-    user = db.query(models.User).filter(models.User.telegram_id == tg_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="no_account_linked")
-
-    token = create_access_token(subject=user.email)
-    return {
-        "access_token": token,
-        "token_type":   "bearer",
-        "role":         user.role,
-        "name":         user.name,
-    }
 
 
 @app.get("/student/progress-summary")
