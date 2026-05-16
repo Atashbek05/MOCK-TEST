@@ -522,10 +522,10 @@ body {
     <!-- Per-test info bar -->
     <div class="test-info-bar" id="test-info-bar">
       <div class="test-info-title" id="info-title">—</div>
-      <span class="info-chip pin" id="info-pin" onclick="copyPin()" title="Click to copy PIN">🔑 —</span>
+      <span class="info-chip pin" id="info-pin" onclick="copyPin()" title="Click to copy PIN"><span class="bounce-emoji">🔑</span> —</span>
       <span class="info-chip" id="info-status">— status</span>
-      <span class="info-chip">📖 <span id="info-passages">—</span> passages</span>
-      <span class="info-chip">❓ <span id="info-questions">—</span> questions</span>
+      <span class="info-chip"><span class="bounce-emoji" style="animation-delay:0.3s">📖</span> <span id="info-passages">—</span> passages</span>
+      <span class="info-chip"><span class="bounce-emoji" style="animation-delay:0.6s">❓</span> <span id="info-questions">—</span> questions</span>
     </div>
 
     <!-- Stats row for selected test -->
@@ -624,7 +624,7 @@ function renderTabs() {
 function renderInfoBar(t) {
   document.getElementById("info-title").textContent = t.test_title;
   currentPin = t.pin_code || null;
-  document.getElementById("info-pin").textContent = "🔑 " + (t.pin_code || "—");
+  document.getElementById("info-pin").innerHTML = '<span class="bounce-emoji">🔑</span> ' + (t.pin_code || "—");
   const active = t.is_active;
   const statusEl = document.getElementById("info-status");
   statusEl.innerHTML = `<span class="status-dot ${active ? "status-active" : "status-inactive"}"></span> ${active ? "Active" : "Inactive"}`;
