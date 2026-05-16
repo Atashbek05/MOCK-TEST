@@ -510,13 +510,65 @@ def _cmd_test_list(chat_id: int, tg_id: int) -> None:
         db.close()
 
 
+def _get_coach_advice_full(
+    band: float, correct: int, total: int,
+    numbered_wrong: list[dict], test_title: str,
+) -> dict:
+    """AI coach with per-question explanations. Falls back to rule-based if needed.
+
+    numbered_wrong items: {num, question_text, correct_answer, correct_option_text}
+    Returns: {summary, mistakes:[{q,why}], tips, encouragement}
+    """
+    api_key = os.getenv("OPENAI_API_KEY", "")
+    if not api_key or not numbered_wrong:
+        fb = _coach_fallback(band, correct, total)
+        return {"summary": fb["summary"], "mistakes": [], "tips": fb["tips"],
+                "encouragement": fb["encouragement"]}
+
+    sample = numbered_wrong[:6]
+    wrong_text = "\n".join(
+        f"  Q{w['num']}: {w['question_text'][:120]}\n"
+        f"    Correct: {w['correct_answer']}) {w['correct_option_text'][:100]}"
+        for w in sample
+    )
+    prompt = (
+        f"You are an expert IELTS tutor. Student scored Band {band} ({correct}/{total}) "
+        f"on '{test_title}'.\n\n"
+        f"Wrong questions:\n{wrong_text}\n\n"
+        "For each wrong question explain in 1 sentence WHY the correct answer is right.\n"
+        "Return ONLY valid JSON:\n"
+        '{"summary":"...","mistakes":[{"q":N,"why":"..."}],"tips":["...","..."],"encouragement":"..."}'
+    )
+    try:
+        resp = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}"},
+            json={
+                "model": "gpt-4o-mini",
+                "messages": [
+                    {"role": "system", "content": "IELTS tutor. Reply only with valid JSON."},
+                    {"role": "user", "content": prompt},
+                ],
+                "max_tokens": 800,
+                "temperature": 0.4,
+                "response_format": {"type": "json_object"},
+            },
+            timeout=25,
+        )
+        return _json.loads(resp.json()["choices"][0]["message"]["content"])
+    except Exception:
+        fb = _coach_fallback(band, correct, total)
+        return {"summary": fb["summary"], "mistakes": [], "tips": fb["tips"],
+                "encouragement": fb["encouragement"]}
+
+
 def _cmd_review_by_id(chat_id: int, tg_id: int, result_id: int) -> None:
-    """Send a full review for a specific test result (ownership-checked)."""
+    """Full review for a specific test result: overview grid + all mistakes + AI explanations."""
     db = SessionLocal()
     try:
         user = db.query(models.User).filter(models.User.telegram_id == tg_id).first()
         if not user:
-            _send(chat_id, "❌ Account not linked\\. Use /link first\\.")
+            _send(chat_id, "❌ Account not linked. Use /link first.")
             return
 
         r = db.query(models.TeacherTestResult).filter(
@@ -524,58 +576,97 @@ def _cmd_review_by_id(chat_id: int, tg_id: int, result_id: int) -> None:
         ).first()
 
         if not r or r.student_id != user.id:
-            _send(chat_id, "❌ Test not found or access denied\\.")
+            _send(chat_id, "❌ Test not found or access denied.")
             return
 
         test = db.query(models.TeacherTest).filter(models.TeacherTest.id == r.test_id).first()
         test_title = test.title if test else f"Test #{r.test_id}"
         date_str = r.created_at.strftime("%d.%m.%Y")
 
-        wrong_questions: list[dict] = []
-        if r.wrong_question_ids and test:
-            all_q = {q.id: q for p in test.passages for q in p.questions}
-            for qid in r.wrong_question_ids:
-                q = all_q.get(qid)
-                if q:
-                    opt_text = getattr(q, f"option_{q.correct_answer.lower()}", "") or ""
-                    wrong_questions.append({
-                        "question_text": q.question_text,
-                        "correct_answer": q.correct_answer,
-                        "correct_option_text": opt_text,
-                    })
+        # Build ordered full question list (passages already ordered by TeacherPassage.order)
+        all_questions: list = []
+        if test:
+            for passage in test.passages:
+                all_questions.extend(passage.questions)
+
+        wrong_ids: set = set(r.wrong_question_ids or [])
+
+        # numbered_wrong: wrong questions with their sequential number in the test
+        numbered_wrong: list[dict] = []
+        for num, q in enumerate(all_questions, 1):
+            if q.id in wrong_ids:
+                opt_text = getattr(q, f"option_{q.correct_answer.lower()}", "") or ""
+                numbered_wrong.append({
+                    "num": num,
+                    "question_text": q.question_text,
+                    "correct_answer": q.correct_answer,
+                    "correct_option_text": opt_text,
+                })
 
         mistakes = r.total - r.correct
+
+        # ── Message 1: Score + compact question overview grid ─────────────────
         msg1 = (
             f"📋 *Test Review*\n"
             f"📝 {test_title}\n"
             f"📅 {date_str}\n"
             f"🎯 Band: *{r.band}*  |  ✅ {r.correct}/{r.total}  |  ❌ {mistakes} mistakes\n"
         )
-        if wrong_questions:
-            shown = wrong_questions[:10]
-            msg1 += "\n❌ *Your mistakes:*\n\n"
-            for i, q in enumerate(shown, 1):
-                qt = q["question_text"]
-                qt = (qt[:120] + "…") if len(qt) > 120 else qt
-                ot = q["correct_option_text"]
-                ot = (ot[:80] + "…") if len(ot) > 80 else ot
-                msg1 += f"*{i}.* {qt}\n   ✅ {q['correct_answer']}: {ot}\n\n"
-            if len(wrong_questions) > 10:
-                msg1 += f"_…and {len(wrong_questions) - 10} more mistakes_\n"
-        elif not r.wrong_question_ids:
-            msg1 += "\n✨ *No mistakes — perfect score!*\n"
-
+        if all_questions:
+            msg1 += "\n📊 *All questions:*\n"
+            row_items: list[str] = []
+            for num, q in enumerate(all_questions, 1):
+                mark = "❌" if q.id in wrong_ids else "✅"
+                row_items.append(f"{mark}{num}")
+                if len(row_items) == 10:
+                    msg1 += "  ".join(row_items) + "\n"
+                    row_items = []
+            if row_items:
+                msg1 += "  ".join(row_items) + "\n"
         _send(chat_id, msg1)
 
-        advice = _get_coach_advice(r.band, r.correct, r.total, wrong_questions, test_title)
-        msg2 = f"🧠 *AI Coach*\n\n📌 {advice['summary']}\n\n"
-        if advice.get("weak_areas"):
-            msg2 += f"⚠️ *Weak areas:* {', '.join(advice['weak_areas'])}\n\n"
-        msg2 += "💡 *Tips:*\n"
-        for tip in advice.get("tips", [])[:3]:
-            msg2 += f"→ {tip}\n"
-        msg2 += f"\n💪 {advice.get('encouragement', '')}"
-        _send(chat_id, msg2)
+        # ── Message 2: Wrong answers detail (split at 15 if many) ─────────────
+        if numbered_wrong:
+            chunks = [numbered_wrong[:15], numbered_wrong[15:]]
+            for chunk_idx, chunk in enumerate(chunks):
+                if not chunk:
+                    continue
+                header = f"❌ *Mistakes ({mistakes} total):*\n\n" if chunk_idx == 0 else "❌ *Mistakes (continued):*\n\n"
+                msg2 = header
+                for w in chunk:
+                    qt = w["question_text"]
+                    qt = (qt[:130] + "…") if len(qt) > 130 else qt
+                    ot = w["correct_option_text"]
+                    ot = (ot[:100] + "…") if len(ot) > 100 else ot
+                    msg2 += f"*Q{w['num']}.* {qt}\n   ✅ Correct: {w['correct_answer']}) {ot}\n\n"
+                _send(chat_id, msg2)
+        else:
+            _send(chat_id, "✨ *No mistakes — perfect score!*")
+
+        # ── Message 3: AI Coach with per-question explanations ────────────────
+        advice = _get_coach_advice_full(r.band, r.correct, r.total, numbered_wrong, test_title)
+        msg3 = f"🧠 *AI Coach*\n\n📌 {advice.get('summary', '')}\n"
+
+        mistake_explanations = advice.get("mistakes", [])
+        if mistake_explanations:
+            msg3 += "\n🔍 *Explanations:*\n"
+            # Build a quick num→short_text map for display
+            num_to_short = {w["num"]: w["question_text"][:60] for w in numbered_wrong}
+            for m in mistake_explanations:
+                qnum = m.get("q")
+                why = m.get("why", "")
+                short_q = num_to_short.get(qnum, "")
+                short_q = (short_q + "…") if short_q else ""
+                msg3 += f"\n❌ *Q{qnum}:* _{short_q}_\n→ {why}\n"
+
+        tips = advice.get("tips", [])
+        if tips:
+            msg3 += "\n💡 *Tips:*\n"
+            for tip in tips[:3]:
+                msg3 += f"→ {tip}\n"
+
+        msg3 += f"\n💪 {advice.get('encouragement', '')}"
+        _send(chat_id, msg3)
     finally:
         db.close()
 
@@ -653,7 +744,7 @@ def _handle(update: dict) -> None:
     elif text == "/latestscore" and tg_id:
         _cmd_latestscore(chat_id, tg_id)
     elif text == "/review" and tg_id:
-        _cmd_review(chat_id, tg_id)
+        _cmd_test_list(chat_id, tg_id)
 
 
 # ── Polling loop (runs forever in a daemon thread) ────────────────────────────
