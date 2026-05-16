@@ -895,6 +895,7 @@ body {
   background: linear-gradient(135deg, #7c3aed, #2563eb);
   display: flex; align-items: center; justify-content: center;
   font-size: 22px; flex-shrink: 0;
+  animation: sticker-float 3s ease-in-out infinite;
 }
 .coach-modal-title { font-size: 18px; font-weight: 800; color: #0f172a; }
 .coach-modal-subtitle { font-size: 13px; color: #64748b; margin-top: 2px; }
@@ -913,6 +914,7 @@ body {
   border-radius: 10px; padding: 6px 14px;
   font-size: 14px; font-weight: 700; color: #166534;
   margin-bottom: 18px;
+  animation: badge-score-pulse 2.5s ease-in-out infinite;
 }
 .coach-summary {
   background: #f8fafc; border-radius: 12px; padding: 14px 16px;
@@ -944,6 +946,7 @@ body {
   border-radius: 12px; padding: 14px 16px;
   font-size: 14px; color: #1e1b4b; font-weight: 600;
   text-align: center;
+  animation: sticker-glow-purple 2.8s ease-in-out infinite;
 }
 .coach-loading {
   text-align: center; padding: 40px 0; color: #64748b; font-size: 15px;
@@ -958,6 +961,40 @@ body {
 .coach-error {
   text-align: center; padding: 30px 0;
   color: #ef4444; font-size: 14px; font-weight: 600;
+}
+
+/* ── Sticker animations ── */
+@keyframes sticker-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes sticker-bounce {
+  0%, 60%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  30% { transform: translateY(-8px) scale(1.18) rotate(-10deg); }
+  50% { transform: translateY(-3px) scale(1.06) rotate(6deg); }
+}
+@keyframes sticker-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(-14deg); }
+  35% { transform: rotate(12deg); }
+  55% { transform: rotate(-8deg); }
+  75% { transform: rotate(5deg); }
+}
+@keyframes sticker-glow-purple {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(124,58,237,0); }
+  50% { box-shadow: 0 0 18px 6px rgba(124,58,237,0.22); }
+}
+@keyframes badge-score-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(134,239,172,0); }
+  50% { transform: scale(1.04); box-shadow: 0 0 0 7px rgba(134,239,172,0.28); }
+}
+.bounce-emoji {
+  display: inline-block;
+  animation: sticker-bounce 2.6s ease-in-out infinite;
+}
+.wiggle-emoji {
+  display: inline-block;
+  animation: sticker-wiggle 3.2s ease-in-out infinite;
 }
 
 /* ── Full Review Modal ───────────────────────────────────────────────────── */
@@ -1001,6 +1038,7 @@ body {
   border-radius: 10px; padding: 6px 14px;
   font-size: 14px; font-weight: 700; color: #166534;
   margin-bottom: 18px;
+  animation: badge-score-pulse 2.5s ease-in-out infinite;
 }
 .review-section-title {
   font-size: 12px; font-weight: 800; text-transform: uppercase;
@@ -1053,6 +1091,7 @@ body {
   background: linear-gradient(135deg, #d1fae5, #cffafe);
   border-radius: 12px; padding: 14px 16px;
   font-size: 14px; color: #064e3b; font-weight: 600;
+  animation: sticker-glow-purple 2.8s ease-in-out infinite;
   text-align: center;
 }
 .review-loading {
@@ -1927,7 +1966,7 @@ function renderFullReview(data) {
 
   document.getElementById("review-modal-body").innerHTML = `
     <div class="review-score-badge">
-      🎯 Band ${data.band} &nbsp;·&nbsp; ${data.correct}/${data.total} correct &nbsp;·&nbsp; ❌ ${data.total - data.correct} mistakes
+      <span class="bounce-emoji">🎯</span> Band ${data.band} &nbsp;·&nbsp; ${data.correct}/${data.total} correct &nbsp;·&nbsp; ❌ ${data.total - data.correct} mistakes
     </div>
     <div class="review-section-title">Your Mistakes</div>
     ${mistakesHtml}
@@ -1940,7 +1979,7 @@ function renderFullReview(data) {
     ` : ""}
     <div class="review-section-title" style="color:#7c3aed">Action Plan</div>
     <ul class="review-coach-tips">${tips}</ul>
-    <div class="review-encouragement">💪 ${escHtml(f.encouragement || "")}</div>
+    <div class="review-encouragement"><span class="bounce-emoji">💪</span> ${escHtml(f.encouragement || "")}</div>
   `;
 }
 
@@ -1996,7 +2035,7 @@ function renderCoachFeedback(data) {
 
   document.getElementById("coach-modal-body").innerHTML = `
     <div class="coach-score-badge">
-      🎯 Band ${data.band} &nbsp;·&nbsp; ${data.correct}/${data.total} correct
+      <span class="bounce-emoji">🎯</span> Band ${data.band} &nbsp;·&nbsp; ${data.correct}/${data.total} correct
     </div>
     <div class="coach-summary">${f.summary || ""}</div>
     ${weakAreas ? `
@@ -2005,7 +2044,7 @@ function renderCoachFeedback(data) {
     ` : ""}
     <div class="coach-section-title">Your Action Plan</div>
     <ul class="coach-tips">${tips}</ul>
-    <div class="coach-encouragement">💪 ${f.encouragement || ""}</div>
+    <div class="coach-encouragement"><span class="bounce-emoji">💪</span> ${f.encouragement || ""}</div>
   `;
 }
 

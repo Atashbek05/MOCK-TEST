@@ -449,6 +449,19 @@ body {
   .hero h1 { font-size: 22px; }
   .score-col { display: none; }
 }
+
+/* ── Sticker animations ── */
+@keyframes sticker-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes sticker-bounce {
+  0%, 60%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  30% { transform: translateY(-8px) scale(1.18) rotate(-10deg); }
+  50% { transform: translateY(-3px) scale(1.06) rotate(6deg); }
+}
+.hero-badge { animation: sticker-float 3.5s ease-in-out infinite; }
+.bounce-emoji { display: inline-block; animation: sticker-bounce 2.6s ease-in-out infinite; }
 </style>
 </head>
 
@@ -482,7 +495,7 @@ body {
 
   <!-- Hero -->
   <div class="hero">
-    <div class="hero-badge">👥 Student Results</div>
+    <div class="hero-badge"><span class="bounce-emoji">👥</span> Student Results</div>
     <h1>Student Performance</h1>
     <p>See which students joined your tests, their band scores, and how many times they've attempted each test.</p>
   </div>

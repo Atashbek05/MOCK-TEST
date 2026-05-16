@@ -366,6 +366,27 @@ body {
 @media (max-width: 480px) {
   .summary-grid { grid-template-columns: 1fr; }
 }
+
+/* ── Sticker animations ── */
+@keyframes sticker-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes sticker-bounce {
+  0%, 60%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  30% { transform: translateY(-8px) scale(1.18) rotate(-10deg); }
+  50% { transform: translateY(-3px) scale(1.06) rotate(6deg); }
+}
+@keyframes sticker-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  15% { transform: rotate(-14deg); }
+  35% { transform: rotate(12deg); }
+  55% { transform: rotate(-8deg); }
+  75% { transform: rotate(5deg); }
+}
+.hero-badge { animation: sticker-float 3.5s ease-in-out infinite; }
+.bounce-emoji { display: inline-block; animation: sticker-bounce 2.6s ease-in-out infinite; }
+.wiggle-emoji { display: inline-block; animation: sticker-wiggle 3.2s ease-in-out infinite; }
 </style>
 </head>
 
@@ -399,7 +420,7 @@ body {
 
   <!-- Hero -->
   <div class="hero">
-    <div class="hero-badge">📊 Analytics</div>
+    <div class="hero-badge"><span class="bounce-emoji">📊</span> Analytics</div>
     <h1>Class Analytics</h1>
     <p>Track student performance, identify who needs support, and measure the impact of your tests.</p>
   </div>
@@ -434,7 +455,7 @@ body {
   <div class="section" id="leaderboard-section">
     <div class="section-header">
       <div>
-        <div class="section-title">🏆 Leaderboard</div>
+        <div class="section-title"><span class="bounce-emoji">🏆</span> Leaderboard</div>
         <div class="section-sub">Top students ranked by best band score</div>
       </div>
     </div>
@@ -449,7 +470,7 @@ body {
   <div class="section" id="weak-section">
     <div class="section-header">
       <div>
-        <div class="section-title">⚠️ Needs Attention</div>
+        <div class="section-title"><span class="wiggle-emoji">⚠️</span> Needs Attention</div>
         <div class="section-sub">Students whose best band is below 5.5 — consider extra support</div>
       </div>
     </div>
@@ -464,7 +485,7 @@ body {
   <div class="section">
     <div class="section-header">
       <div>
-        <div class="section-title">📖 Per-Test Breakdown</div>
+        <div class="section-title"><span class="bounce-emoji">📖</span> Per-Test Breakdown</div>
         <div class="section-sub">Enrollment and performance stats for each test you created</div>
       </div>
     </div>

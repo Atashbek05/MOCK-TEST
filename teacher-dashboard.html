@@ -526,6 +526,24 @@ body {
 .tg-banner.connected .tg-banner-title { color: #065f46; }
 .tg-banner-sub { font-size: 12px; color: #64748b; margin-top: 2px; }
 .tg-banner-arrow { font-size: 20px; color: #94a3b8; flex-shrink: 0; }
+
+/* ── Sticker animations ── */
+@keyframes sticker-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes sticker-bounce {
+  0%, 60%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  30% { transform: translateY(-8px) scale(1.18) rotate(-10deg); }
+  50% { transform: translateY(-3px) scale(1.06) rotate(6deg); }
+}
+@keyframes sticker-glow-green {
+  0%, 100% { box-shadow: 0 2px 8px rgba(16,185,129,0.15); }
+  50% { box-shadow: 0 4px 20px 4px rgba(16,185,129,0.38); }
+}
+.hero-badge { animation: sticker-float 3.5s ease-in-out infinite; }
+.btn-create { animation: sticker-glow-green 2.8s ease-in-out infinite; }
+.bounce-emoji { display: inline-block; animation: sticker-bounce 2.6s ease-in-out infinite; }
 </style>
 </head>
 
@@ -566,7 +584,7 @@ body {
 
   <!-- Hero -->
   <div class="hero">
-    <div class="hero-badge">👨‍🏫 Teacher Account</div>
+    <div class="hero-badge"><span class="bounce-emoji">👨‍🏫</span> Teacher Account</div>
     <h1>Welcome, <span id="hero-name">Teacher</span></h1>
     <p>
       Your teacher portal is ready. Monitor your students' IELTS progress,
@@ -609,7 +627,7 @@ body {
   <div class="tests-section">
     <div class="tests-header">
       <div class="section-title" style="margin-bottom:0;">My Tests</div>
-      <a class="btn-create" href="teacher-create-test.html">✏️ Create New Test</a>
+      <a class="btn-create" href="teacher-create-test.html"><span class="bounce-emoji">✏️</span> Create New Test</a>
     </div>
     <div class="tests-list" id="tests-list">
       <!-- populated by JS -->
