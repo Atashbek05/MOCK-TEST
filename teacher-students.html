@@ -462,6 +462,10 @@ body {
 }
 .hero-badge { animation: sticker-float 3.5s ease-in-out infinite; }
 .bounce-emoji { display: inline-block; animation: sticker-bounce 2.6s ease-in-out infinite; }
+.stat-icon { margin-bottom: 10px; display: flex; animation: sticker-float 3.2s ease-in-out infinite; }
+.stat-card:nth-child(2) .stat-icon { animation-delay: 0.3s; }
+.stat-card:nth-child(3) .stat-icon { animation-delay: 0.6s; }
+.stat-card:nth-child(4) .stat-icon { animation-delay: 0.9s; }
 </style>
 </head>
 
@@ -527,21 +531,25 @@ body {
     <!-- Stats row for selected test -->
     <div class="stats-row">
       <div class="stat-card green">
+        <div class="stat-icon"><svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="12" r="5.5" fill="#d1fae5" stroke="#10b981" stroke-width="1.5"/><path d="M6 32c0-6.6 5.4-12 12-12s12 5.4 12 12" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg></div>
         <div class="stat-label">Enrolled</div>
         <div class="stat-value" id="s-enrolled">—</div>
         <div class="stat-sub">students joined</div>
       </div>
       <div class="stat-card blue">
+        <div class="stat-icon"><svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="13" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/><path d="M11 18.5l5.5 5.5 9-9" stroke="#1d4ed8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18" cy="7" r="2.5" fill="#60a5fa"/></svg></div>
         <div class="stat-label">Completed</div>
         <div class="stat-value" id="s-completed">—</div>
         <div class="stat-sub">unique finishers</div>
       </div>
       <div class="stat-card purple">
+        <div class="stat-icon"><svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="14" fill="#faf5ff" stroke="#e9d5ff" stroke-width="1.3"/><circle cx="18" cy="18" r="9" fill="#ede9fe" stroke="#c4b5fd" stroke-width="1.3"/><circle cx="18" cy="18" r="5" fill="#7c3aed" stroke="#6d28d9" stroke-width="1"/><circle cx="18" cy="18" r="2" fill="white" opacity="0.6"/><line x1="26" y1="10" x2="21" y2="15" stroke="#4c1d95" stroke-width="2.2" stroke-linecap="round"/><path d="M24 9l2.5 0 0 2.5" stroke="#4c1d95" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="stat-label">Avg Band</div>
         <div class="stat-value" id="s-avg">—</div>
         <div class="stat-sub">across submissions</div>
       </div>
       <div class="stat-card orange">
+        <div class="stat-icon"><svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M12 7h12l-2.5 11c0 3-2 5.5-6.5 5.5S9 21 9 18L12 7z" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/><path d="M8 9h4l-2 9a5 5 0 01-4-4.5V12a3 3 0 013-3z" fill="#fde68a" stroke="#f59e0b" stroke-width="1.2"/><path d="M28 9h-4l2 9a5 5 0 004-4.5V12a3 3 0 00-3-3z" fill="#fde68a" stroke="#f59e0b" stroke-width="1.2"/><rect x="15" y="23.5" width="6" height="4" rx="1" fill="#fcd34d" stroke="#f59e0b" stroke-width="1.2"/><rect x="11" y="27.5" width="14" height="3" rx="1.5" fill="#f59e0b" stroke="#d97706" stroke-width="1.2"/></svg></div>
         <div class="stat-label">Best Band</div>
         <div class="stat-value" id="s-best">—</div>
         <div class="stat-sub">highest score</div>

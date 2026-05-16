@@ -132,15 +132,10 @@ body {
   position: relative;
   overflow: hidden;
 }
-.stat-card::after {
-  content: attr(data-icon);
-  position: absolute;
-  bottom: -6px; right: 10px;
-  font-size: 44px;
-  opacity: 0.07;
-  line-height: 1;
-  pointer-events: none;
-}
+.stat-icon { margin-bottom: 12px; display: flex; animation: sticker-float 3.2s ease-in-out infinite; }
+.stat-card:nth-child(2) .stat-icon { animation-delay: 0.3s; }
+.stat-card:nth-child(3) .stat-icon { animation-delay: 0.6s; }
+.stat-card:nth-child(4) .stat-icon { animation-delay: 0.9s; }
 .stat-card.green  { border-top-color: #10b981; }
 .stat-card.blue   { border-top-color: #3b82f6; }
 .stat-card.purple { border-top-color: #8b5cf6; }
@@ -427,24 +422,28 @@ body {
 
   <!-- Summary cards -->
   <div class="summary-grid">
-    <div class="stat-card green" data-icon="👥">
+    <div class="stat-card green">
+      <div class="stat-icon"><svg width="38" height="38" viewBox="0 0 38 38" fill="none"><circle cx="15" cy="13" r="5.5" fill="#d1fae5" stroke="#10b981" stroke-width="1.5"/><path d="M5 33c0-5.5 4.5-9.5 10-9.5s10 4 10 9.5" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" fill="none"/><circle cx="26" cy="13" r="4" fill="#a7f3d0" stroke="#059669" stroke-width="1.3"/><path d="M24 32c0-3.5 2.5-6.5 5.5-7.5" stroke="#059669" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></div>
       <div class="stat-label">Total Students</div>
       <div class="stat-value" id="s-students">—</div>
       <div class="stat-sub">enrolled across all tests</div>
     </div>
-    <div class="stat-card blue" data-icon="🎯" style="position:relative;">
+    <div class="stat-card blue" style="position:relative;">
+      <div class="stat-icon"><svg width="38" height="38" viewBox="0 0 38 38" fill="none"><circle cx="19" cy="19" r="15" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5"/><circle cx="19" cy="19" r="10" fill="#dbeafe" stroke="#93c5fd" stroke-width="1.5"/><circle cx="19" cy="19" r="5" fill="#3b82f6" stroke="#2563eb" stroke-width="1"/><circle cx="19" cy="19" r="2" fill="white" opacity="0.6"/><line x1="27" y1="11" x2="22" y2="16" stroke="#1d4ed8" stroke-width="2.2" stroke-linecap="round"/><path d="M25 10l2.5 0 0 2.5" stroke="#1d4ed8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div class="stat-label">Avg Band Score</div>
       <div class="stat-value" id="s-avg">—</div>
       <div class="stat-sub">across all submissions</div>
       <!-- SVG ring drawn by JS -->
       <div class="stat-ring" id="band-ring"></div>
     </div>
-    <div class="stat-card purple" data-icon="✅">
+    <div class="stat-card purple">
+      <div class="stat-icon"><svg width="38" height="38" viewBox="0 0 38 38" fill="none"><circle cx="19" cy="19" r="13" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5"/><circle cx="19" cy="19" r="9" fill="#ede9fe" stroke="#a78bfa" stroke-width="1" opacity="0.7"/><path d="M12 19.5l5.5 5.5 9-9" stroke="#6d28d9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="7.5" r="2.5" fill="#a78bfa"/></svg></div>
       <div class="stat-label">Completion Rate</div>
       <div class="stat-value" id="s-rate">—</div>
       <div class="stat-sub">students who submitted ≥1 test</div>
     </div>
-    <div class="stat-card orange" data-icon="🔄">
+    <div class="stat-card orange">
+      <div class="stat-icon"><svg width="38" height="38" viewBox="0 0 38 38" fill="none"><circle cx="19" cy="19" r="13" fill="#fff7ed" stroke="#fed7aa" stroke-width="1.5"/><path d="M12.5 14.5a8 8 0 0113 0" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M25.5 23.5a8 8 0 01-13 0" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M24.5 11l1.5 4-4 1" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M13.5 27l-1.5-4 4-1" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
       <div class="stat-label">Total Attempts</div>
       <div class="stat-value" id="s-attempts">—</div>
       <div class="stat-sub">submissions across all tests</div>
