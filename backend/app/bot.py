@@ -17,6 +17,7 @@ Features:
   - Test completion notifications sent from main.py after each submission
 """
 
+import io
 import json as _json
 import os
 import threading
@@ -287,6 +288,94 @@ def _cmd_status(chat_id: int, tg_id: int) -> None:
         db.close()
 
 
+def _build_progress_chart(results: list, user_name: str) -> bytes:
+    """Return PNG bytes of a bar chart for the given results (oldest→newest)."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+
+    # results are newest-first; reverse to chronological order
+    ordered = list(reversed(results))
+    labels = []
+    bands = []
+    for r in ordered:
+        date_str = r.created_at.strftime("%d.%m")
+        labels.append(date_str)
+        bands.append(float(r.band))
+
+    fig, ax = plt.subplots(figsize=(7, 4))
+    fig.patch.set_facecolor("#1a1a2e")
+    ax.set_facecolor("#16213e")
+
+    colors = []
+    for b in bands:
+        if b >= 7.0:
+            colors.append("#4ade80")   # green
+        elif b >= 5.5:
+            colors.append("#facc15")  # yellow
+        else:
+            colors.append("#f87171")  # red
+
+    x = range(len(bands))
+    bars = ax.bar(x, bands, color=colors, width=0.5, zorder=3)
+
+    # value labels on bars
+    for bar, val in zip(bars, bands):
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.1,
+            str(val),
+            ha="center", va="bottom",
+            color="white", fontsize=11, fontweight="bold",
+        )
+
+    # average line
+    avg = sum(bands) / len(bands)
+    ax.axhline(avg, color="#60a5fa", linewidth=1.5, linestyle="--", zorder=4)
+    ax.text(len(bands) - 0.5, avg + 0.15, f"avg {avg:.1f}",
+            color="#60a5fa", fontsize=9, ha="right")
+
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(labels, color="white", fontsize=10)
+    ax.set_ylim(0, 9.5)
+    ax.set_yticks([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    ax.tick_params(axis="y", colors="white")
+    ax.yaxis.label.set_color("white")
+    ax.set_ylabel("Band Score", color="#94a3b8", fontsize=10)
+    ax.set_title(f"📊 {user_name} — Last {len(ordered)} Tests", color="white",
+                 fontsize=13, fontweight="bold", pad=12)
+    ax.grid(axis="y", color="#334155", linewidth=0.7, zorder=0)
+    ax.spines[:].set_visible(False)
+
+    legend = [
+        mpatches.Patch(color="#4ade80", label="7.0+"),
+        mpatches.Patch(color="#facc15", label="5.5–6.5"),
+        mpatches.Patch(color="#f87171", label="< 5.5"),
+    ]
+    ax.legend(handles=legend, loc="upper left", framealpha=0.3,
+              labelcolor="white", fontsize=8)
+
+    buf = io.BytesIO()
+    fig.tight_layout()
+    fig.savefig(buf, format="png", dpi=130, facecolor=fig.get_facecolor())
+    plt.close(fig)
+    buf.seek(0)
+    return buf.read()
+
+
+def _send_photo(chat_id: int, photo_bytes: bytes, caption: str) -> None:
+    try:
+        requests.post(
+            f"{API}/sendPhoto",
+            data={"chat_id": chat_id, "caption": caption, "parse_mode": "Markdown"},
+            files={"photo": ("progress.png", photo_bytes, "image/png")},
+            timeout=20,
+        )
+    except Exception:
+        pass
+
+
 def _cmd_progress(chat_id: int, tg_id: int) -> None:
     db = SessionLocal()
     try:
@@ -298,26 +387,36 @@ def _cmd_progress(chat_id: int, tg_id: int) -> None:
         results = (db.query(models.TeacherTestResult)
                    .filter(models.TeacherTestResult.student_id == user.id)
                    .order_by(models.TeacherTestResult.created_at.desc())
-                   .limit(10).all())
-        writing = (db.query(models.WritingResult)
-                   .filter(models.WritingResult.user_id == user.id)
-                   .order_by(models.WritingResult.created_at.desc())
-                   .first())
+                   .limit(5).all())
 
-        if not results and not writing:
+        if not results:
             _send(chat_id, "📊 No results yet.\n\nAsk your teacher for a test PIN to get started.")
             return
 
-        text = f"📊 *Progress — {user.name}*\n\n"
-        if results:
-            bands = [r.band for r in results]
-            text += f"🎯 Best band: *{max(bands)}*\n"
-            text += f"📈 Average: *{round(sum(bands)/len(bands), 1)}*\n"
-            text += f"📝 Attempts: *{len(results)}*\n"
-        if writing:
-            text += f"\n✏️ Last Writing: *{writing.band_score}* band\n"
-        text += f"\n[Open Dashboard]({APP_URL}/dashboard.html)"
-        _send(chat_id, text)
+        bands = [float(r.band) for r in results]
+        best = max(bands)
+        avg = round(sum(bands) / len(bands), 1)
+
+        # Build per-test summary lines (newest first)
+        lines = []
+        for i, r in enumerate(results, 1):
+            test = db.query(models.TeacherTest).filter(models.TeacherTest.id == r.test_id).first()
+            title = (test.title[:20] + "…") if test and len(test.title) > 20 else (test.title if test else f"Test #{r.test_id}")
+            date_str = r.created_at.strftime("%d.%m.%y")
+            lines.append(f"{i}. *{title}* — Band {r.band} | {r.correct}/{r.total} ✅ | {date_str}")
+
+        caption = (
+            f"📊 *Progress — {user.name}*\n\n"
+            + "\n".join(lines)
+            + f"\n\n🏆 Best: *{best}*  |  📈 Avg: *{avg}*"
+            + f"\n\n[Open Dashboard]({APP_URL}/dashboard.html)"
+        )
+
+        try:
+            chart = _build_progress_chart(results, user.name)
+            _send_photo(chat_id, chart, caption)
+        except Exception:
+            _send(chat_id, caption)
     finally:
         db.close()
 
