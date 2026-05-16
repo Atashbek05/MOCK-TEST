@@ -848,17 +848,17 @@ body {
   padding: 9px 22px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer;
 }
 
-/* ── Full Review nav button ──────────────────────────────────────────────── */
-.nav-review-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 14px; border-radius: 20px;
-  background: linear-gradient(135deg, #059669, #0891b2);
-  color: white; font-size: 13px; font-weight: 700;
-  border: none; cursor: pointer; font-family: inherit;
-  transition: opacity 0.2s, transform 0.15s;
-  text-decoration: none;
+/* ── Test Review nav group ───────────────────────────────────────────────── */
+.nav-review-group {
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
 }
-.nav-review-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.nav-tg-bot-hint {
+  font-size: 11px; color: #229ED9; text-decoration: none;
+  display: flex; align-items: center; gap: 3px;
+  font-weight: 600; line-height: 1; padding: 0 4px;
+  transition: opacity 0.15s;
+}
+.nav-tg-bot-hint:hover { opacity: 0.7; }
 
 /* ── AI Coach nav button ─────────────────────────────────────────────────── */
 .nav-coach-btn {
@@ -1129,7 +1129,13 @@ body {
       <a class="nav-link active" href="dashboard.html">Dashboard</a>
       <a class="nav-link" href="history.html">History</a>
       <a class="nav-link" href="join.html">Join Test</a>
-      <button class="nav-review-btn" onclick="openFullReview()">📋 Full Review</button>
+      <div class="nav-review-group">
+        <button class="nav-link" onclick="openFullReview()">Test Review</button>
+        <a class="nav-tg-bot-hint" href="#" onclick="openTgBot(); return false;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#229ED9"/><path d="M16.93 9.02l-1.69 7.96c-.12.56-.46.7-.93.44l-2.58-1.9-1.24 1.2c-.14.14-.26.26-.53.26l.19-2.67 4.84-4.37c.21-.19-.05-.29-.32-.1L7.62 14.2l-2.54-.79c-.55-.17-.56-.55.12-.82l9.9-3.82c.46-.17.86.11.73.83z" fill="white"/></svg>
+          в боте
+        </a>
+      </div>
       <button class="nav-coach-btn" onclick="openAICoach()">✦ AI Coach</button>
     </nav>
   </div>
@@ -1334,7 +1340,7 @@ body {
     <div class="review-modal-header">
       <div class="review-modal-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="18" rx="3" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="1.8"/><rect x="9" y="1.5" width="6" height="4" rx="1.5" fill="white"/><path d="M8.5 10.5L10.5 12.5L15.5 8" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="8.5" y1="16" x2="15.5" y2="16" stroke="white" stroke-width="1.6" stroke-linecap="round" opacity="0.7"/></svg></div>
       <div>
-        <div class="review-modal-title">Full Review Test</div>
+        <div class="review-modal-title">Test Review</div>
         <div class="review-modal-subtitle" id="review-modal-subtitle">Loading your last test…</div>
       </div>
     </div>
@@ -1891,6 +1897,19 @@ async function startMockTest() {
     btn.innerHTML = origHtml;
     alert("Could not start test: " + e.message);
   }
+}
+
+// ── Telegram bot link ─────────────────────────────────────────────────────────
+async function openTgBot() {
+  try {
+    const res = await fetch(`${API_BASE}/telegram/bot-info`);
+    if (res.ok) {
+      const info = await res.json();
+      window.open(`https://t.me/${info.username}`, "_blank");
+      return;
+    }
+  } catch (_) {}
+  window.location.href = "telegram-connect.html";
 }
 
 // ── Full Review ───────────────────────────────────────────────────────────────

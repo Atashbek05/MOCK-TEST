@@ -190,6 +190,17 @@ body {
   border-radius: 8px; padding: 8px 12px; margin-bottom: 14px;
 }
 
+/* ── Question counter ── */
+.q-counter {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 700; color: #6b7280;
+  background: #f1f5f9; border: 1.5px solid #e2e8f0;
+  border-radius: 8px; padding: 5px 12px; margin-left: 10px;
+}
+.q-counter .q-num { color: #0f172a; }
+.q-counter.at-limit { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+.q-counter.at-limit .q-num { color: #dc2626; }
+
 /* ── Add buttons ── */
 .btn-add {
   display: inline-flex; align-items: center; gap: 6px;
@@ -283,7 +294,12 @@ body {
   <div class="card">
     <div class="card-title" id="sections-card-title">Passages &amp; Questions</div>
     <div id="passages-container"></div>
-    <button class="btn-add" id="btn-add-passage" onclick="addPassage()">＋ Add Passage</button>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:4px">
+      <button class="btn-add" id="btn-add-passage" onclick="addPassage()">＋ Add Passage</button>
+      <span class="q-counter" id="q-counter" style="display:none">
+        Questions: <span class="q-num" id="q-counter-num">0</span> / 40
+      </span>
+    </div>
   </div>
 
   <div class="err-banner" id="err-banner"></div>
@@ -302,11 +318,37 @@ body {
 <script>
 const token = requireTeacher();
 
+const MAX_QUESTIONS = 40;
+
 let passageCount = 0;
 let questionCounters = {};
 let currentTestType = "reading";
-// Stores uploaded audio URLs keyed by passage index
 const audioUrls = {};
+
+// ── Question counter helpers ──────────────────────────────────────────────────
+function totalQuestions() {
+  return document.querySelectorAll(".question-block").length;
+}
+
+function updateQCounter() {
+  const isRLType = currentTestType === "reading" || currentTestType === "listening";
+  const counter  = document.getElementById("q-counter");
+  const numEl    = document.getElementById("q-counter-num");
+  if (!isRLType) { counter.style.display = "none"; return; }
+
+  const total   = totalQuestions();
+  const atLimit = total >= MAX_QUESTIONS;
+  numEl.textContent = total;
+  counter.style.display = "";
+  counter.classList.toggle("at-limit", atLimit);
+
+  // Disable / enable every "Add Question" button
+  document.querySelectorAll(".btn-add-q").forEach(function(btn) {
+    btn.disabled = atLimit;
+    btn.style.opacity = atLimit ? "0.45" : "";
+    btn.style.cursor  = atLimit ? "not-allowed" : "";
+  });
+}
 
 // ── Test Type Selector ────────────────────────────────────────────────────────
 function setTestType(type) {
@@ -338,6 +380,7 @@ function setTestType(type) {
   Object.keys(audioUrls).forEach(function(k) { delete audioUrls[k]; });
   document.getElementById("passages-container").innerHTML = "";
   addPassage();
+  updateQCounter();
 }
 
 // ── Passage/Section/Task Block ────────────────────────────────────────────────
@@ -362,6 +405,7 @@ function addPassage() {
   if (currentTestType === "reading" || currentTestType === "listening") {
     addQuestion(idx);
   }
+  updateQCounter();
 }
 
 function _readingPassageHTML(idx) {
@@ -427,6 +471,10 @@ function _writingTaskHTML(idx) {
       '<input class="field-input" data-role="passage-title" type="text" placeholder="e.g. ' + taskLabel + ': Describe a chart" maxlength="300">' +
     '</div>' +
     '<div class="field">' +
+      '<label class="field-label">Topic / Theme *</label>' +
+      '<input class="field-input" data-role="writing-topic" type="text" placeholder="e.g. Environment, Technology, Education, Health…" maxlength="200">' +
+    '</div>' +
+    '<div class="field">' +
       '<label class="field-label">Writing Prompt *</label>' +
       '<textarea class="field-textarea" data-role="passage-text" placeholder="' + placeholder + '" rows="5"></textarea>' +
     '</div>';
@@ -489,6 +537,11 @@ async function uploadAudio(passageIdx, inputEl) {
 
 // ── Question Block ────────────────────────────────────────────────────────────
 function addQuestion(passageIdx) {
+  if (totalQuestions() >= MAX_QUESTIONS) {
+    showError("Maximum " + MAX_QUESTIONS + " questions allowed per test (Reading / Listening).");
+    updateQCounter();
+    return;
+  }
   if (!questionCounters[passageIdx]) questionCounters[passageIdx] = 0;
   questionCounters[passageIdx]++;
   const qIdx = questionCounters[passageIdx];
@@ -519,11 +572,13 @@ function addQuestion(passageIdx) {
       '</select>' +
     '</div>';
   container.appendChild(div);
+  updateQCounter();
 }
 
 function removeQuestion(passageIdx, qIdx) {
   const el = document.getElementById("question-" + passageIdx + "-" + qIdx);
   if (el) el.remove();
+  updateQCounter();
 }
 
 // ── Collect Data ──────────────────────────────────────────────────────────────
@@ -542,7 +597,9 @@ function collectData() {
     const audio_url  = audioInput ? audioInput.value || null : null;
 
     if (currentTestType === "writing") {
-      passages.push({ order: pi + 1, title: passageTitle, text: passageText, questions: [], audio_url: null });
+      const topicEl = pb.querySelector('[data-role="writing-topic"]');
+      const topic   = topicEl ? topicEl.value.trim() : "";
+      passages.push({ order: pi + 1, title: passageTitle, text: passageText, topic: topic, questions: [], audio_url: null });
       continue;
     }
 
@@ -573,6 +630,13 @@ function validate(data) {
   if (!data.passages.length)
     return "Add at least one " + (currentTestType === "writing" ? "task" : currentTestType === "listening" ? "section" : "passage") + ".";
 
+  // Enforce 40-question total for reading/listening
+  if (currentTestType === "reading" || currentTestType === "listening") {
+    const total = data.passages.reduce(function(sum, p) { return sum + p.questions.length; }, 0);
+    if (total > MAX_QUESTIONS)
+      return "A " + currentTestType + " test can have at most " + MAX_QUESTIONS + " questions total. You have " + total + ".";
+  }
+
   for (let pi = 0; pi < data.passages.length; pi++) {
     const p    = data.passages[pi];
     const pNum = currentTestType === "writing" ? "Task " + (pi + 1) : currentTestType === "listening" ? "Section " + (pi + 1) : "Passage " + (pi + 1);
@@ -582,7 +646,11 @@ function validate(data) {
     if (!p.text || p.text.length < 5)
       return pNum + ": " + (currentTestType === "writing" ? "prompt" : "text") + " must be at least 5 characters.";
 
-    if (currentTestType === "writing") continue;
+    if (currentTestType === "writing") {
+      if (!p.topic || p.topic.length < 2)
+        return pNum + ": topic / theme is required (at least 2 characters).";
+      continue;
+    }
 
     if (!p.questions.length)
       return pNum + ": add at least one question.";
@@ -661,6 +729,7 @@ function parseServerError(body, status) {
 
 // Start with one passage
 addPassage();
+updateQCounter();
 </script>
 
 </body>
