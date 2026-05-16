@@ -614,15 +614,18 @@ def _cmd_review_by_id(chat_id: int, tg_id: int, result_id: int) -> None:
         )
         if all_questions:
             msg1 += "\n📊 *All questions:*\n"
-            row_items: list[str] = []
-            for num, q in enumerate(all_questions, 1):
-                mark = "❌" if q.id in wrong_ids else "✅"
-                row_items.append(f"{mark}{num}")
-                if len(row_items) == 10:
+            if wrong_ids:
+                row_items: list[str] = []
+                for num, q in enumerate(all_questions, 1):
+                    mark = "❌" if q.id in wrong_ids else "✅"
+                    row_items.append(f"{mark}{num}")
+                    if len(row_items) == 10:
+                        msg1 += "  ".join(row_items) + "\n"
+                        row_items = []
+                if row_items:
                     msg1 += "  ".join(row_items) + "\n"
-                    row_items = []
-            if row_items:
-                msg1 += "  ".join(row_items) + "\n"
+            else:
+                msg1 += "_(детальная разбивка недоступна)_\n"
         _send(chat_id, msg1)
 
         # ── Message 2: Wrong answers detail (split at 15 if many) ─────────────
@@ -640,6 +643,8 @@ def _cmd_review_by_id(chat_id: int, tg_id: int, result_id: int) -> None:
                     ot = (ot[:100] + "…") if len(ot) > 100 else ot
                     msg2 += f"*Q{w['num']}.* {qt}\n   ✅ Correct: {w['correct_answer']}) {ot}\n\n"
                 _send(chat_id, msg2)
+        elif mistakes > 0:
+            _send(chat_id, f"❌ *{mistakes} mistake\\(s\\)* — подробный разбор недоступен\\. Сдайте тест ещё раз, чтобы получить полный анализ\\.")
         else:
             _send(chat_id, "✨ *No mistakes — perfect score!*")
 
@@ -748,8 +753,28 @@ def _handle(update: dict) -> None:
 
 
 # ── Polling loop (runs forever in a daemon thread) ────────────────────────────
-def _poll() -> None:
+def _bootstrap_offset() -> int:
+    """Skip all queued updates on startup to prevent double-processing during rolling deploys."""
     offset = 0
+    try:
+        while True:
+            res = requests.get(
+                f"{API}/getUpdates",
+                params={"offset": offset, "timeout": 0},
+                timeout=10,
+            )
+            data = res.json()
+            updates = data.get("result", []) if data.get("ok") else []
+            if not updates:
+                break
+            offset = updates[-1]["update_id"] + 1
+    except Exception:
+        pass
+    return offset
+
+
+def _poll() -> None:
+    offset = _bootstrap_offset()
 
     while True:
         try:
@@ -788,6 +813,10 @@ def start_polling() -> None:
         )
     except Exception:
         pass
+
+    for t in threading.enumerate():
+        if t.name == "telegram-bot" and t.is_alive():
+            return
 
     thread = threading.Thread(target=_poll, daemon=True, name="telegram-bot")
     thread.start()
