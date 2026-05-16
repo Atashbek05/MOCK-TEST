@@ -1732,11 +1732,6 @@ function renderHistory(sessions) {
     svg += `<polyline points="${pts}" fill="none" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>`;
   }
 
-  // Dots on trend line
-  _cd.forEach((s, i) => {
-    const cx = f(xOf(i)), cy = f(yOf(+s.overall_band || 0));
-    svg += `<circle cx="${cx}" cy="${cy}" r="6" fill="#0f172a" stroke="white" stroke-width="2.5"/>`;
-  });
 
   // Invisible hover hit areas
   _cd.forEach((s, i) => {

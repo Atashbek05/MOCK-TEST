@@ -64,25 +64,53 @@ def _tg_answer_callback(callback_query_id: str) -> None:
 
 # ── Bot command handlers ───────────────────────────────────────────────────────
 
-def _cmd_start(chat_id: int, first_name: str) -> None:
-    welcome = (
-        f"👋 Hello, <b>{first_name}</b>!\n\n"
-        "🎯 <b>IELTS Mock Test Platform</b>\n\n"
-        "Practice Reading, Listening and Writing\n"
-        "with AI-powered feedback.\n\n"
-        "📌 <b>Commands:</b>\n"
-        "/review — AI review of your last test\n"
-        "/progress — Your stats\n"
-        "/latestscore — Last test result\n"
-        "/link — Link your account\n\n"
-        "Tap the button below to open the platform 👇"
-    )
-    keyboard = {
-        "inline_keyboard": [
-            [{"text": "🚀 Open Dashboard", "url": f"{APP_URL}/dashboard.html"}],
-            [{"text": "🔗 Link Account", "url": f"{APP_URL}/telegram-connect.html"}],
-        ]
-    }
+def _cmd_start(chat_id: int, first_name: str, tg_id: Optional[int] = None) -> None:
+    already_linked = False
+    if tg_id:
+        db = SessionLocal()
+        try:
+            already_linked = db.query(models.User).filter(
+                models.User.telegram_id == tg_id
+            ).first() is not None
+        finally:
+            db.close()
+
+    if already_linked:
+        welcome = (
+            f"👋 Hello, <b>{first_name}</b>!\n\n"
+            "🎯 <b>IELTS Mock Test Platform</b>\n\n"
+            "Practice Reading, Listening and Writing\n"
+            "with AI-powered feedback.\n\n"
+            "📌 <b>Commands:</b>\n"
+            "/review — AI review of your last test\n"
+            "/progress — Your stats\n"
+            "/latestscore — Last test result\n\n"
+            "Tap the button below to open the platform 👇"
+        )
+        keyboard = {
+            "inline_keyboard": [
+                [{"text": "🚀 Open Dashboard", "url": f"{APP_URL}/dashboard.html"}],
+            ]
+        }
+    else:
+        welcome = (
+            f"👋 Hello, <b>{first_name}</b>!\n\n"
+            "🎯 <b>IELTS Mock Test Platform</b>\n\n"
+            "Practice Reading, Listening and Writing\n"
+            "with AI-powered feedback.\n\n"
+            "📌 <b>Commands:</b>\n"
+            "/review — AI review of your last test\n"
+            "/progress — Your stats\n"
+            "/latestscore — Last test result\n"
+            "/link — Link your account\n\n"
+            "Tap the button below to open the platform 👇"
+        )
+        keyboard = {
+            "inline_keyboard": [
+                [{"text": "🚀 Open Dashboard", "url": f"{APP_URL}/dashboard.html"}],
+                [{"text": "🔗 Link Account", "url": f"{APP_URL}/telegram-connect.html"}],
+            ]
+        }
     try:
         requests.post(f"{API}/sendMessage", json={
             "chat_id": chat_id, "text": welcome,
@@ -711,7 +739,7 @@ def _handle(update: dict) -> None:
         if param == "myreviews" and tg_id:
             _cmd_test_list(chat_id, tg_id)
         else:
-            _cmd_start(chat_id, first_name)
+            _cmd_start(chat_id, first_name, tg_id)
     elif text == "/help":
         _cmd_help(chat_id)
     elif text.startswith("/link"):
