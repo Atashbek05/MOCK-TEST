@@ -51,6 +51,17 @@ def _send(chat_id: int, text: str, keyboard: Optional[dict] = None,
         pass
 
 
+def _tg_answer_callback(callback_query_id: str) -> None:
+    try:
+        requests.post(
+            f"{API}/answerCallbackQuery",
+            json={"callback_query_id": callback_query_id},
+            timeout=5,
+        )
+    except Exception:
+        pass
+
+
 # ── Bot command handlers ───────────────────────────────────────────────────────
 
 def _cmd_start(chat_id: int, first_name: str) -> None:
@@ -461,8 +472,132 @@ def _cmd_review(chat_id: int, tg_id: int) -> None:
         db.close()
 
 
+def _cmd_test_list(chat_id: int, tg_id: int) -> None:
+    """Send the user an inline keyboard listing their last 5 test results."""
+    db = SessionLocal()
+    try:
+        user = db.query(models.User).filter(models.User.telegram_id == tg_id).first()
+        if not user:
+            _send(chat_id, "❌ Account not linked\\. Use /link first\\.")
+            return
+
+        results = (
+            db.query(models.TeacherTestResult)
+            .filter(models.TeacherTestResult.student_id == user.id)
+            .order_by(models.TeacherTestResult.created_at.desc())
+            .limit(5)
+            .all()
+        )
+
+        if not results:
+            _send(chat_id, (
+                "📭 *No tests found yet\\.* \n\n"
+                "Ask your teacher for a test PIN, complete the test, then come back here\\."
+            ))
+            return
+
+        rows = []
+        for r in results:
+            test = db.query(models.TeacherTest).filter(models.TeacherTest.id == r.test_id).first()
+            title = test.title if test else f"Test #{r.test_id}"
+            short = (title[:25] + "…") if len(title) > 25 else title
+            date_str = r.created_at.strftime("%d.%m.%y")
+            btn_text = f"{short} | Band {r.band} | {date_str}"
+            rows.append([{"text": btn_text, "callback_data": f"rev_{r.id}"}])
+
+        _send(chat_id, "📋 *Выберите тест для разбора:*", {"inline_keyboard": rows})
+    finally:
+        db.close()
+
+
+def _cmd_review_by_id(chat_id: int, tg_id: int, result_id: int) -> None:
+    """Send a full review for a specific test result (ownership-checked)."""
+    db = SessionLocal()
+    try:
+        user = db.query(models.User).filter(models.User.telegram_id == tg_id).first()
+        if not user:
+            _send(chat_id, "❌ Account not linked\\. Use /link first\\.")
+            return
+
+        r = db.query(models.TeacherTestResult).filter(
+            models.TeacherTestResult.id == result_id
+        ).first()
+
+        if not r or r.student_id != user.id:
+            _send(chat_id, "❌ Test not found or access denied\\.")
+            return
+
+        test = db.query(models.TeacherTest).filter(models.TeacherTest.id == r.test_id).first()
+        test_title = test.title if test else f"Test #{r.test_id}"
+        date_str = r.created_at.strftime("%d.%m.%Y")
+
+        wrong_questions: list[dict] = []
+        if r.wrong_question_ids and test:
+            all_q = {q.id: q for p in test.passages for q in p.questions}
+            for qid in r.wrong_question_ids:
+                q = all_q.get(qid)
+                if q:
+                    opt_text = getattr(q, f"option_{q.correct_answer.lower()}", "") or ""
+                    wrong_questions.append({
+                        "question_text": q.question_text,
+                        "correct_answer": q.correct_answer,
+                        "correct_option_text": opt_text,
+                    })
+
+        mistakes = r.total - r.correct
+        msg1 = (
+            f"📋 *Test Review*\n"
+            f"📝 {test_title}\n"
+            f"📅 {date_str}\n"
+            f"🎯 Band: *{r.band}*  |  ✅ {r.correct}/{r.total}  |  ❌ {mistakes} mistakes\n"
+        )
+        if wrong_questions:
+            shown = wrong_questions[:10]
+            msg1 += "\n❌ *Your mistakes:*\n\n"
+            for i, q in enumerate(shown, 1):
+                qt = q["question_text"]
+                qt = (qt[:120] + "…") if len(qt) > 120 else qt
+                ot = q["correct_option_text"]
+                ot = (ot[:80] + "…") if len(ot) > 80 else ot
+                msg1 += f"*{i}.* {qt}\n   ✅ {q['correct_answer']}: {ot}\n\n"
+            if len(wrong_questions) > 10:
+                msg1 += f"_…and {len(wrong_questions) - 10} more mistakes_\n"
+        elif not r.wrong_question_ids:
+            msg1 += "\n✨ *No mistakes — perfect score!*\n"
+
+        _send(chat_id, msg1)
+
+        advice = _get_coach_advice(r.band, r.correct, r.total, wrong_questions, test_title)
+        msg2 = f"🧠 *AI Coach*\n\n📌 {advice['summary']}\n\n"
+        if advice.get("weak_areas"):
+            msg2 += f"⚠️ *Weak areas:* {', '.join(advice['weak_areas'])}\n\n"
+        msg2 += "💡 *Tips:*\n"
+        for tip in advice.get("tips", [])[:3]:
+            msg2 += f"→ {tip}\n"
+        msg2 += f"\n💪 {advice.get('encouragement', '')}"
+        _send(chat_id, msg2)
+    finally:
+        db.close()
+
+
 # ── Handle one Telegram update ────────────────────────────────────────────────
 def _handle(update: dict) -> None:
+    # ── Inline button callbacks ────────────────────────────────────────────────
+    cq = update.get("callback_query")
+    if cq:
+        _tg_answer_callback(cq.get("id"))
+        cq_data  = cq.get("data", "")
+        cq_chat  = cq.get("message", {}).get("chat", {}).get("id")
+        cq_tg_id = cq.get("from", {}).get("id")
+        if cq_data.startswith("rev_") and cq_chat and cq_tg_id:
+            try:
+                result_id = int(cq_data[4:])
+            except ValueError:
+                return
+            _cmd_review_by_id(cq_chat, cq_tg_id, result_id)
+        return
+
+    # ── Regular text message ───────────────────────────────────────────────────
     message  = update.get("message", {})
     text     = message.get("text", "")
     chat_id  = message.get("chat", {}).get("id")
@@ -475,7 +610,12 @@ def _handle(update: dict) -> None:
     tg_id      = from_obj.get("id")
 
     if text.startswith("/start"):
-        _cmd_start(chat_id, first_name)
+        parts = text.split(None, 1)
+        param = parts[1] if len(parts) > 1 else ""
+        if param == "myreviews" and tg_id:
+            _cmd_test_list(chat_id, tg_id)
+        else:
+            _cmd_start(chat_id, first_name)
     elif text == "/help":
         _cmd_help(chat_id)
     elif text.startswith("/link"):
@@ -524,7 +664,11 @@ def _poll() -> None:
         try:
             res = requests.get(
                 f"{API}/getUpdates",
-                params={"timeout": 30, "offset": offset},
+                params={
+                    "timeout": 30,
+                    "offset": offset,
+                    "allowed_updates": '["message","callback_query"]',
+                },
                 timeout=35,
             )
             data = res.json()

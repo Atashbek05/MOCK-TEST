@@ -1334,6 +1334,7 @@ body {
 <script>
 // ── Auth ──────────────────────────────────────────────────────────────────────
 const token = requireAuth();
+let _cachedTgLinked = false;
 
 // ── Toast ──────────────────────────────────────────────────────────────────────
 function showToast(msg) {
@@ -1765,6 +1766,7 @@ async function loadDashboard() {
       tgBadge.style.background  = "#f0fdf4";
     }
     tgBadge.style.display = "inline-flex";
+    _cachedTgLinked = !!me.telegram_id;
 
     // Telegram banner card below stats
     const banner = document.getElementById("tg-banner");
@@ -1854,6 +1856,18 @@ async function startMockTest() {
 
 // ── Full Review ───────────────────────────────────────────────────────────────
 async function openFullReview() {
+  if (_cachedTgLinked) {
+    try {
+      const res = await fetch(`${API_BASE}/telegram/bot-info`);
+      if (res.ok) {
+        const info = await res.json();
+        window.open(`https://t.me/${info.username}?start=myreviews`, "_blank");
+        return;
+      }
+    } catch (_) {}
+  }
+
+  // fallback: show modal
   document.getElementById("review-overlay").classList.add("open");
   document.getElementById("review-modal-subtitle").textContent = "Loading your last test…";
   document.getElementById("review-modal-body").innerHTML = `
