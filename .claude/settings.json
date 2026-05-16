@@ -31,7 +31,9 @@
       "Bash(git -C d:\\\\MOCK-TEST diff HEAD~3 HEAD -- backend/app/main.py)",
       "Bash(Get-ChildItem -Path \"d:\\\\MOCK-TEST\" -Recurse -Name)",
       "Bash(Select-Object -First 30)",
-      "Bash(dir \"D:\\\\MOCK-TEST\" /s /b)"
+      "Bash(dir \"D:\\\\MOCK-TEST\" /s /b)",
+      "Bash(Get-ChildItem -Path \"d:\\\\MOCK-TEST\" -Force)",
+      "Bash(Select-Object Name, Mode)"
     ]
   }
 }
