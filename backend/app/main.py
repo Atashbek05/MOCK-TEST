@@ -2738,7 +2738,7 @@ def get_listening_results(
 
 # ── AI Coach ──────────────────────────────────────────────────────────────────
 
-_AI_COACH_PROMPT = """You are an expert IELTS tutor. A student just completed a teacher-created test.
+_AI_COACH_PROMPT = """You are a brutally honest, unforgiving IELTS coach. You do not sugarcoat. You do not comfort. You tell the student exactly how bad they are and what they must fix — no exceptions, no matter the score.
 
 Test title: {test_title}
 Test type: {test_type}
@@ -2747,20 +2747,24 @@ Score: {correct}/{total} (Band {band})
 Wrong questions ({wrong_count}):
 {wrong_questions_text}
 
-Give a concise, encouraging review in English. Focus on:
-1. What specific topics/skills the student struggled with (based on the wrong questions)
-2. 2-3 concrete actionable tips to improve
+Rules:
+- If Band < 6: be harsh and disappointed. Tell them this result is unacceptable and embarrassing.
+- If Band >= 6: still be critical. Tell them this is mediocre, not enough for real life, and they are far from where they need to be.
+- Never say "good job", "well done", "keep it up", "you can do it" or any positive filler.
+- Be direct, cold, and demanding. Focus only on failures and what must be fixed.
+- Tips must be specific and strict commands, not suggestions.
+- The "verdict" field is your final cold judgment — no hope, just reality.
 
-Return ONLY valid JSON with no extra text or code blocks:
+Return ONLY valid JSON:
 {{
-  "summary": "<1-2 sentences about the student's performance>",
-  "weak_areas": ["<topic 1>", "<topic 2>"],
+  "summary": "<1-2 brutal sentences about how bad this performance is>",
+  "weak_areas": ["<weakness 1>", "<weakness 2>"],
   "tips": [
-    "<specific actionable tip 1>",
-    "<specific actionable tip 2>",
-    "<specific actionable tip 3>"
+    "<strict command to fix failure 1>",
+    "<strict command to fix failure 2>",
+    "<strict command to fix failure 3>"
   ],
-  "encouragement": "<short motivating closing sentence>"
+  "encouragement": "<cold final verdict, no comfort>"
 }}"""
 
 
@@ -2768,32 +2772,32 @@ def _get_coach_fallback(band: float, correct: int, total: int) -> dict:
     """Rule-based coaching when no OpenAI key is configured."""
     wrong = total - correct
     if band >= 7.0:
-        summary = f"Great performance! You scored Band {band} with {correct}/{total} correct."
-        weak_areas = ["Fine-tuning details", "Advanced vocabulary"]
+        summary = f"Band {band} with {correct}/{total} correct. You still missed {wrong} questions — that is not acceptable if you want a real IELTS score."
+        weak_areas = ["Precision", "Advanced vocabulary gaps"]
         tips = [
-            "Review the questions you missed — look for patterns in your mistakes.",
-            "Practice skimming and scanning techniques for faster passage reading.",
-            "Focus on expanding your academic vocabulary with word lists.",
+            "Analyse every single wrong answer — careless mistakes at this level are inexcusable.",
+            "Stop relying on intuition. Read every word of the question before answering.",
+            "Your vocabulary is still not at C1 level. Study academic word lists daily, not occasionally.",
         ]
-        encouragement = "You're close to an excellent band — keep up the great work!"
-    elif band >= 5.5:
-        summary = f"Good effort! You scored Band {band} with {correct}/{total} correct. You missed {wrong} questions."
-        weak_areas = ["Reading comprehension", "Vocabulary", "Inference skills"]
+        encouragement = "Band 7 means nothing if you cannot reproduce it consistently. You are not done."
+    elif band >= 6.0:
+        summary = f"Band {band} — {correct}/{total} correct. This is a mediocre result. You missed {wrong} questions and that is a problem you cannot ignore."
+        weak_areas = ["Reading comprehension", "Inference skills", "Vocabulary"]
         tips = [
-            "Re-read the passages related to your wrong answers carefully — identify where you misunderstood.",
-            "Practice paraphrasing: IELTS answers are often paraphrased in the text.",
-            "Build your vocabulary by studying 10 new academic words daily.",
+            "Go back to every wrong answer and find exactly where your reasoning broke down.",
+            "Paraphrasing is the core skill in IELTS. If you cannot recognise it, you will keep failing.",
+            "Read academic texts every day — your comprehension is clearly underdeveloped.",
         ]
-        encouragement = "You're making solid progress — consistent practice will push you higher!"
+        encouragement = "Band 6 will not get you into any serious university programme. This result is not enough."
     else:
-        summary = f"You scored Band {band} with {correct}/{total} correct. There is clear room for improvement."
+        summary = f"Band {band} — {correct}/{total} correct. This result is poor. You got {wrong} questions wrong, which means you do not understand the basics."
         weak_areas = ["Core comprehension", "Grammar", "Test strategy"]
         tips = [
-            "Start with shorter practice passages to build confidence before tackling full tests.",
-            "Focus on understanding question types (True/False/Not Given, Multiple Choice) and their strategies.",
-            "Review grammar fundamentals — strong grammar helps you understand complex sentences.",
+            "Stop taking full tests until you understand the question types. You are wasting your time.",
+            "Your grammar is failing you. Study sentence structure from the ground up.",
+            "You clearly have no test strategy. Learn what each question type demands before touching another test.",
         ]
-        encouragement = "Every mistake is a learning opportunity — you're building the foundation for success!"
+        encouragement = "This is a failing result. Until you fix your fundamentals, nothing will change."
 
     return {
         "summary": summary,
@@ -2834,11 +2838,11 @@ def _get_coach_ai_feedback(
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are an expert IELTS tutor. Respond only with valid JSON."},
+                {"role": "system", "content": "You are a brutal, unforgiving IELTS coach who never compliments students. Respond only with valid JSON."},
                 {"role": "user", "content": prompt},
             ],
             max_tokens=800,
-            temperature=0.4,
+            temperature=0.7,
             response_format={"type": "json_object"},
         )
         return json.loads(response.choices[0].message.content)
