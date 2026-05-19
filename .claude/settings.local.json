@@ -3,7 +3,17 @@
     "allow": [
       "Bash(Test-Path \"d:\\\\MOCK-TEST\\\\writing.html\")",
       "Bash(Get-ChildItem -Path \"d:\\\\MOCK-TEST\" -Recurse -File)",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(New-Item -ItemType Directory -Force -Path \"D:\\\\MOCK-TEST\\\\backend\\\\app\\\\api\\\\v1\\\\routes\")",
+      "Bash(Out-Null)",
+      "Bash(New-Item -ItemType Directory -Force -Path \"D:\\\\MOCK-TEST\\\\backend\\\\app\\\\core\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"D:\\\\MOCK-TEST\\\\backend\\\\app\\\\models\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"D:\\\\MOCK-TEST\\\\backend\\\\app\\\\schemas\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"D:\\\\MOCK-TEST\\\\backend\\\\app\\\\services\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"D:\\\\MOCK-TEST\\\\backend\\\\app\\\\utils\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"D:\\\\MOCK-TEST\\\\backend\\\\datasets\\\\raw\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"D:\\\\MOCK-TEST\\\\backend\\\\datasets\\\\processed\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"D:\\\\MOCK-TEST\\\\backend\\\\tests\")"
     ]
   }
 }

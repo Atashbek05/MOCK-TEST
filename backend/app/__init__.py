@@ -1,1 +1,1 @@
-
+﻿# ScamShield application package

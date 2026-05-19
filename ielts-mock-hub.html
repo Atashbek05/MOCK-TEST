@@ -88,6 +88,8 @@ h1 { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
 
 .loading { color: #94a3b8; font-size: 13px; padding: 20px 0; text-align: center; }
 </style>
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
 </head>
 <body>
 
@@ -97,6 +99,7 @@ h1 { font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
     <a class="btn-back" href="dashboard.html">← Back</a>
   </div>
   <div class="header-right">
+    <button id="theme-toggle" aria-label="Switch to dark mode" title="Switch to dark mode"></button>
     <span id="header-name" style="font-size:13px;font-weight:600;color:#64748b;"></span>
     <button class="btn-logout" onclick="logout()">Sign out</button>
   </div>

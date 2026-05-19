@@ -286,6 +286,8 @@
         }
         .empty .icon { font-size: 38px; margin-bottom: 10px; }
     </style>
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
 </head>
 <body>
 
@@ -338,7 +340,10 @@
             <div class="title" id="h-name">IELTS Platform</div>
             <div class="sub"   id="h-role">Loading…</div>
         </div>
-        <div class="header-badge" id="h-icon">🎓</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+            <button id="theme-toggle" aria-label="Switch to dark mode" title="Switch to dark mode"></button>
+            <div class="header-badge" id="h-icon">🎓</div>
+        </div>
     </div>
 
     <!-- ── Tab: Home ──────────────────────────────────────────────────────── -->

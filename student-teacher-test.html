@@ -136,6 +136,8 @@ body {
   .wr-criteria { grid-template-columns: 1fr; }
 }
 </style>
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
 </head>
 
 <body>
@@ -143,7 +145,10 @@ body {
 <header class="header">
   <div class="header-logo">IELTS <span class="accent">MOCK</span></div>
   <div class="header-center" id="test-title-header">Loading test…</div>
-  <a class="btn-back" href="dashboard.html">← Dashboard</a>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button id="theme-toggle" aria-label="Switch to dark mode" title="Switch to dark mode"></button>
+    <a class="btn-back" href="dashboard.html">← Dashboard</a>
+  </div>
 </header>
 
 <div class="state-center" id="loading-state">

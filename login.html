@@ -240,6 +240,8 @@ body {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
 </head>
 
 <body>
@@ -247,7 +249,13 @@ body {
 <!-- Top bar -->
 <div class="top-bar">
   <a class="logo" href="login.html">IELTS <span class="accent">MOCK</span></a>
-  <a class="nav-btn" href="register.html">Create account →</a>
+  <div style="display:flex;align-items:center;gap:10px;">
+
+      <button id="theme-toggle" aria-label="Switch to dark mode" title="Switch to dark mode"></button>
+
+      <a class="nav-btn" href="register.html">Create account →</a>
+
+  </div>
 </div>
 
 <!-- Card -->

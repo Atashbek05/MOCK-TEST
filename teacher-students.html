@@ -485,6 +485,8 @@ body {
 .stat-card.purple .stat-icon { background: #f5f3ff; border: 2.5px solid #8b5cf6; }
 .stat-card.orange .stat-icon { background: #fffbeb; border: 2.5px solid #f59e0b; }
 </style>
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
 </head>
 
 <body>
@@ -501,6 +503,7 @@ body {
   </nav>
 
   <div class="header-right">
+    <button id="theme-toggle" aria-label="Switch to dark mode" title="Switch to dark mode"></button>
     <span class="header-name" id="header-name">Loading…</span>
     <button class="btn-signout" onclick="logout()">Sign out</button>
   </div>

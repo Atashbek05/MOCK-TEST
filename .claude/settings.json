@@ -35,7 +35,19 @@
       "Bash(Get-ChildItem -Path \"d:\\\\MOCK-TEST\" -Force)",
       "Bash(Select-Object Name, Mode)",
       "Bash(git checkout *)",
-      "Bash(git restore *)"
+      "Bash(git restore *)",
+      "Bash(New-Item -ItemType Directory -Path \"scamshield/app/api/v1/routes\" -Force)",
+      "Bash(New-Item -ItemType Directory -Path \"scamshield/app/core\" -Force)",
+      "Bash(New-Item -ItemType Directory -Path \"scamshield/app/models\" -Force)",
+      "Bash(New-Item -ItemType Directory -Path \"scamshield/app/schemas\" -Force)",
+      "Bash(New-Item -ItemType Directory -Path \"scamshield/app/services\" -Force)",
+      "Bash(python -m http.server 8090)",
+      "Bash(Start-Sleep -Seconds 1)",
+      "Bash(Invoke-WebRequest -Uri \"http://localhost:8090/index.html\" -UseBasicParsing)",
+      "Bash(Select-Object -ExpandProperty Content)",
+      "Bash(Select-String \"theme-toggle|theme.css|theme.js\")",
+      "Bash(Select-Object -First 10)",
+      "Bash(python apply_theme.py)"
     ]
   }
 }

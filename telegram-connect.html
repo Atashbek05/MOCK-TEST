@@ -315,13 +315,21 @@ body {
 }
 .btn-dashboard:hover { background: #1d4ed8; }
 </style>
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
 </head>
 <body>
 
 <!-- ── Top bar ───────────────────────────────────────────────────────────── -->
 <div class="top-bar">
   <a class="logo" href="index.html">IELTS <span class="accent">MOCK</span></a>
-  <a class="back-btn" href="dashboard.html">← Dashboard</a>
+  <div style="display:flex;align-items:center;gap:10px;">
+
+      <button id="theme-toggle" aria-label="Switch to dark mode" title="Switch to dark mode"></button>
+
+      <a class="back-btn" href="dashboard.html">← Dashboard</a>
+
+  </div>
 </div>
 
 <!-- ── Card ──────────────────────────────────────────────────────────────── -->

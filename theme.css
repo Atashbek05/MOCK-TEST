@@ -1,0 +1,589 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME TOGGLE — Dark Mode Overrides
+   Applied via html.dark class (set/removed by theme.js)
+   This file is linked AFTER inline <style> blocks so html.dark selectors
+   (higher specificity) cleanly override the base styles.
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Dark mode meta color ───────────────────────────────────────────────── */
+html.dark {
+  color-scheme: dark;
+}
+
+/* ── Toggle Button ──────────────────────────────────────────────────────── */
+#theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  border: 1.5px solid #e2e8f0;
+  background: white;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  flex-shrink: 0;
+  line-height: 1;
+  padding: 0;
+}
+
+#theme-toggle:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+  transform: translateY(-1px);
+}
+
+html.dark #theme-toggle {
+  background: #1e293b;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
+html.dark #theme-toggle:hover {
+  background: #334155;
+  border-color: #64748b;
+}
+
+/* ── Base ───────────────────────────────────────────────────────────────── */
+html.dark body {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+html.dark .header {
+  background: rgba(15, 23, 42, 0.96) !important;
+  border-bottom-color: #334155;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+html.dark .logo {
+  color: #f1f5f9;
+}
+
+html.dark .header-logo {
+  color: #f1f5f9;
+}
+
+html.dark .header-name {
+  color: #cbd5e1;
+}
+
+html.dark .nav-link {
+  color: #94a3b8;
+}
+
+html.dark .nav-link:hover {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+html.dark .nav-link.active {
+  background: #1e3a5f;
+  color: #60a5fa;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+html.dark .btn-login {
+  background: #1e293b;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+html.dark .btn-login:hover {
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
+html.dark .btn-logout {
+  background: transparent;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+html.dark .btn-logout:hover {
+  background: #2d1a1a;
+  color: #f87171;
+  border-color: #7f1d1d;
+}
+
+/* ── Cards / Blocks / Sections ──────────────────────────────────────────── */
+html.dark .card,
+html.dark .block,
+html.dark .section-card,
+html.dark .score-card,
+html.dark .stat-card,
+html.dark .test-card,
+html.dark .history-card,
+html.dark .result-card,
+html.dark .analytics-card,
+html.dark .summary-card,
+html.dark .tip-card,
+html.dark .info-card,
+html.dark .action-card,
+html.dark .question-card,
+html.dark .skill-card,
+html.dark .achievement-card,
+html.dark .streak-card,
+html.dark .recent-card,
+html.dark .quick-card,
+html.dark .module-card,
+html.dark .exam-card,
+html.dark .mock-card,
+html.dark .panel,
+html.dark .box {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+/* ── Named block elements across pages ──────────────────────────────────── */
+html.dark .stats-block,
+html.dark .tests-block,
+html.dark .block-inner,
+html.dark .score-section,
+html.dark .coach-block,
+html.dark .review-block,
+html.dark .content-block,
+html.dark .detail-block,
+html.dark .feedback-block,
+html.dark .writing-block,
+html.dark .answer-block,
+html.dark .passage-block,
+html.dark .question-block,
+html.dark .progress-block,
+html.dark .student-block,
+html.dark .teacher-block,
+html.dark .test-block,
+html.dark .modal-content,
+html.dark .dropdown,
+html.dark .dropdown-menu,
+html.dark .tooltip {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+/* Generic white/light backgrounds */
+html.dark [style*="background: white"],
+html.dark [style*="background:white"],
+html.dark [style*="background: #fff"],
+html.dark [style*="background:#fff"],
+html.dark [style*="background: #ffffff"],
+html.dark [style*="background:#ffffff"],
+html.dark [style*="background: #f8fafc"],
+html.dark [style*="background:#f8fafc"],
+html.dark [style*="background: #f1f5f9"],
+html.dark [style*="background:#f1f5f9"] {
+  background: #1e293b !important;
+}
+
+/* ── Text Colors ────────────────────────────────────────────────────────── */
+html.dark .text-gray,
+html.dark .text-muted,
+html.dark .subtitle,
+html.dark .meta,
+html.dark .label,
+html.dark .hint,
+html.dark .caption {
+  color: #94a3b8;
+}
+
+html.dark .block-title,
+html.dark .section-title,
+html.dark .card-title,
+html.dark .page-title {
+  color: #f1f5f9;
+}
+
+/* ── Borders ────────────────────────────────────────────────────────────── */
+html.dark .border,
+html.dark [class*="border-"] {
+  border-color: #334155;
+}
+
+/* Dividers */
+html.dark hr {
+  border-color: #334155;
+}
+
+/* ── Forms / Inputs ─────────────────────────────────────────────────────── */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background: #1e293b;
+  color: #e2e8f0;
+  border-color: #475569;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748b;
+}
+
+html.dark input:focus,
+html.dark textarea:focus,
+html.dark select:focus {
+  border-color: #60a5fa;
+  outline-color: #60a5fa;
+  background: #1e293b;
+}
+
+html.dark input[type="radio"],
+html.dark input[type="checkbox"] {
+  accent-color: #3b82f6;
+}
+
+html.dark label {
+  color: #cbd5e1;
+}
+
+/* ── Tables ─────────────────────────────────────────────────────────────── */
+html.dark table {
+  background: #1e293b;
+}
+
+html.dark th {
+  background: #0f172a;
+  color: #94a3b8;
+  border-color: #334155;
+}
+
+html.dark td {
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+html.dark tr:hover td {
+  background: #334155;
+}
+
+/* ── Scrollbar (Webkit) ─────────────────────────────────────────────────── */
+html.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* ── Specific page elements ─────────────────────────────────────────────── */
+
+/* History page */
+html.dark .history-item,
+html.dark .history-row {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .history-item:hover,
+html.dark .history-row:hover {
+  background: #263548;
+}
+
+/* Result page */
+html.dark .band-box,
+html.dark .skill-row,
+html.dark .criterion-row {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+/* Reading/Listening/Writing exam pages */
+html.dark .question-area,
+html.dark .passage-area,
+html.dark .text-area-wrap,
+html.dark .answer-area {
+  background: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+html.dark .question-item {
+  border-color: #334155;
+}
+
+html.dark .question-item:hover {
+  background: #263548;
+}
+
+html.dark .option-label {
+  color: #e2e8f0;
+}
+
+html.dark .option-label:hover {
+  background: #263548;
+}
+
+/* Dashboard specific */
+html.dark .score-card {
+  background: #1e293b;
+}
+
+html.dark .score-card-header {
+  border-bottom-color: #334155;
+}
+
+html.dark .achievement-icon {
+  background: #0f172a;
+}
+
+/* Teacher pages */
+html.dark .student-row {
+  border-bottom-color: #334155;
+}
+
+html.dark .student-row:hover {
+  background: #263548;
+}
+
+html.dark .test-item,
+html.dark .test-row {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+/* Modal overlays */
+html.dark .modal-overlay,
+html.dark .overlay {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+html.dark .modal,
+html.dark .modal-body,
+html.dark .coach-modal,
+html.dark .review-modal {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .coach-modal-header,
+html.dark .review-modal-header,
+html.dark .modal-header {
+  border-bottom-color: #334155;
+}
+
+/* ── Section stepper / progress ─────────────────────────────────────────── */
+html.dark .section-stepper {
+  background: #1e293b;
+  border-bottom-color: #334155;
+}
+
+html.dark .step {
+  color: #94a3b8;
+}
+
+html.dark .step.active {
+  color: #60a5fa;
+}
+
+html.dark .step-dot {
+  background: #334155;
+  border-color: #475569;
+}
+
+html.dark .step.active .step-dot {
+  background: #2563eb;
+  border-color: #3b82f6;
+}
+
+/* ── Timer ──────────────────────────────────────────────────────────────── */
+html.dark .timer {
+  background: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+/* ── Tabs ───────────────────────────────────────────────────────────────── */
+html.dark .tab,
+html.dark .tab-btn {
+  color: #94a3b8;
+  border-color: #334155;
+}
+
+html.dark .tab.active,
+html.dark .tab-btn.active {
+  background: #1e3a5f;
+  color: #60a5fa;
+  border-color: #3b82f6;
+}
+
+/* ── Join page ──────────────────────────────────────────────────────────── */
+html.dark .join-card,
+html.dark .auth-card,
+html.dark .login-card,
+html.dark .register-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+/* ── Telegram connect page ──────────────────────────────────────────────── */
+html.dark .connect-card,
+html.dark .tg-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+/* ── Loading / skeleton states ──────────────────────────────────────────── */
+html.dark .skeleton,
+html.dark .loading-placeholder {
+  background: #334155;
+}
+
+/* ── Badge / chip elements ──────────────────────────────────────────────── */
+html.dark .badge:not([class*="badge-"]) {
+  background: #334155;
+  color: #cbd5e1;
+}
+
+/* ── Notification / alert ───────────────────────────────────────────────── */
+html.dark .alert,
+html.dark .notice,
+html.dark .warning {
+  background: #263548;
+  border-color: #334155;
+}
+
+/* ── Footer (if any) ────────────────────────────────────────────────────── */
+html.dark footer {
+  background: #0f172a;
+  border-top-color: #334155;
+}
+
+/* ── Top-bar (login / register / telegram-connect pages) ────────────────── */
+html.dark .top-bar {
+  background: transparent;
+}
+
+html.dark .nav-btn,
+html.dark .back-btn {
+  background: #1e293b;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+html.dark .nav-btn:hover,
+html.dark .back-btn:hover {
+  background: #263548;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
+/* ── Auth cards (login / register / join / telegram-connect) ────────────── */
+html.dark .card {
+  background: #1e293b;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3), 0 16px 48px rgba(0,0,0,0.4);
+}
+
+html.dark .card-title {
+  color: #f1f5f9;
+}
+
+html.dark .card-sub {
+  color: #64748b;
+}
+
+html.dark .field-label {
+  color: #cbd5e1;
+}
+
+html.dark .field-input {
+  background: #0f172a;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+html.dark .field-input:focus {
+  border-color: #3b82f6;
+  background: #0f172a;
+}
+
+html.dark .field-input::placeholder {
+  color: #475569;
+}
+
+html.dark .field-error {
+  color: #f87171;
+}
+
+/* ── Join page specific ──────────────────────────────────────────────────── */
+html.dark .join-box,
+html.dark .join-content,
+html.dark .join-form {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+/* ── Inline color overrides for tg-app style elements ───────────────────── */
+html.dark [style*="color:#6b7280"],
+html.dark [style*="color: #6b7280"] {
+  color: #94a3b8 !important;
+}
+
+html.dark [style*="color:#374151"],
+html.dark [style*="color: #374151"] {
+  color: #cbd5e1 !important;
+}
+
+html.dark [style*="background:#f8fafc"],
+html.dark [style*="background: #f8fafc"] {
+  background: #1e293b !important;
+}
+
+html.dark [style*="border-color:#e2e8f0"],
+html.dark [style*="border: 1.5px solid #e2e8f0"],
+html.dark [style*="border:1.5px solid #e2e8f0"] {
+  border-color: #334155 !important;
+}
+
+/* ── btn-back (various pages) ───────────────────────────────────────────── */
+html.dark .btn-back {
+  color: #94a3b8;
+  border-color: #334155;
+  background: transparent;
+}
+
+html.dark .btn-back:hover {
+  color: #e2e8f0;
+  background: #1e293b;
+}
+
+/* ── btn-submit-top (listening exam) ────────────────────────────────────── */
+html.dark .btn-submit-top {
+  background: #1d4ed8;
+}
+
+/* ── Sign out / sign-out buttons ────────────────────────────────────────── */
+html.dark .btn-signout {
+  background: transparent;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+html.dark .btn-signout:hover {
+  background: #2d1a1a;
+  color: #f87171;
+  border-color: #7f1d1d;
+}
+
+/* ── tg-app header ──────────────────────────────────────────────────────── */
+html.dark .header .title {
+  color: #f1f5f9;
+}
+
+html.dark .header .sub {
+  color: #94a3b8;
+}
+
+/* ── Floating theme toggle for pages with no header ────────────────────── */
+#theme-toggle.floating {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}

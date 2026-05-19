@@ -381,6 +381,8 @@ body {
   }
 }
 </style>
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
 </head>
 
 <body>
@@ -389,7 +391,10 @@ body {
 <div class="header">
   <div class="logo">IELTS MOCK TEST</div>
   <div id="timer" class="timer">60:00</div>
-  <div class="header-label">Reading Test</div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button id="theme-toggle" aria-label="Switch to dark mode" title="Switch to dark mode"></button>
+    <div class="header-label">Reading Test</div>
+  </div>
 </div>
 
 <!-- Section progress -->

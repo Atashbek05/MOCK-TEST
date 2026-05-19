@@ -548,6 +548,8 @@ body {
 .stat-card:nth-child(2) .stat-icon { animation-delay: 0.4s; }
 .stat-card:nth-child(3) .stat-icon { animation-delay: 0.8s; }
 </style>
+<link rel="stylesheet" href="theme.css">
+<script src="theme.js"></script>
 </head>
 
 <body>
@@ -564,6 +566,7 @@ body {
   </nav>
 
   <div class="header-right">
+    <button id="theme-toggle" aria-label="Switch to dark mode" title="Switch to dark mode"></button>
     <span class="header-name" id="header-name">Loading…</span>
     <a href="telegram-connect.html" id="tg-badge"
        style="display:none;font-size:12px;font-weight:700;padding:5px 10px;border-radius:20px;
