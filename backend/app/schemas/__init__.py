@@ -1,9 +1,554 @@
-﻿# Pydantic schema definitions package
-# Schemas define the shape of API request/response bodies
+from datetime import datetime
+from typing import Any, List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
+
+
+class UserRegister(BaseModel):
+    name: str = Field(..., min_length=2, max_length=100)
+    email: EmailStr
+    password: str = Field(..., min_length=6, max_length=128)
+    role: str = Field("student", regex="^(student|teacher)$")
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=6, max_length=128)
 
 
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class UserOut(BaseModel):
+    id: int
+    name: str
+    email: EmailStr
+    role: str
+    telegram_id: Optional[int] = None
+    telegram_username: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+
+class TelegramAuthIn(BaseModel):
+    id: int
+    first_name: str
+    last_name: Optional[str] = None
+    username: Optional[str] = None
+    photo_url: Optional[str] = None
+    auth_date: int
+    hash: str
+
+
+class TelegramMiniAppAuthIn(BaseModel):
+    init_data: str
+
+
+class ResultCreate(BaseModel):
+    reading_score: float = Field(..., ge=0, le=9)
+    listening_score: float = Field(..., ge=0, le=9)
+    writing_score: float = Field(..., ge=0, le=9)
+    overall: float = Field(..., ge=0, le=9)
+
+
+class ResultOut(BaseModel):
+    id: int
+    reading_score: float
+    listening_score: float
+    writing_score: float
+    overall: float
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class DashboardOut(BaseModel):
+    user: UserOut
+    level: str
+    latest_results: List[ResultOut]
+
+
+class QuestionOut(BaseModel):
+    id: int
+    question_text: str
+    option_a: str
+    option_b: str
+    option_c: str
+    option_d: str
+
+    class Config:
+        orm_mode = True
+
+
+class TestOut(BaseModel):
+    id: int
+    type: str
+    passage: str
+    questions: List[QuestionOut]
+
+    class Config:
+        orm_mode = True
+
+
+class SubmitTestIn(BaseModel):
+    test_id: int
+    answers: dict
+
+
+class SubmitResultOut(BaseModel):
+    correct: int
+    total: int
+    band: float
+
+
+class SubmitWritingIn(BaseModel):
+    essay: str = Field(..., min_length=50, max_length=6000)
+    mock_attempt_id: Optional[int] = None
+
+
+class WritingSubmitOut(BaseModel):
+    id: int
+    band_score: float
+    word_count: int
+    feedback: str
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class WritingHistoryItemOut(BaseModel):
+    id: int
+    band_score: float
+    word_count: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class ReadingQuestionOut(BaseModel):
+    id: int
+    question_text: str
+    option_a: str
+    option_b: str
+    option_c: str
+    option_d: str
+
+    class Config:
+        orm_mode = True
+
+
+class ReadingPassageOut(BaseModel):
+    id: int
+    order: int
+    title: str
+    text: str
+    questions: List[ReadingQuestionOut]
+
+    class Config:
+        orm_mode = True
+
+
+class ReadingTestOut(BaseModel):
+    id: int
+    title: str
+    passages: List[ReadingPassageOut]
+
+    class Config:
+        orm_mode = True
+
+
+class ReadingTestListItem(BaseModel):
+    id: int
+    title: str
+
+    class Config:
+        orm_mode = True
+
+
+class SubmitReadingIn(BaseModel):
+    test_id: int
+    answers: dict
+
+
+class ReadingResultOut(BaseModel):
+    correct: int
+    total: int
+    band: float
+
+
+class TeacherQuestionIn(BaseModel):
+    question_text: str = Field(..., min_length=5)
+    option_a: str = Field(..., min_length=1)
+    option_b: str = Field(..., min_length=1)
+    option_c: str = Field(..., min_length=1)
+    option_d: str = Field(..., min_length=1)
+    correct_answer: str = Field(..., regex="^[ABCD]$")
+
+
+class TeacherPassageIn(BaseModel):
+    order: int = Field(..., ge=1)
+    title: str = Field(..., min_length=2)
+    text: str = Field(..., min_length=5)
+    audio_url: Optional[str] = None
+    questions: List[TeacherQuestionIn] = []
+
+
+class TeacherTestIn(BaseModel):
+    title: str = Field(..., min_length=3, max_length=300)
+    description: str = ""
+    test_type: str = "reading"
+    passages: List[TeacherPassageIn]
+
+
+class TeacherQuestionOut(BaseModel):
+    id: int
+    question_text: str
+    option_a: str
+    option_b: str
+    option_c: str
+    option_d: str
+    correct_answer: str
+
+    class Config:
+        orm_mode = True
+
+
+class TeacherPassageOut(BaseModel):
+    id: int
+    order: int
+    title: str
+    text: str
+    audio_url: Optional[str] = None
+    questions: List[TeacherQuestionOut]
+
+    class Config:
+        orm_mode = True
+
+
+class TeacherTestOut(BaseModel):
+    id: int
+    title: str
+    description: str
+    test_type: str
+    pin_code: Optional[str]
+    is_active: bool
+    created_at: datetime
+    passages: List[TeacherPassageOut]
+
+    class Config:
+        orm_mode = True
+
+
+class TeacherTestSummary(BaseModel):
+    id: int
+    title: str
+    description: str
+    test_type: str
+    pin_code: Optional[str]
+    is_active: bool
+    created_at: datetime
+    passage_count: int
+    question_count: int
+    enrolled_count: int
+
+    class Config:
+        orm_mode = True
+
+
+class TeacherWritingEssayIn(BaseModel):
+    passage_id: int
+    essay_text: str = Field(..., min_length=50, max_length=6000)
+
+
+class TeacherWritingSubmitIn(BaseModel):
+    test_id: int
+    essays: List[TeacherWritingEssayIn]
+
+
+class TeacherWritingTaskResult(BaseModel):
+    passage_id: int
+    passage_title: str
+    band: float
+    word_count: int
+    feedback: str
+
+
+class JoinTestIn(BaseModel):
+    pin: str = Field(..., min_length=4, max_length=10)
+
+
+class TeacherStudentResult(BaseModel):
+    student_id: int
+    student_name: str
+    student_email: str
+    correct: int
+    total: int
+    band: float
+    attempts: int
+    latest_at: datetime
+
+
+class TeacherResultsOverview(BaseModel):
+    test_id: int
+    test_title: str
+    pin_code: Optional[str]
+    is_active: bool
+    enrolled_count: int
+    submission_count: int
+    unique_completions: int
+    avg_band: float
+    best_band: float
+    passage_count: int
+    question_count: int
+
+
+class ExamSessionCreate(BaseModel):
+    reading_band: float = Field(..., ge=0, le=9)
+    listening_band: float = Field(..., ge=0, le=9)
+    writing_band: float = Field(..., ge=0, le=9)
+    overall_band: float = Field(..., ge=0, le=9)
+    duration_minutes: int = Field(0, ge=0)
+
+
+class ExamSessionOut(BaseModel):
+    id: int
+    reading_band: float
+    listening_band: float
+    writing_band: float
+    overall_band: float
+    duration_minutes: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class TeacherAnalyticsSummary(BaseModel):
+    total_tests: int
+    unique_students: int
+    total_submissions: int
+    overall_avg_band: float
+    overall_best_band: float
+    completion_rate: float
+    total_attempts: int
+
+
+class StudentAnalyticsStat(BaseModel):
+    student_id: int
+    student_name: str
+    student_email: str
+    best_band: float
+    avg_band: float
+    total_attempts: int
+    tests_enrolled: int
+    tests_completed: int
+    last_active_at: Optional[datetime]
+    is_weak: bool
+
+
+class IELTSQuestionOut(BaseModel):
+    id: int
+    global_number: int
+    local_order: int
+    stem: str
+    options: Optional[list] = None
+
+    class Config:
+        orm_mode = True
+
+
+class IELTSQuestionGroupOut(BaseModel):
+    id: int
+    order: int
+    question_type: str
+    instruction: str
+    word_limit: Optional[int] = None
+    options_pool: Optional[dict] = None
+    questions: List[IELTSQuestionOut]
+
+    class Config:
+        orm_mode = True
+
+
+class IELTSPassageOut(BaseModel):
+    id: int
+    order: int
+    title: str
+    body_text: str
+    image_url: Optional[str] = None
+    question_groups: List[IELTSQuestionGroupOut]
+
+    class Config:
+        orm_mode = True
+
+
+class IELTSTestOut(BaseModel):
+    id: int
+    title: str
+    test_type: str
+    component: str
+    time_limit: int
+    passages: List[IELTSPassageOut]
+
+    class Config:
+        orm_mode = True
+
+
+class IELTSTestListItem(BaseModel):
+    id: int
+    title: str
+    test_type: str
+    component: str
+    time_limit: int
+    best_band: Optional[float] = None
+    attempt_count: Optional[int] = None
+
+    class Config:
+        orm_mode = True
+
+
+class StartAttemptOut(BaseModel):
+    attempt_id: int
+    test: IELTSTestOut
+
+
+class SaveAnswerIn(BaseModel):
+    question_id: int
+    answer_value: Optional[str] = None
+    is_flagged: Optional[bool] = None
+
+
+class PerQuestionResult(BaseModel):
+    question_id: int
+    global_number: int
+    correct: bool
+    student_answer: Optional[str]
+    correct_answer: str
+
+
+class SubmitAttemptOut(BaseModel):
+    attempt_id: int
+    raw_score: int
+    total_questions: int
+    band_score: float
+    time_spent: int
+    per_question: List[PerQuestionResult]
+
+
+class IELTSQuestionIn(BaseModel):
+    local_order: int
+    stem: str
+    options: Optional[list] = None
+    correct_answer: str
+    answer_variants: Optional[list] = None
+
+
+class IELTSQuestionGroupIn(BaseModel):
+    order: int
+    question_type: str
+    instruction: str
+    word_limit: Optional[int] = None
+    options_pool: Optional[dict] = None
+    questions: List[IELTSQuestionIn]
+
+
+class IELTSPassageIn(BaseModel):
+    order: int
+    title: str
+    body_text: str
+    image_url: Optional[str] = None
+    question_groups: List[IELTSQuestionGroupIn]
+
+
+class IELTSTestIn(BaseModel):
+    title: str
+    test_type: str = "academic"
+    component: str = "reading"
+    time_limit: int = 60
+    passages: List[IELTSPassageIn]
+
+
+class ListeningQuestionOut(BaseModel):
+    id: int
+    global_number: int
+    local_order: int
+    question_type: str
+    stem: str
+    options: Optional[Any] = None
+    group_instruction: Optional[str] = None
+    map_image_url: Optional[str] = None
+
+    class Config:
+        orm_mode = True
+
+
+class ListeningPartOut(BaseModel):
+    id: int
+    part_number: int
+    context_description: Optional[str] = None
+    audio_url: Optional[str] = None
+    questions: List[ListeningQuestionOut] = []
+
+    class Config:
+        orm_mode = True
+
+
+class ListeningSectionOut(BaseModel):
+    id: int
+    title: str
+    difficulty: int
+    parts: List[ListeningPartOut] = []
+
+    class Config:
+        orm_mode = True
+
+
+class MockSlotOut(BaseModel):
+    slot_number: int
+    attempt_id: Optional[int] = None
+    status: Optional[str] = None
+    current_section: Optional[str] = None
+    listening_band: Optional[float] = None
+    reading_band: Optional[float] = None
+    writing_band: Optional[float] = None
+    overall_band: Optional[float] = None
+
+    class Config:
+        orm_mode = True
+
+
+class MockAttemptOut(BaseModel):
+    id: int
+    slot_number: int
+    status: str
+    current_section: str
+    listening_section_id: int
+    reading_test_id: int
+    writing_task1_id: int
+    writing_task2_id: int
+    listening_band: Optional[float] = None
+    reading_band: Optional[float] = None
+    writing_band: Optional[float] = None
+    overall_band: Optional[float] = None
+    listening_submitted_at: Optional[datetime] = None
+    reading_submitted_at: Optional[datetime] = None
+    writing_submitted_at: Optional[datetime] = None
+    ielts_attempt_id: Optional[int] = None
+
+    class Config:
+        orm_mode = True
+
+
+class ListeningAnswerIn(BaseModel):
+    question_id: int
+    answer_value: Optional[str] = None
+
+
+class ListeningSubmitIn(BaseModel):
+    answers: List[ListeningAnswerIn]
