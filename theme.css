@@ -320,6 +320,23 @@ html.dark .option-label:hover {
 }
 
 /* Dashboard specific */
+html.dark .hero {
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+
+html.dark .hero-subtitle {
+  color: rgba(226, 232, 240, 0.65);
+}
+
+html.dark .hero-meta {
+  color: #64748b;
+}
+
+html.dark .stat-number {
+  color: #f1f5f9;
+}
+
 html.dark .score-card {
   background: #1e293b;
 }
