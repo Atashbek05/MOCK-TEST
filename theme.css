@@ -465,6 +465,296 @@ html.dark .warning {
   border-color: #334155;
 }
 
+/* ── Teacher Dashboard specific ─────────────────────────────────────────── */
+html.dark .feature-card {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.3);
+}
+
+html.dark .feature-card:hover {
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+}
+
+html.dark .feature-title {
+  color: #f1f5f9;
+}
+
+html.dark .feature-desc {
+  color: #94a3b8;
+}
+
+html.dark .tests-empty {
+  background: #1e293b;
+  border-color: #334155;
+  color: #64748b;
+}
+
+html.dark .info-banner {
+  background: #162032;
+  border-color: #1e4034;
+}
+
+html.dark .info-banner .info-text h3 {
+  color: #6ee7b7;
+}
+
+html.dark .info-banner .info-text p {
+  color: #4ade80;
+}
+
+html.dark .tg-banner {
+  background: #1a2a3a !important;
+  border-color: #2d4a6a !important;
+}
+
+html.dark .tg-banner.connected {
+  background: #162032 !important;
+  border-color: #1e4034 !important;
+}
+
+html.dark .tg-banner-title {
+  color: #93c5fd !important;
+}
+
+html.dark .tg-banner.connected .tg-banner-title {
+  color: #6ee7b7 !important;
+}
+
+html.dark .tg-banner-sub {
+  color: #64748b !important;
+}
+
+html.dark .btn-icon {
+  background: #263548;
+  color: #cbd5e1;
+}
+
+html.dark .btn-icon:hover {
+  background: #334155;
+}
+
+html.dark .btn-icon.danger:hover {
+  background: #3f1f1f;
+}
+
+html.dark .stat-label {
+  color: #64748b;
+}
+
+html.dark .stat-value {
+  color: #f1f5f9;
+}
+
+html.dark .stat-sub {
+  color: #475569;
+}
+
+html.dark .header-center {
+  background: #162032;
+  border-color: #1e4034;
+  color: #6ee7b7;
+}
+
+html.dark .pin-badge {
+  background: #162032;
+  border-color: #1e4034;
+  color: #6ee7b7;
+}
+
+html.dark .pin-badge:hover {
+  background: #1a2e24;
+  border-color: #166534;
+}
+
+html.dark .fi-green  { background: #0d2e20; }
+html.dark .fi-blue   { background: #0d1f3a; }
+html.dark .fi-orange { background: #2e1a0a; }
+html.dark .fi-yellow { background: #2a1e05; }
+
+html.dark .test-item-title {
+  color: #f1f5f9;
+}
+
+html.dark .test-item-meta {
+  color: #64748b;
+}
+
+html.dark .test-item-icon {
+  background: #1a2a3a;
+}
+
+/* ── Dashboard (student) specific ───────────────────────────────────────── */
+html.dark .btn-start {
+  background: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+html.dark .btn-start:hover {
+  background: #263548;
+}
+
+html.dark .chart-wrap {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .empty-card {
+  background: #1e293b;
+  border-color: #334155;
+  color: #64748b;
+}
+
+html.dark .pin-join-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .pin-input {
+  background: #0f172a;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+html.dark .joined-test-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .badge-inactive {
+  background: #263548;
+  color: #64748b;
+}
+
+html.dark .s-coming {
+  background: #263548;
+  color: #64748b;
+}
+
+html.dark .coach-modal-close,
+html.dark .review-modal-close {
+  background: #263548;
+  color: #94a3b8;
+}
+
+html.dark .coach-modal-close:hover,
+html.dark .review-modal-close:hover {
+  background: #334155;
+}
+
+html.dark .coach-summary {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+html.dark .review-mistake-item {
+  background: #2a1a0d;
+  border-color: #92400e;
+}
+
+html.dark .circle-moderate {
+  background: #2a1e05;
+}
+
+html.dark .s-writing {
+  background: #2a1505;
+}
+
+/* ── Teacher Students / Analytics pages ─────────────────────────────────── */
+html.dark .test-info-bar {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .info-chip {
+  background: #263548;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+html.dark .rank-badge,
+html.dark .rank-num {
+  background: #263548;
+  color: #94a3b8;
+}
+
+html.dark .score-bar-wrap,
+html.dark .mini-bar-track {
+  background: #334155;
+}
+
+html.dark .meta-attempts,
+html.dark .attempts-badge {
+  background: #263548;
+  color: #94a3b8;
+}
+
+html.dark .empty-state {
+  background: #1e293b;
+  border-color: #334155;
+  color: #64748b;
+}
+
+html.dark .section {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .section-icon {
+  background: #2a1e05;
+}
+
+/* ── Teacher Create Test page ───────────────────────────────────────────── */
+html.dark .type-tab {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+html.dark .type-tab:hover {
+  background: #263548;
+}
+
+html.dark .field-textarea {
+  background: #0f172a;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+html.dark .audio-upload-area {
+  background: #1e293b;
+  border-color: #475569;
+}
+
+html.dark .q-counter {
+  background: #263548;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+/* ── Writing Result / Final Result pages ────────────────────────────────── */
+html.dark .band-card,
+html.dark .criterion-card,
+html.dark .feedback-card,
+html.dark .congrats-card,
+html.dark .performance-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+/* ── Join page specific ─────────────────────────────────────────────────── */
+html.dark .pin-box {
+  background: #0f172a;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+html.dark .chip {
+  background: #263548;
+  color: #94a3b8;
+}
+
 /* ── Footer (if any) ────────────────────────────────────────────────────── */
 html.dark footer {
   background: #0f172a;
