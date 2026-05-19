@@ -1,4 +1,4 @@
-﻿"""
+"""
 scam_detector.py — AI scam detection model wrapper (not yet implemented).
 
 This file will contain:
@@ -14,7 +14,7 @@ Planned model approaches (to be chosen during implementation):
 
 Usage (future):
     model = ScamDetectorModel()
-    model.load("app/models/weights/scam_classifier_v1.pt")
+    model.load("app/ai_models/weights/scam_classifier_v1.pt")
     result = model.predict("You won a prize! Click here to claim.")
 """
 
