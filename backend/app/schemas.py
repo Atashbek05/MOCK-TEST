@@ -8,7 +8,7 @@ class UserRegister(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     email: EmailStr
     password: str = Field(..., min_length=6, max_length=128)
-    role: str = Field("student", regex="^(student|teacher)$")
+    role: str = Field("student", pattern="^(student|teacher)$")
 
 
 class UserLogin(BaseModel):
@@ -30,7 +30,7 @@ class UserOut(BaseModel):
     telegram_username: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # ── Telegram Integration (Phase 6) ───────────────────────────────────────────
@@ -67,7 +67,7 @@ class ResultOut(BaseModel):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class DashboardOut(BaseModel):
@@ -87,7 +87,7 @@ class QuestionOut(BaseModel):
     option_d: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class TestOut(BaseModel):
@@ -97,7 +97,7 @@ class TestOut(BaseModel):
     questions: List[QuestionOut]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class SubmitTestIn(BaseModel):
@@ -126,7 +126,7 @@ class WritingSubmitOut(BaseModel):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class WritingHistoryItemOut(BaseModel):
@@ -136,7 +136,7 @@ class WritingHistoryItemOut(BaseModel):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # ── Multiple Reading Tests schemas ───────────────────────────────────────────
@@ -150,7 +150,7 @@ class ReadingQuestionOut(BaseModel):
     option_d: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ReadingPassageOut(BaseModel):
@@ -161,7 +161,7 @@ class ReadingPassageOut(BaseModel):
     questions: List[ReadingQuestionOut]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ReadingTestOut(BaseModel):
@@ -170,7 +170,7 @@ class ReadingTestOut(BaseModel):
     passages: List[ReadingPassageOut]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ReadingTestListItem(BaseModel):
@@ -178,7 +178,7 @@ class ReadingTestListItem(BaseModel):
     title: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class SubmitReadingIn(BaseModel):
@@ -200,7 +200,7 @@ class TeacherQuestionIn(BaseModel):
     option_b: str = Field(..., min_length=1)
     option_c: str = Field(..., min_length=1)
     option_d: str = Field(..., min_length=1)
-    correct_answer: str = Field(..., regex="^[ABCD]$")
+    correct_answer: str = Field(..., pattern="^[ABCD]$")
 
 
 class TeacherPassageIn(BaseModel):
@@ -230,7 +230,7 @@ class TeacherQuestionOut(BaseModel):
     correct_answer: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class TeacherPassageOut(BaseModel):
@@ -242,7 +242,7 @@ class TeacherPassageOut(BaseModel):
     questions: List[TeacherQuestionOut]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class TeacherTestOut(BaseModel):
@@ -256,7 +256,7 @@ class TeacherTestOut(BaseModel):
     passages: List[TeacherPassageOut]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class TeacherTestSummary(BaseModel):
@@ -272,7 +272,7 @@ class TeacherTestSummary(BaseModel):
     enrolled_count: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class TeacherWritingEssayIn(BaseModel):
@@ -346,7 +346,7 @@ class ExamSessionOut(BaseModel):
     created_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # ── Phase 5: Teacher Analytics schemas ───────────────────────────────────────
@@ -385,7 +385,7 @@ class IELTSQuestionOut(BaseModel):
     # correct_answer intentionally omitted — never sent to student during exam
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class IELTSQuestionGroupOut(BaseModel):
@@ -398,7 +398,7 @@ class IELTSQuestionGroupOut(BaseModel):
     questions: List[IELTSQuestionOut]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class IELTSPassageOut(BaseModel):
@@ -410,7 +410,7 @@ class IELTSPassageOut(BaseModel):
     question_groups: List[IELTSQuestionGroupOut]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class IELTSTestOut(BaseModel):
@@ -422,7 +422,7 @@ class IELTSTestOut(BaseModel):
     passages: List[IELTSPassageOut]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class IELTSTestListItem(BaseModel):
@@ -435,7 +435,7 @@ class IELTSTestListItem(BaseModel):
     attempt_count: Optional[int] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class StartAttemptOut(BaseModel):
@@ -514,7 +514,7 @@ class ListeningQuestionOut(BaseModel):
     map_image_url: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ListeningPartOut(BaseModel):
@@ -525,7 +525,7 @@ class ListeningPartOut(BaseModel):
     questions: List[ListeningQuestionOut] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ListeningSectionOut(BaseModel):
@@ -535,7 +535,7 @@ class ListeningSectionOut(BaseModel):
     parts: List[ListeningPartOut] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class MockSlotOut(BaseModel):
@@ -549,7 +549,7 @@ class MockSlotOut(BaseModel):
     overall_band: Optional[float] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class MockAttemptOut(BaseModel):
@@ -571,7 +571,7 @@ class MockAttemptOut(BaseModel):
     ielts_attempt_id: Optional[int] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ListeningAnswerIn(BaseModel):
