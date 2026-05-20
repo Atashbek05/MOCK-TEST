@@ -82,14 +82,15 @@ def _cmd_start(chat_id: int, first_name: str, tg_id: Optional[int] = None) -> No
             "🎯 <b>IELTS Mock Test Platform</b>\n\n"
             "Practice Reading, Listening and Writing\n"
             "with AI-powered feedback.\n\n"
-            "📌 <b>Commands:</b>\n"
-            "/review — AI review of your last test\n"
-            "/progress — Your stats\n"
-            "/latestscore — Last test result\n\n"
-            "Tap the button below to open the platform 👇"
+            "Tap a button below 👇"
         )
         keyboard = {
             "inline_keyboard": [
+                [
+                    {"text": "📋 Review", "callback_data": "btn_review"},
+                    {"text": "📊 Progress", "callback_data": "btn_progress"},
+                    {"text": "🏆 Latest Score", "callback_data": "btn_latestscore"},
+                ],
                 [{"text": "🚀 Open Dashboard", "url": f"{APP_URL}/dashboard.html"}],
             ]
         }
@@ -99,12 +100,7 @@ def _cmd_start(chat_id: int, first_name: str, tg_id: Optional[int] = None) -> No
             "🎯 <b>IELTS Mock Test Platform</b>\n\n"
             "Practice Reading, Listening and Writing\n"
             "with AI-powered feedback.\n\n"
-            "📌 <b>Commands:</b>\n"
-            "/review — AI review of your last test\n"
-            "/progress — Your stats\n"
-            "/latestscore — Last test result\n"
-            "/link — Link your account\n\n"
-            "Tap the button below to open the platform 👇"
+            "Link your account to get started 👇"
         )
         keyboard = {
             "inline_keyboard": [
@@ -812,7 +808,15 @@ def _handle(update: dict) -> None:
         cq_data  = cq.get("data", "")
         cq_chat  = cq.get("message", {}).get("chat", {}).get("id")
         cq_tg_id = cq.get("from", {}).get("id")
-        if cq_data.startswith("rev_") and cq_chat and cq_tg_id:
+        if not cq_chat or not cq_tg_id:
+            return
+        if cq_data == "btn_review":
+            _cmd_test_list(cq_chat, cq_tg_id)
+        elif cq_data == "btn_progress":
+            _cmd_progress(cq_chat, cq_tg_id)
+        elif cq_data == "btn_latestscore":
+            _cmd_latestscore(cq_chat, cq_tg_id)
+        elif cq_data.startswith("rev_"):
             try:
                 result_id = int(cq_data[4:])
             except ValueError:
