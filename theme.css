@@ -755,6 +755,40 @@ html.dark .chip {
   color: #94a3b8;
 }
 
+/* ── Index page — How It Works section ─────────────────────────────────── */
+html.dark .steps-bg {
+  background: #0f172a;
+  border-top-color: #334155;
+  border-bottom-color: #334155;
+}
+
+html.dark .step-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .step-num {
+  background: #1e3a5f;
+  color: #60a5fa;
+}
+
+html.dark .step-title {
+  color: #f1f5f9;
+}
+
+html.dark .step-text {
+  color: #94a3b8;
+}
+
+html.dark .section-tag {
+  background: #1e293b;
+  color: #60a5fa;
+}
+
+html.dark .section-sub {
+  color: #94a3b8;
+}
+
 /* ── Footer (if any) ────────────────────────────────────────────────────── */
 html.dark footer {
   background: #0f172a;
