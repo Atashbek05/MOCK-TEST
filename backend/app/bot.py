@@ -35,6 +35,8 @@ TOKEN:   str = os.getenv("TELEGRAM_BOT_TOKEN", "")
 APP_URL: str = os.getenv("FRONTEND_URL", "https://atashasd.vercel.app")
 API:     str = f"https://api.telegram.org/bot{TOKEN}"
 
+TG_MAX_LEN = 4000  # leave buffer below Telegram's 4096-char hard limit
+
 
 # ── Send a message ─────────────────────────────────────────────────────────────
 def _send(chat_id: int, text: str, keyboard: Optional[dict] = None,
@@ -451,6 +453,31 @@ def _cmd_latestscore(chat_id: int, tg_id: int) -> None:
         db.close()
 
 
+# ── Message splitting ─────────────────────────────────────────────────────────
+
+def _send_split(chat_id: int, text: str, keyboard: Optional[dict] = None) -> None:
+    """Send a message, splitting into multiple parts if it exceeds Telegram's limit."""
+    if len(text) <= TG_MAX_LEN:
+        _send(chat_id, text, keyboard)
+        return
+    lines = text.split("\n")
+    chunks: list = []
+    buf = ""
+    for line in lines:
+        candidate = (buf + "\n" + line) if buf else line
+        if len(candidate) > TG_MAX_LEN:
+            if buf:
+                chunks.append(buf)
+            buf = line
+        else:
+            buf = candidate
+    if buf:
+        chunks.append(buf)
+    for i, chunk in enumerate(chunks):
+        kb = keyboard if i == len(chunks) - 1 else None
+        _send(chat_id, chunk, kb)
+
+
 # ── AI Coach helpers ───────────────────────────────────────────────────────────
 
 def _coach_fallback(band: float, correct: int, total: int) -> dict:
@@ -689,6 +716,344 @@ def _get_coach_advice_full(
                 "encouragement": fb["encouragement"]}
 
 
+# ── Full post-test AI analysis ─────────────────────────────────────────────────
+
+def _build_fallback_analysis(band: float, correct: int, total: int,
+                              wrong_questions: list) -> dict:
+    """Rule-based full analysis when OpenAI is unavailable."""
+    if band >= 7.5:
+        strengths = ["Strong vocabulary recognition", "Accurate skimming", "Good time management"]
+        weaknesses = ["Review paraphrase questions", "Watch for subtle distractors"]
+        patterns = ["Occasional misses on paraphrase-heavy questions"]
+        next_band = f"{band} — maintain and target 8.0"
+        advice = "Excellent score! Eliminate remaining errors by focusing on distractor traps."
+        focus = ["Paraphrase recognition", "Detail accuracy"]
+        daily = "30 min: 1 timed passage + vocabulary revision"
+        roadmap = "Week 1: Paraphrase drills → Week 2: Timed tests → Week 3: Full mock"
+    elif band >= 6.0:
+        strengths = ["General comprehension", "Main idea recognition"]
+        weaknesses = ["Vocabulary gaps", "Detail accuracy", "Paraphrase recognition"]
+        patterns = ["Missing specific detail questions and falling into distractor traps"]
+        next_band = f"{band} → target {round(band + 0.5, 1)} with consistent practice"
+        advice = "Good foundation. Build academic vocabulary and paraphrasing skills to move up."
+        focus = ["Academic vocabulary", "TFNG strategy", "Scanning for details"]
+        daily = "45 min: 1 passage with full review of every wrong answer"
+        roadmap = "Weeks 1–2: Vocabulary → Weeks 3–4: Timed passages → Month 2: Mock tests"
+    else:
+        strengths = ["Attempting all questions", "Basic reading ability"]
+        weaknesses = ["Reading speed", "Vocabulary range", "Question-type strategies"]
+        patterns = ["Many questions answered incorrectly — strategy gaps detected"]
+        next_band = f"{band} → target {round(band + 1.0, 1)} with structured study"
+        advice = "Build your foundation step by step. Start with question types and core vocabulary."
+        focus = ["Question-type strategies", "Core vocabulary", "Sentence comprehension"]
+        daily = "1 hour: Grammar basics + 20 IELTS words + short reading passages"
+        roadmap = "Month 1: Foundations → Month 2: Practice tests → Month 3: Mock exams"
+
+    q_analysis = []
+    for w in wrong_questions[:10]:
+        q_analysis.append({
+            "num": w["num"],
+            "is_wrong": True,
+            "why_wrong": "The correct answer matches a paraphrased statement in the passage.",
+            "evidence": "Look for the key phrase in the relevant paragraph.",
+            "trap": "Common paraphrase or distractor trap.",
+            "paraphrase": "The question uses different wording from the passage.",
+            "fix": "Re-read the relevant section carefully and look for paraphrased keywords.",
+        })
+
+    return {
+        "question_analysis": q_analysis,
+        "correct_summary": f"Well done on {correct} correct answer(s) — your accurate responses show good comprehension in those areas.",
+        "coach": {
+            "strengths": strengths,
+            "weaknesses": weaknesses,
+            "patterns": patterns,
+            "estimated_next_band": next_band,
+            "personalized_advice": advice,
+        },
+        "study_plan": {
+            "focus_areas": focus,
+            "daily_practice": daily,
+            "target_band_roadmap": roadmap,
+        },
+    }
+
+
+def _get_full_ai_analysis(band: float, correct: int, total: int,
+                           wrong_questions: list, test_title: str,
+                           passage_texts: dict) -> dict:
+    """
+    Full AI analysis with per-question breakdown, coach section, and study plan.
+    Falls back to rule-based if no API key or on error.
+    """
+    api_key = os.getenv("OPENAI_API_KEY", "")
+    if not api_key:
+        return _build_fallback_analysis(band, correct, total, wrong_questions)
+
+    if not wrong_questions:
+        return {
+            "question_analysis": [],
+            "correct_summary": f"Perfect score! All {correct} answers are correct. Outstanding work.",
+            "coach": {
+                "strengths": ["Exceptional accuracy", "Strong comprehension", "Effective strategy"],
+                "weaknesses": [],
+                "patterns": ["No error patterns — consistent excellence across all question types"],
+                "estimated_next_band": f"{band} — sustain and aim for 9.0",
+                "personalized_advice": "Incredible result! Maintain this level with regular practice.",
+            },
+            "study_plan": {
+                "focus_areas": ["Sustain accuracy under time pressure", "Try harder passages"],
+                "daily_practice": "1 timed full test per week to maintain peak performance",
+                "target_band_roadmap": "Continue mock tests at this level to lock in Band 9",
+            },
+        }
+
+    sample = wrong_questions[:8]
+    passage_hint = next(iter(passage_texts.values()), "")[:150] if passage_texts else ""
+
+    wrong_text = ""
+    for w in sample:
+        wrong_text += (
+            f"Q{w['num']}: {w['question_text'][:150]}\n"
+            f"  Correct: {w['correct_answer']}) {w['correct_option_text'][:100]}\n\n"
+        )
+
+    prompt = (
+        f"You are an expert IELTS tutor. Student scored Band {band} ({correct}/{total}) on '{test_title}'.\n\n"
+        f"Passage excerpt: {passage_hint}...\n\n"
+        f"WRONG QUESTIONS ({len(wrong_questions)} total, analysing {len(sample)}):\n{wrong_text}"
+        f"CORRECT: {correct} questions answered correctly.\n\n"
+        "Return ONLY valid JSON with this exact structure:\n"
+        '{"question_analysis":[{"num":1,"is_wrong":true,"why_wrong":"1-sentence explanation","evidence":"key passage phrase","trap":"name of IELTS trap","paraphrase":"how passage paraphrased question","fix":"specific strategy for next time"}],'
+        '"correct_summary":"1-sentence praise for correct answers",'
+        '"coach":{"strengths":["...","..."],"weaknesses":["...","..."],"patterns":["..."],"estimated_next_band":"e.g. 7.0 with X improvement","personalized_advice":"2-3 sentence personalized coaching"},'
+        '"study_plan":{"focus_areas":["...","..."],"daily_practice":"specific daily recommendation","target_band_roadmap":"3-step roadmap"}}'
+    )
+
+    try:
+        resp = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}"},
+            json={
+                "model": "gpt-4o-mini",
+                "messages": [
+                    {"role": "system", "content": "Expert IELTS tutor. Reply ONLY with valid JSON. Be specific and actionable."},
+                    {"role": "user", "content": prompt},
+                ],
+                "max_tokens": 1800,
+                "temperature": 0.4,
+                "response_format": {"type": "json_object"},
+            },
+            timeout=35,
+        )
+        result = _json.loads(resp.json()["choices"][0]["message"]["content"])
+        if "coach" not in result or "study_plan" not in result:
+            return _build_fallback_analysis(band, correct, total, wrong_questions)
+        return result
+    except Exception:
+        return _build_fallback_analysis(band, correct, total, wrong_questions)
+
+
+def _format_full_analysis_messages(
+    test_title: str,
+    date_str: str,
+    band: float,
+    correct: int,
+    total: int,
+    wrong_questions: list,
+    analysis: dict,
+    result_id: int,
+) -> list:
+    """Build list of Telegram message strings for the full post-test analysis."""
+    messages = []
+    wrong_count = total - correct
+
+    # ── Message 1: Test Summary ───────────────────────────────────────────────
+    msg1 = (
+        f"📊 *Test Complete — Full AI Analysis*\n\n"
+        f"📝 *{test_title}*\n"
+        f"📅 {date_str}\n"
+        f"🎯 Band Score: *{band}*\n"
+        f"✅ Correct: {correct}/{total}   ❌ Wrong: {wrong_count}\n"
+        f"{'─' * 28}\n"
+        f"_Full breakdown below_ 👇"
+    )
+    messages.append(msg1)
+
+    # ── Message 2+: Mistake Analysis ─────────────────────────────────────────
+    if wrong_questions:
+        q_analysis_map = {qa.get("num"): qa for qa in analysis.get("question_analysis", [])}
+
+        current_chunk = f"❌ *Mistake Analysis ({wrong_count} errors):*\n\n"
+        for w in wrong_questions:
+            qa = q_analysis_map.get(w["num"], {})
+            qt = w["question_text"]
+            qt = (qt[:110] + "…") if len(qt) > 110 else qt
+            ot = w["correct_option_text"]
+            ot = (ot[:80] + "…") if len(ot) > 80 else ot
+
+            block = (
+                f"❌ *Q{w['num']}.* _{qt}_\n"
+                f"• Your answer: ❌ Wrong\n"
+                f"• Correct: *{w['correct_answer']}* — {ot}\n"
+            )
+            if qa.get("why_wrong"):
+                block += f"• Why wrong: {qa['why_wrong']}\n"
+            if qa.get("evidence"):
+                ev = qa["evidence"][:100]
+                block += f"• Evidence: _{ev}_\n"
+            if qa.get("trap"):
+                block += f"• IELTS trap: {qa['trap']}\n"
+            if qa.get("paraphrase"):
+                ph = qa["paraphrase"][:100]
+                block += f"• Paraphrase: {ph}\n"
+            if qa.get("fix"):
+                block += f"• Next time: {qa['fix']}\n"
+            block += "\n"
+
+            if len(current_chunk) + len(block) > TG_MAX_LEN:
+                messages.append(current_chunk.rstrip())
+                current_chunk = "❌ *Mistakes (continued):*\n\n" + block
+            else:
+                current_chunk += block
+
+        if current_chunk.strip():
+            messages.append(current_chunk.rstrip())
+
+    # ── Correct answers summary ──────────────────────────────────────────────
+    if correct > 0:
+        correct_summary = analysis.get("correct_summary", f"Well done on {correct} correct answers!")
+        messages.append(f"✅ *Correct Answers ({correct}/{total}):*\n\n{correct_summary}")
+
+    # ── AI Coach ─────────────────────────────────────────────────────────────
+    coach = analysis.get("coach", {})
+    coach_msg = "🧠 *AI Coach Analysis:*\n\n"
+    if coach.get("strengths"):
+        coach_msg += "💪 *Strengths:*\n" + "\n".join(f"• {s}" for s in coach["strengths"]) + "\n\n"
+    if coach.get("weaknesses"):
+        coach_msg += "⚠️ *Weaknesses:*\n" + "\n".join(f"• {w}" for w in coach["weaknesses"]) + "\n\n"
+    if coach.get("patterns"):
+        coach_msg += "🔍 *Patterns detected:*\n" + "\n".join(f"• {p}" for p in coach["patterns"]) + "\n\n"
+    if coach.get("estimated_next_band"):
+        coach_msg += f"📈 *Estimated next band:* {coach['estimated_next_band']}\n\n"
+    if coach.get("personalized_advice"):
+        coach_msg += f"💬 *Advice:* {coach['personalized_advice']}"
+    messages.append(coach_msg)
+
+    # ── Study Plan ────────────────────────────────────────────────────────────
+    plan = analysis.get("study_plan", {})
+    plan_msg = "📚 *Your Study Plan:*\n\n"
+    if plan.get("focus_areas"):
+        plan_msg += "🎯 *What to improve:*\n" + "\n".join(f"• {a}" for a in plan["focus_areas"]) + "\n\n"
+    if plan.get("daily_practice"):
+        plan_msg += f"📅 *Daily practice:* {plan['daily_practice']}\n\n"
+    if plan.get("target_band_roadmap"):
+        plan_msg += f"🗺 *Band roadmap:* {plan['target_band_roadmap']}"
+    messages.append(plan_msg)
+
+    return messages
+
+
+def send_full_analysis_after_test(chat_id: int, result_id: int) -> None:
+    """
+    Public — called from main.py in a background thread after test submission.
+    Generates and sends a full AI analysis to the student's Telegram.
+    """
+    db = SessionLocal()
+    r = None
+    try:
+        r = db.query(models.TeacherTestResult).filter(
+            models.TeacherTestResult.id == result_id
+        ).first()
+        if not r:
+            return
+
+        test = db.query(models.TeacherTest).filter(
+            models.TeacherTest.id == r.test_id
+        ).first()
+        if not test:
+            return
+
+        test_title = test.title
+        date_str = r.created_at.strftime("%d.%m.%Y")
+        wrong_ids: set = set(r.wrong_question_ids or [])
+
+        # Collect passage texts and build ordered question list
+        all_questions: list = []
+        passage_texts: dict = {}
+        for passage in test.passages:
+            passage_texts[passage.title] = passage.text[:200]
+            all_questions.extend(passage.questions)
+
+        # Build wrong questions list with sequential numbers
+        wrong_questions: list = []
+        for num, q in enumerate(all_questions, 1):
+            if q.id in wrong_ids:
+                opt_text = getattr(q, f"option_{q.correct_answer.lower()}", "") or ""
+                wrong_questions.append({
+                    "num": num,
+                    "question_text": q.question_text,
+                    "correct_answer": q.correct_answer,
+                    "correct_option_text": opt_text,
+                })
+
+        # Generate AI analysis (or fallback)
+        analysis = _get_full_ai_analysis(
+            r.band, r.correct, r.total,
+            wrong_questions, test_title, passage_texts,
+        )
+
+        # Persist analysis to DB
+        try:
+            r.ai_analysis = _json.dumps(analysis, ensure_ascii=False)
+            db.commit()
+        except Exception:
+            db.rollback()
+
+        # Build Telegram messages
+        messages = _format_full_analysis_messages(
+            test_title=test_title,
+            date_str=date_str,
+            band=r.band,
+            correct=r.correct,
+            total=r.total,
+            wrong_questions=wrong_questions,
+            analysis=analysis,
+            result_id=result_id,
+        )
+
+        # Action buttons on the last message
+        buttons = {
+            "inline_keyboard": [
+                [
+                    {"text": "📖 Full Analysis", "callback_data": f"rev_{result_id}"},
+                    {"text": "🔁 Retry Test", "url": f"{APP_URL}/student-test.html"},
+                ],
+                [
+                    {"text": "📈 View Progress", "callback_data": "progress"},
+                ],
+            ]
+        }
+
+        for i, msg in enumerate(messages):
+            kb = buttons if i == len(messages) - 1 else None
+            _send_split(chat_id, msg, kb)
+
+    except Exception:
+        # Fallback: send simple completion notice rather than silent failure
+        try:
+            band_str = str(r.band) if r else "?"
+            _send(chat_id, (
+                f"✅ *Test Complete!*\n\n"
+                f"🎯 Band Score: *{band_str}*\n\n"
+                f"Use /review for your detailed breakdown."
+            ))
+        except Exception:
+            pass
+    finally:
+        db.close()
+
+
 def _cmd_review_by_id(chat_id: int, tg_id: int, result_id: int) -> None:
     """Full review for a specific test result: overview grid + all mistakes + AI explanations."""
     db = SessionLocal()
@@ -818,6 +1183,8 @@ def _handle(update: dict) -> None:
             except ValueError:
                 return
             _cmd_review_by_id(cq_chat, cq_tg_id, result_id)
+        elif cq_data == "progress" and cq_chat and cq_tg_id:
+            _cmd_progress(cq_chat, cq_tg_id)
         return
 
     # ── Regular text message ───────────────────────────────────────────────────

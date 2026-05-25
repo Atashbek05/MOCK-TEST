@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from . import models, schemas
-from .bot import start_polling
+from .bot import start_polling, send_full_analysis_after_test as _bot_send_full_analysis
 from .seed_data import READING_TESTS
 from .database import Base, SessionLocal, engine, get_db
 from .seed_ielts import seed as seed_ielts_content
@@ -155,6 +155,15 @@ def _migrate_teacher_result_wrong_ids(db: Session) -> None:
     """Add wrong_question_ids JSON column to teacher_test_results if not present."""
     try:
         db.execute(text("ALTER TABLE teacher_test_results ADD COLUMN wrong_question_ids TEXT"))
+        db.commit()
+    except Exception:
+        db.rollback()
+
+
+def _migrate_teacher_result_ai_analysis(db: Session) -> None:
+    """Add ai_analysis TEXT column to teacher_test_results if not present."""
+    try:
+        db.execute(text("ALTER TABLE teacher_test_results ADD COLUMN ai_analysis TEXT"))
         db.commit()
     except Exception:
         db.rollback()
@@ -479,6 +488,7 @@ async def startup_event():
         _migrate_users_telegram(db)     # Phase 6
         _migrate_teacher_passage_audio(db)
         _migrate_teacher_result_wrong_ids(db)
+        _migrate_teacher_result_ai_analysis(db)
         _seed_questions(db)
         _seed_reading_tests(db)
     finally:
@@ -1272,26 +1282,26 @@ def submit_teacher_test(
     band = _calculate_band(correct, total)
 
     # Persist every submission so the teacher can see results
-    db.add(models.TeacherTestResult(
+    result_obj = models.TeacherTestResult(
         student_id=current_user.id,
         test_id=payload.test_id,
         correct=correct,
         total=total,
         band=band,
         wrong_question_ids=wrong_ids,
-    ))
+    )
+    db.add(result_obj)
     db.commit()
+    db.refresh(result_obj)
 
-    # Telegram notification — only if this student linked their account
+    # Telegram — full AI analysis in background so we don't block the HTTP response
     if current_user.telegram_id:
-        _tg_send(
-            current_user.telegram_id,
-            f"✅ *Тест завершён!*\n\n"
-            f"📝 {test.title}\n"
-            f"🎯 Band Score: *{band}*\n"
-            f"✔️ Правильных: {correct}/{total}\n\n"
-            f"🧠 Ваш AI Review готов — отправьте /review для разбора ошибок",
+        t = threading.Thread(
+            target=_bot_send_full_analysis,
+            args=(current_user.telegram_id, result_obj.id),
+            daemon=True,
         )
+        t.start()
 
     return schemas.ReadingResultOut(correct=correct, total=total, band=band)
 

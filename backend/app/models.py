@@ -414,6 +414,7 @@ class TeacherTestResult(Base):
     total: Mapped[int] = mapped_column(Integer, default=0)
     band: Mapped[float] = mapped_column(Float, default=0.0)
     wrong_question_ids: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    ai_analysis: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     student = relationship("User", foreign_keys=[student_id])
