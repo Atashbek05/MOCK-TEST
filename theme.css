@@ -772,3 +772,743 @@ html.dark .header .sub {
   z-index: 9999;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   EXTENDED DARK MODE OVERRIDES — full-platform audit
+   These rules cover CSS-class-based backgrounds that the generic inline-style
+   selectors above cannot reach.
+══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Dashboard: loading overlay ──────────────────────────────────────── */
+html.dark #dash-loading {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+html.dark .dash-load-title { color: #f1f5f9; }
+html.dark .dash-spinner { border-color: #334155; border-top-color: #059669; }
+
+/* ── Dashboard: stat number text ─────────────────────────────────────── */
+html.dark .stat-number { color: #f1f5f9; }
+html.dark .score-card-header h3 { color: #e2e8f0; }
+html.dark .score-date { color: #64748b; }
+
+/* ── Dashboard: progress bars ────────────────────────────────────────── */
+html.dark .bar-track { background: #334155; }
+html.dark .bar-name  { color: #94a3b8; }
+html.dark .bar-score { color: #e2e8f0; }
+
+/* ── Dashboard: section card icon tints ──────────────────────────────── */
+html.dark .s-reading   { background: #0c1a35; }
+html.dark .s-listening { background: #052e16; }
+html.dark .s-writing   { background: #1a1200; }
+html.dark .s-speaking  { background: #1e1040; }
+html.dark .s-name      { color: #e2e8f0; }
+html.dark .s-coming    { background: #0f172a; color: #64748b; }
+
+/* ── Dashboard: band circles (latest score section) ──────────────────── */
+html.dark .circle-excellent { background: #052e16; color: #4ade80; border-color: #4ade80; }
+html.dark .circle-good      { background: #0c1a35; color: #60a5fa; border-color: #60a5fa; }
+html.dark .circle-moderate  { background: #1a1200; color: #fbbf24; border-color: #fbbf24; }
+html.dark .circle-low       { background: #2a0d0d; color: #f87171; border-color: #f87171; }
+
+/* ── Dashboard: chart + empty state ─────────────────────────────────── */
+html.dark .chart-wrap { background: #1e293b; }
+html.dark .empty-card { background: #1e293b; }
+
+/* ── Dashboard: joined teacher test cards ────────────────────────────── */
+html.dark .pin-join-card,
+html.dark .joined-test-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+html.dark .jt-icon  { background: #0f172a; }
+html.dark .jt-title { color: #e2e8f0; }
+html.dark .jt-score-lbl { color: #94a3b8; }
+html.dark .badge-inactive {
+  background: #1e293b;
+  border-color: #334155;
+  color: #64748b;
+}
+
+/* ── Dashboard: PIN preview card ─────────────────────────────────────── */
+html.dark .pin-preview-card {
+  background: #0d2218;
+  border-color: #10b981;
+}
+html.dark .ppc-icon  { background: #0f172a; }
+html.dark .ppc-title { color: #e2e8f0; }
+html.dark .ppc-meta  { color: #94a3b8; }
+html.dark .btn-preview-cancel {
+  color: #94a3b8;
+  border-color: #334155;
+}
+html.dark .btn-preview-cancel:hover {
+  color: #f87171;
+  border-color: #7f1d1d;
+}
+html.dark .pin-input {
+  background: #0f172a;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+html.dark .pin-input:focus { border-color: #2563eb; background: #0f172a; }
+
+/* ── Telegram banner (all pages) ─────────────────────────────────────── */
+html.dark .tg-banner {
+  background: #0c1a2e !important;
+  border-color: #1e3a5f !important;
+}
+html.dark .tg-banner.connected {
+  background: #0d2218 !important;
+  border-color: #10b981 !important;
+}
+html.dark .tg-banner-title { color: #e2e8f0; }
+html.dark .tg-banner-sub   { color: #64748b; }
+html.dark .tg-banner.connected .tg-banner-sub { color: #10b981; }
+html.dark .tg-banner-icon  { background: #0f172a !important; }
+html.dark .tg-banner.connected .tg-banner-icon { background: #052e16 !important; }
+html.dark .tg-banner-arrow { color: #475569; }
+
+/* ── Teacher Dashboard: feature cards ────────────────────────────────── */
+html.dark .feature-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+}
+html.dark .feature-title { color: #e2e8f0; }
+html.dark .feature-desc  { color: #94a3b8; }
+html.dark .fi-green  { background: #052e16; }
+html.dark .fi-blue   { background: #0c1a35; }
+html.dark .fi-orange { background: #1a1000; }
+html.dark .fi-yellow { background: #1a1200; }
+html.dark .coming-soon {
+  background: #1a1200;
+  color: #fbbf24;
+}
+html.dark .feature-card.active-feature .coming-soon {
+  background: #052e16;
+  color: #34d399;
+}
+
+/* ── Teacher Dashboard: test list ────────────────────────────────────── */
+html.dark .tests-empty {
+  background: #1e293b;
+  border-color: #334155;
+  color: #64748b;
+}
+html.dark .btn-icon {
+  background: #0f172a;
+  color: #94a3b8;
+}
+html.dark .btn-icon:hover { background: #1e293b; color: #e2e8f0; }
+html.dark .btn-icon.danger:hover { background: #2d1a1a; color: #f87171; }
+html.dark .pin-badge {
+  background: #052e16;
+  border-color: #10b981;
+  color: #34d399;
+}
+html.dark .pin-badge:hover { background: #064e23; border-color: #10b981; }
+
+/* ── Teacher Dashboard: info banner ─────────────────────────────────── */
+html.dark .info-banner {
+  background: #0d2218;
+  border-color: #10b981;
+}
+html.dark .info-text h3   { color: #34d399; }
+html.dark .info-text p    { color: #6ee7b7; }
+
+/* ── Teacher Dashboard: header center nav ────────────────────────────── */
+html.dark .header-center {
+  background: #0d2218 !important;
+  border-color: #10b981 !important;
+}
+
+/* ── Teacher Create Test: form elements ──────────────────────────────── */
+html.dark .card-title { border-bottom-color: #334155; }
+html.dark .passage-block {
+  background: #0f172a;
+  border-color: #334155;
+}
+html.dark .passage-label { color: #e2e8f0; }
+html.dark .question-block {
+  background: #0f172a;
+  border-color: #334155;
+}
+html.dark .question-label { color: #cbd5e1; }
+html.dark .option-letter  { color: #94a3b8; }
+html.dark .correct-row label { color: #94a3b8; }
+html.dark .correct-select {
+  background: #0d2218;
+  border-color: #10b981;
+  color: #34d399;
+}
+html.dark .type-tab {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+html.dark .type-tab:hover  { border-color: #059669; color: #10b981; }
+html.dark .type-tab.active { background: #059669; border-color: #059669; color: white; }
+html.dark .q-counter {
+  background: #0f172a;
+  border-color: #334155;
+  color: #94a3b8;
+}
+html.dark .writing-hint {
+  background: #0d2218;
+  border-color: #10b981;
+  color: #34d399;
+}
+html.dark .audio-upload-area {
+  background: #0f172a;
+  border-color: #334155;
+}
+html.dark .audio-upload-area.has-file { border-color: #059669; }
+html.dark .audio-filename  { color: #64748b; }
+html.dark .btn-remove      { border-color: #7f1d1d; color: #f87171; }
+html.dark .btn-remove:hover { background: #2d1a1a; }
+html.dark .questions-label { color: #64748b; }
+html.dark .page-sub        { color: #94a3b8; }
+
+/* ── Telegram Connect page ────────────────────────────────────────────── */
+html.dark .top-bar {
+  background: #0f172a !important;
+  border-bottom-color: #334155 !important;
+}
+html.dark .digit-box {
+  background: #0f172a;
+  border-color: #475569;
+  color: #60a5fa;
+}
+html.dark .digit-sep { color: #475569; }
+html.dark .connected-card {
+  background: #0d2218;
+  border-color: #10b981;
+}
+html.dark .connected-name   { color: #e2e8f0; }
+html.dark .connected-handle { color: #34d399; }
+html.dark .connected-desc   { color: #94a3b8; }
+html.dark .connected-badge  { background: #052e16; color: #34d399; }
+html.dark .btn-unlink {
+  background: #1e293b;
+  border-color: #7f1d1d;
+  color: #f87171;
+}
+html.dark .btn-unlink:hover { background: #2d1a1a; }
+html.dark .step-title { color: #e2e8f0; }
+html.dark .step-sub   { color: #94a3b8; }
+
+/* ── AI Coach & Full Review modal internals ──────────────────────────── */
+html.dark .coach-modal-close,
+html.dark .review-modal-close {
+  background: #0f172a;
+  color: #94a3b8;
+}
+html.dark .coach-modal-close:hover,
+html.dark .review-modal-close:hover {
+  background: #334155;
+  color: #e2e8f0;
+}
+html.dark .coach-summary,
+html.dark .review-coach-summary {
+  background: #0f172a;
+  color: #cbd5e1;
+}
+html.dark .coach-tag,
+html.dark .review-coach-tag {
+  background: #1f1500;
+  border-color: #78350f;
+  color: #fcd34d;
+}
+html.dark .coach-tips li,
+html.dark .review-coach-tips li { color: #cbd5e1; }
+html.dark .coach-encouragement {
+  background: linear-gradient(135deg, #1e1040, #0c1a35);
+  color: #c4b5fd;
+}
+html.dark .review-encouragement {
+  background: linear-gradient(135deg, #052e16, #083344);
+  color: #6ee7b7;
+}
+html.dark .coach-score-badge,
+html.dark .review-score-badge {
+  background: #052e16;
+  border-color: #10b981;
+  color: #34d399;
+}
+html.dark .review-mistake-item {
+  background: #1c1400;
+  border-color: #78350f;
+}
+html.dark .review-mistake-q  { color: #cbd5e1; }
+html.dark .review-mistake-ans { color: #34d399; }
+html.dark .review-perfect {
+  background: #052e16;
+  border-color: #10b981;
+  color: #34d399;
+}
+html.dark .review-no-detail { color: #64748b; }
+html.dark .review-divider   { border-top-color: #334155; }
+html.dark .coach-loading,
+html.dark .review-loading   { color: #94a3b8; }
+html.dark .coach-loading-spinner  { border-color: #334155; border-top-color: #7c3aed; }
+html.dark .review-loading-spinner { border-color: #334155; border-top-color: #059669; }
+
+/* ── Reading / Listening exam pages ──────────────────────────────────── */
+html.dark .passage-panel {
+  background: #1e293b;
+  border-color: #334155;
+}
+html.dark .passage-panel p { color: #cbd5e1; }
+html.dark .passage-title   { color: #e2e8f0; border-left-color: #3b82f6; }
+html.dark .panel-label     { color: #64748b; }
+html.dark .passage-tabs {
+  background: #0f172a;
+  border-bottom-color: #334155;
+}
+html.dark .tab-badge { background: #334155 !important; color: #94a3b8 !important; }
+html.dark .tab-btn.active .tab-badge   { background: #0c1a35 !important; color: #60a5fa !important; }
+html.dark .tab-btn.complete .tab-badge { background: #052e16 !important; color: #34d399 !important; }
+html.dark .section-heading { color: #94a3b8; }
+html.dark .header-label    { color: #64748b; }
+html.dark .question-num    { color: #94a3b8; }
+html.dark .question-text   { color: #e2e8f0; }
+
+/* ── Writing exam page ────────────────────────────────────────────────── */
+html.dark .task-card {
+  background: #1e293b;
+  border-left-color: #475569;
+}
+html.dark .task-card p  { color: #cbd5e1; }
+html.dark .task-label   { color: #64748b; }
+html.dark .task-note    { color: #64748b; }
+html.dark .essay-card   { background: #1e293b; }
+html.dark .essay-card label { color: #64748b; }
+html.dark .word-count-label      { color: #94a3b8; }
+html.dark .word-count-label span { color: #e2e8f0; }
+html.dark .word-progress-wrap    { background: #334155; }
+html.dark .target-label          { color: #64748b; }
+
+/* ── Result page (result.html) ────────────────────────────────────────── */
+html.dark .stat-box,
+html.dark .feedback {
+  background: #263548;
+  color: #cbd5e1;
+}
+html.dark .stat-val   { color: #e2e8f0; }
+html.dark .stat-name  { color: #64748b; }
+html.dark .feedback b { color: #f1f5f9; }
+html.dark .accuracy-bar-wrap { background: #334155; }
+html.dark .btn-secondary {
+  background: #1e293b;
+  color: #cbd5e1;
+}
+html.dark .score-line   { color: #94a3b8; }
+html.dark .score-line b { color: #e2e8f0; }
+html.dark .result-card h2 { color: #e2e8f0; }
+html.dark .result-card .subtitle { color: #64748b; }
+
+/* ── Writing result page ──────────────────────────────────────────────── */
+html.dark .band-card,
+html.dark .criterion-card,
+html.dark .feedback-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+html.dark .band-card h2  { color: #e2e8f0; }
+html.dark .band-subtitle,
+html.dark .word-count-note { color: #94a3b8; }
+html.dark .criterion-name    { color: #cbd5e1; }
+html.dark .criterion-score   { color: #e2e8f0; }
+html.dark .criterion-bar-wrap { background: #334155; }
+html.dark .criterion-feedback { color: #94a3b8; }
+html.dark .feedback-card li   { color: #94a3b8; }
+html.dark .overall-feedback {
+  background: #263548;
+  color: #cbd5e1;
+}
+
+/* ── Final result page (final-result.html) ────────────────────────────── */
+html.dark .congrats-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+html.dark .congrats-card h2       { color: #e2e8f0; }
+html.dark .congrats-card .subtitle { color: #64748b; }
+html.dark .overall-label { color: #64748b; }
+html.dark .score-box {
+  background: #263548;
+}
+html.dark .score-box .s-name { color: #94a3b8; }
+html.dark .score-box .s-band { color: #e2e8f0; }
+html.dark .performance-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+html.dark .perf-title { color: #64748b; }
+html.dark .perf-name  { color: #94a3b8; }
+html.dark .perf-score { color: #e2e8f0; }
+html.dark .perf-bar-wrap { background: #334155; }
+
+/* ── Band circle colour themes (result pages) ────────────────────────── */
+html.dark .theme-excellent { background: #052e16 !important; color: #4ade80 !important; border-color: #4ade80 !important; }
+html.dark .theme-good      { background: #0c1a35 !important; color: #60a5fa !important; border-color: #60a5fa !important; }
+html.dark .theme-moderate  { background: #1a1200 !important; color: #fbbf24 !important; border-color: #fbbf24 !important; }
+html.dark .theme-low       { background: #2a0d0d !important; color: #f87171 !important; border-color: #f87171 !important; }
+
+/* ── History page ─────────────────────────────────────────────────────── */
+html.dark .page-title    { color: #f1f5f9; }
+html.dark .page-subtitle { color: #64748b; }
+html.dark .mini-bar-bg   { background: #334155; }
+html.dark .col-date,
+html.dark .col-dur       { color: #64748b; }
+html.dark .summary-bar .s-num   { color: #e2e8f0; }
+html.dark .summary-bar .s-label { color: #64748b; }
+
+/* ── Loading spinners (universal) ────────────────────────────────────── */
+html.dark .loading-page { color: #64748b; }
+html.dark .spinner { border-color: #334155; border-top-color: #059669; }
+
+/* ── Additional inline-style colour overrides ─────────────────────────── */
+html.dark [style*="background:#f0f9ff"],
+html.dark [style*="background: #f0f9ff"] {
+  background: #0c1a35 !important;
+}
+html.dark [style*="background:#f0fdf4"],
+html.dark [style*="background: #f0fdf4"] {
+  background: #0d2218 !important;
+}
+html.dark [style*="background:#fef3c7"],
+html.dark [style*="background: #fef3c7"] {
+  background: #1f1500 !important;
+}
+html.dark [style*="background:#fff7ed"],
+html.dark [style*="background: #fff7ed"] {
+  background: #1a1000 !important;
+}
+html.dark [style*="color:#0369a1"],
+html.dark [style*="color: #0369a1"] { color: #60a5fa !important; }
+html.dark [style*="color:#1e40af"],
+html.dark [style*="color: #1e40af"] { color: #93c5fd !important; }
+html.dark [style*="color:#0c4a6e"],
+html.dark [style*="color: #0c4a6e"] { color: #7dd3fc !important; }
+html.dark [style*="color:#065f46"],
+html.dark [style*="color: #065f46"] { color: #34d399 !important; }
+html.dark [style*="color:#92400e"],
+html.dark [style*="color: #92400e"] { color: #fcd34d !important; }
+html.dark [style*="color:#111827"],
+html.dark [style*="color: #111827"] { color: #e2e8f0 !important; }
+html.dark [style*="color:#222"],
+html.dark [style*="color: #222"]    { color: #e2e8f0 !important; }
+html.dark [style*="color:#333"],
+html.dark [style*="color: #333"]    { color: #cbd5e1 !important; }
+html.dark [style*="color:#0f172a"],
+html.dark [style*="color: #0f172a"] { color: #e2e8f0 !important; }
+html.dark [style*="color:#334155"],
+html.dark [style*="color: #334155"] { color: #cbd5e1 !important; }
+html.dark [style*="color:#1e293b"],
+html.dark [style*="color: #1e293b"] { color: #94a3b8 !important; }
+html.dark [style*="border-color:#bae6fd"],
+html.dark [style*="border:1.5px solid #bae6fd"],
+html.dark [style*="border: 1.5px solid #bae6fd"] { border-color: #1e3a5f !important; }
+
+/* ── nav-link hover/active on teacher pages (green accent) ───────────── */
+html.dark .nav-link.active[href="teacher-students.html"],
+html.dark .nav-link.active[href="teacher-analytics.html"],
+html.dark .nav-link.active[href="teacher-create-test.html"],
+html.dark .nav-link.active[href="teacher-dashboard.html"] {
+  background: #0d2218;
+  color: #10b981;
+}
+
+/* ── Section title text in old-style pages ───────────────────────────── */
+html.dark .section-title { color: #f1f5f9; }
+
+/* ── Generic borders that use #f1f5f9 as border (not background) ─────── */
+html.dark .card-title { border-bottom-color: #334155 !important; }
+
+/* ── Student Teacher Test page ────────────────────────────────────────── */
+html.dark .tabs-bar {
+  background: #0f172a;
+  border-bottom-color: #334155;
+}
+html.dark .q-card,
+html.dark .writing-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+html.dark .q-text          { color: #e2e8f0; }
+html.dark .passage-text    { color: #cbd5e1; }
+html.dark .writing-card-title { color: #94a3b8; }
+html.dark .writing-task-name  { color: #e2e8f0; }
+html.dark .writing-hint-box {
+  background: #0d2218;
+  border-color: #10b981;
+  color: #34d399;
+}
+html.dark .option-label {
+  border-color: #334155;
+  color: #cbd5e1;
+}
+html.dark .option-label:hover {
+  border-color: #3b82f6;
+  background: #0c1a35;
+}
+html.dark .option-label.selected {
+  border-color: #2563eb;
+  background: #0c1a35;
+  color: #93c5fd;
+}
+html.dark .option-label.correct {
+  border-color: #16a34a;
+  background: #052e16;
+  color: #4ade80;
+}
+html.dark .option-label.wrong {
+  border-color: #dc2626;
+  background: #2a0d0d;
+  color: #f87171;
+}
+html.dark .opt-letter {
+  background: #334155;
+  border-color: #475569;
+  color: #94a3b8;
+}
+html.dark .audio-section {
+  background: #0c1a35;
+  border-color: #1e3a5f;
+}
+html.dark .audio-label { color: #60a5fa; }
+html.dark .submit-bar {
+  background: rgba(15, 23, 42, 0.97);
+  border-top-color: #334155;
+}
+html.dark .submit-progress        { color: #94a3b8; }
+html.dark .submit-progress strong { color: #e2e8f0; }
+
+/* Writing result overlay in student-teacher-test */
+html.dark .writing-result-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+html.dark .wr-task {
+  background: #0f172a;
+  border-color: #334155;
+}
+html.dark .wr-task-name { color: #e2e8f0; }
+html.dark .wr-task-meta { color: #94a3b8; }
+html.dark .wr-criterion {
+  background: #1e293b;
+  border-color: #334155;
+}
+html.dark .wr-criterion-name  { color: #64748b; }
+html.dark .wr-criterion-score { color: #e2e8f0; }
+html.dark .wr-criterion-text  { color: #94a3b8; }
+html.dark .wr-overall-feedback {
+  background: #0d2218;
+  border-color: #10b981;
+  color: #34d399;
+}
+html.dark .result-band-label { color: #64748b; }
+html.dark .result-score       { color: #94a3b8; }
+html.dark .result-score strong { color: #e2e8f0; }
+html.dark .result-msg         { color: #94a3b8; }
+
+/* ── Join page (join.html) ─────────────────────────────────────────────── */
+html.dark .join-card .card-title,
+html.dark .card .card-title { color: #f1f5f9; }
+html.dark .card .card-sub   { color: #64748b; }
+
+/* ── Section title text fallback ─────────────────────────────────────── */
+html.dark .section-sub  { color: #64748b; }
+html.dark .state-title  { color: #e2e8f0; }
+html.dark .state-sub    { color: #94a3b8; }
+
+/* ── Reading exam: question cards and options ─────────────────────────── */
+html.dark .question-card > p { color: #e2e8f0; }
+html.dark .option {
+  border-color: #334155;
+  color: #cbd5e1;
+}
+html.dark .option:hover { background: #0c1a35; border-color: #3b82f6; }
+html.dark .option.selected { background: #0c1a35; border-color: #2563eb; }
+html.dark .option label { color: #cbd5e1; }
+html.dark .btn-nav {
+  background: #1e293b;
+  color: #94a3b8;
+  border-color: #334155;
+}
+html.dark .btn-nav:hover { background: #263548; }
+html.dark .overall-progress { background: #1e293b; }
+html.dark .overall-progress .label { color: #94a3b8; }
+html.dark .overall-progress .label span { color: #e2e8f0; }
+html.dark .progress-bar-wrap { background: #334155; }
+html.dark .section-heading { border-bottom-color: #334155; }
+html.dark .loading-screen { color: #94a3b8; }
+
+/* ── Analytics: remaining unlisted elements ───────────────────────────── */
+html.dark .weak-badge {
+  background: #1f1500;
+  color: #fcd34d;
+  border-color: #78350f;
+}
+
+/* ── IELTS Mock Hub page ──────────────────────────────────────────────── */
+html.dark .s-listen { background: #052e16; }
+html.dark .s-read   { background: #0c1a35; }
+html.dark .s-write  { background: #1a1200; }
+html.dark .section-name { color: #e2e8f0; }
+html.dark .btn-logout {
+  background: #1e293b;
+  color: #94a3b8;
+}
+html.dark .btn-logout:hover { background: #263548; }
+html.dark .overall-card {
+  background: linear-gradient(135deg, #052e16, #0d2218) !important;
+  border-color: #10b981 !important;
+}
+html.dark .overall-label { color: #34d399; }
+html.dark .overall-band  { color: #4ade80; }
+html.dark .overall-sub   { color: #6ee7b7; }
+html.dark .band-pill.pending {
+  background: #1f1500;
+  color: #fcd34d;
+}
+html.dark .btn-start.done {
+  background: #052e16;
+  color: #34d399;
+}
+html.dark .btn-start.locked {
+  background: #1e293b;
+  color: #475569;
+}
+html.dark .slot-badge { color: #64748b; }
+
+/* ── IELTS Exam page (ielts-exam.html) ────────────────────────────────── */
+html.dark #screen-loading,
+html.dark #screen-instructions {
+  background: #0f172a;
+}
+html.dark .instr-card {
+  background: #1e293b;
+  border-color: #334155;
+}
+html.dark .instr-title { color: #f1f5f9; }
+html.dark .instr-sub   { color: #94a3b8; }
+html.dark .instr-badge { background: #052e16; color: #34d399; }
+html.dark .instr-rules { background: #0f172a; }
+html.dark .instr-rules li { color: #cbd5e1; }
+html.dark #screen-exam   { background: #0f172a; }
+
+/* Active passage tab in dark exam header */
+html.dark .passage-tab.active {
+  background: #263548;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+
+/* Exam body panels */
+html.dark .passage-panel {
+  background: #1e293b;
+  border-right-color: #334155;
+}
+html.dark .questions-panel { background: #0f172a; }
+html.dark .passage-title { border-bottom-color: #334155; }
+html.dark .para-text { color: #cbd5e1; }
+html.dark .q-group-type-badge { background: #052e16; color: #34d399; }
+html.dark .q-group-instruction {
+  background: #0d2218;
+  border-left-color: #059669;
+  color: #cbd5e1;
+}
+html.dark .q-group-range { color: #e2e8f0; }
+html.dark .options-pool {
+  background: #1f1500;
+  border-color: #78350f;
+}
+html.dark .options-pool-title { color: #fcd34d; }
+html.dark .pool-item       { color: #cbd5e1; }
+html.dark .pool-item-key   { color: #fcd34d; }
+html.dark .q-item {
+  background: #1e293b;
+  border-color: #334155;
+}
+html.dark .q-item.current { border-color: #059669; }
+html.dark .q-number {
+  background: #052e16;
+  color: #34d399;
+}
+html.dark .btn-flag { border-color: #334155; color: #64748b; }
+html.dark .btn-flag:hover,
+html.dark .btn-flag.active { color: #f59e0b; border-color: #78350f; background: #1f1500; }
+html.dark .q-stem { color: #cbd5e1; }
+
+/* TFNG options */
+html.dark .tfng-option {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+html.dark .tfng-option:hover { border-color: #059669; color: #34d399; background: #0d2218; }
+html.dark .tfng-option.selected { border-color: #059669; background: #059669; color: white; }
+
+/* MCQ options */
+html.dark .mcq-option {
+  background: #1e293b;
+  border-color: #334155;
+}
+html.dark .mcq-option:hover  { border-color: #059669; background: #0d2218; }
+html.dark .mcq-option.selected { border-color: #059669; background: #052e16; }
+html.dark .mcq-option.multi.selected { border-color: #3b82f6; background: #0c1a35; }
+html.dark .mcq-text { color: #cbd5e1; }
+html.dark .match-label { color: #94a3b8; }
+html.dark .match-select {
+  background: #0d2218;
+  border-color: #10b981;
+  color: #34d399;
+}
+
+/* ── Writing/Listening exam: loading overlay & extras ─────────────────── */
+html.dark .loading-overlay {
+  background: rgba(15, 23, 42, 0.92);
+}
+html.dark .loading-overlay p     { color: #e2e8f0; }
+html.dark .loading-overlay small { color: #64748b; }
+html.dark .error-banner {
+  background: #2d1a1a;
+  color: #f87171;
+}
+html.dark .audio-note {
+  background: #0c1a35;
+  color: #60a5fa;
+  border-color: #1e3a5f;
+}
+html.dark .submit-hint { color: #64748b; }
+
+/* ── IELTS Listening page (ielts-listening.html) ──────────────────────── */
+html.dark .left-panel {
+  background: #1e293b;
+  border-right-color: #334155;
+}
+html.dark .part-tab         { color: #94a3b8; }
+html.dark .part-tab:hover   { background: #263548; }
+html.dark .part-tab.active  { background: #0d2218; border-color: #10b981; color: #34d399; }
+html.dark .part-tab-num     { background: #334155; color: #94a3b8; }
+html.dark .palette-title    { color: #64748b; }
+html.dark .q-dot {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+html.dark .q-dot:hover { border-color: #059669; }
+html.dark .q-dot.current { border-color: #f59e0b; box-shadow: 0 0 0 2px #78350f; }
+html.dark .group-block {
+  background: #1e293b;
+  border-color: #334155;
+}
+html.dark .group-instruction {
+  background: #0f172a;
+  color: #94a3b8;
+  border-left-color: #059669;
+}
+html.dark .part-context { color: #94a3b8; }
+html.dark .q-number.answered { background: #059669; color: white; }
