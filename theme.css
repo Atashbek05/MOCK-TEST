@@ -347,6 +347,125 @@ html.dark .test-row {
   border-color: #334155;
 }
 
+/* ── Analytics page sections ────────────────────────────────────────────── */
+html.dark .section {
+  background: #1e293b;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.3);
+}
+
+html.dark .section-header {
+  border-bottom-color: #334155;
+}
+
+html.dark .section-sub {
+  color: #64748b;
+}
+
+html.dark .lb-table th {
+  background: #0f172a;
+  color: #64748b;
+  border-bottom-color: #334155;
+}
+
+html.dark .lb-table td {
+  border-bottom-color: #1e293b;
+}
+
+html.dark .lb-table tr:hover td {
+  background: #263548;
+}
+
+html.dark .student-name {
+  color: #e2e8f0;
+}
+
+html.dark .student-email {
+  color: #64748b;
+}
+
+html.dark .rank-num {
+  background: #334155;
+  color: #94a3b8;
+}
+
+html.dark .mini-bar-track {
+  background: #334155;
+}
+
+html.dark .mini-bar-val {
+  color: #cbd5e1;
+}
+
+html.dark .attempts-badge {
+  background: #334155;
+  color: #cbd5e1;
+}
+
+html.dark .date-cell {
+  color: #64748b;
+}
+
+html.dark .weak-row td {
+  background: #1e2a1e !important;
+}
+
+html.dark .weak-row:hover td {
+  background: #1e3020 !important;
+}
+
+html.dark .test-breakdown-card {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+html.dark .test-breakdown-card:hover {
+  border-color: #10b981;
+  box-shadow: 0 4px 12px rgba(16,185,129,0.15);
+}
+
+html.dark .tbc-title {
+  color: #e2e8f0;
+}
+
+html.dark .tbc-stat-label {
+  color: #64748b;
+}
+
+html.dark .tbc-stat-val {
+  color: #e2e8f0;
+}
+
+html.dark .tbc-bar-wrap {
+  background: #334155;
+}
+
+html.dark .tbc-meta {
+  color: #64748b;
+}
+
+html.dark .stat-label {
+  color: #64748b;
+}
+
+html.dark .stat-value {
+  color: #e2e8f0;
+}
+
+html.dark .stat-sub {
+  color: #475569;
+}
+
+html.dark .stat-card.green  .stat-icon { background: #052e16; border-color: #10b981; }
+html.dark .stat-card.blue   .stat-icon { background: #0c1a35; border-color: #3b82f6; }
+html.dark .stat-card.purple .stat-icon { background: #1e1040; border-color: #8b5cf6; }
+html.dark .stat-card.orange .stat-icon { background: #2a1800; border-color: #f59e0b; }
+
+html.dark .ring-bg { stroke: #334155; }
+
+html.dark .section-icon.leaderboard { background: #2a1800; border-color: #fbbf24; }
+html.dark .section-icon.weak        { background: #2a1200; border-color: #fb923c; }
+html.dark .section-icon.breakdown   { background: #052e16; border-color: #34d399; }
+
 /* Modal overlays */
 html.dark .modal-overlay,
 html.dark .overlay {
