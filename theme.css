@@ -520,15 +520,22 @@ html.dark .timer {
 /* ── Tabs ───────────────────────────────────────────────────────────────── */
 html.dark .tab,
 html.dark .tab-btn {
+  background: #1e293b;
   color: #94a3b8;
   border-color: #334155;
 }
 
+html.dark .tab:hover,
+html.dark .tab-btn:hover {
+  border-color: #10b981;
+  color: #10b981;
+}
+
 html.dark .tab.active,
 html.dark .tab-btn.active {
-  background: #1e3a5f;
-  color: #60a5fa;
-  border-color: #3b82f6;
+  background: #059669;
+  color: #fff;
+  border-color: #059669;
 }
 
 /* ── Join page ──────────────────────────────────────────────────────────── */
@@ -687,6 +694,65 @@ html.dark .btn-signout:hover {
   background: #2d1a1a;
   color: #f87171;
   border-color: #7f1d1d;
+}
+
+/* ── teacher-students page ──────────────────────────────────────────────── */
+html.dark .test-info-bar {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+html.dark .test-info-title {
+  color: #f1f5f9;
+}
+
+html.dark .info-chip {
+  background: #0f172a;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+html.dark .info-chip.pin {
+  background: #052e16;
+  border-color: #34d399;
+  color: #10b981;
+}
+
+html.dark .info-chip.pin:hover {
+  background: #064e23;
+  border-color: #10b981;
+}
+
+html.dark .empty-state {
+  background: #1e293b;
+  border-color: #334155;
+  color: #64748b;
+}
+
+html.dark .score-bar-wrap {
+  background: #334155;
+}
+
+html.dark .rank-badge {
+  background: #334155;
+  color: #94a3b8;
+}
+
+html.dark .rank-badge.gold   { background: #2a1e00; color: #fbbf24; }
+html.dark .rank-badge.silver { background: #1e293b; color: #94a3b8; }
+html.dark .rank-badge.bronze { background: #2a1800; color: #f59e0b; }
+
+html.dark .meta-attempts {
+  background: #334155;
+  color: #94a3b8;
+}
+
+html.dark .score-frac {
+  color: #cbd5e1;
+}
+
+html.dark .band-circle .band-lbl {
+  color: #94a3b8;
 }
 
 /* ── tg-app header ──────────────────────────────────────────────────────── */
